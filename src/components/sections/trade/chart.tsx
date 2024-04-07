@@ -1,5 +1,5 @@
+// SectionTradeChart.tsx
 "use client";
-
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { useState } from "react";
@@ -15,11 +15,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import PopupShare from "../../popup/share";
-import PopupChart from "@/components/popup/chart";
-import PopupModify from "@/components/popup/modify";
+import PopupChart from "../../popup/chart";
+import PopupModify from "../../popup/modify";
+import TradingViewAdvancedChart from "../../tradingview/TradingViewAdvancedChart";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
+  const [symbol, setSymbol] = useState("NASDAQ:AAPL");
+  const [interval, setInterval] = useState("D");
+
+  const handleIntervalChange = (value: string) => {
+    setInterval(value);
+  };
+
   return (
     <div className="flex flex-col space-y-3 mt-2 px-5">
       <div className="flex items-center justify-between">
@@ -43,16 +51,18 @@ function SectionTradeChart() {
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <Select>
+        <Select onValueChange={handleIntervalChange}>
           <SelectTrigger className="w-fit flex items-center space-x-2">
             <FaRegClock />
             <SelectValue placeholder="1D" className="outline-none" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="1D">1D</SelectItem>
-            <SelectItem value="1H">1H</SelectItem>
-            <SelectItem value="1W">1W</SelectItem>
-            <SelectItem value="1M">1M</SelectItem>
+            <SelectItem value="1">1m</SelectItem>
+            <SelectItem value="5">5m</SelectItem>
+            <SelectItem value="15">15m</SelectItem>
+            <SelectItem value="60">1h</SelectItem>
+            <SelectItem value="D">1d</SelectItem>
+            <SelectItem value="W">1w</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex items-center space-x-2">
@@ -73,7 +83,7 @@ function SectionTradeChart() {
             <DialogTrigger className="bg-card p-2">
               <CgMaximizeAlt className="text-[1.1rem]" />
             </DialogTrigger>
-            <PopupChart />
+            <PopupChart symbol={symbol} interval={interval} />
           </Dialog>
         </div>
       </div>
@@ -83,7 +93,7 @@ function SectionTradeChart() {
         } overflow-hidden transition-all bg-card text-white`}
       >
         <div className="min-h-[225px] flex items-center justify-center">
-          <h1>Chart</h1>
+          <TradingViewAdvancedChart symbol={symbol} interval={interval} />
         </div>
       </div>
     </div>

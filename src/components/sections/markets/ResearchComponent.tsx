@@ -3,9 +3,13 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import Fuse from "fuse.js";
 import useStore from "../../../store/useStore";
+import { FaStar } from "react-icons/fa";
+import useFavorites from "./useFavorites";
+
 interface Market {
   name: string;
   icon: string;
+  price: number;
 }
 
 interface ResearchComponentProps {
@@ -17,75 +21,111 @@ function ResearchComponent({ searchTerm }: ResearchComponentProps) {
   const [fuse, setFuse] = useState<Fuse<Market> | null>(null);
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
   const [activeTab, setActiveTab] = useState("all");
+  const [sortByPrice, setSortByPrice] = useState(false);
   const setSelectedMarket = useStore((state) => state.setSelectedMarket);
+  const { favorites, toggleFavorite } = useFavorites(defaultSecondAsset);
 
   useEffect(() => {
     const fetchMarkets = async () => {
-      const response = await fetch(`/${activeTab}.json`);
-      const data = await response.json();
-      const fetchedMarkets = Object.keys(data).map((pair) => ({
-        name: pair,
-        icon: "/$.svg",
-      }));
-      setMarkets(fetchedMarkets);
-      console.log("Fetched markets:", fetchedMarkets);
+      if (activeTab !== "favorites") {
+        const response = await fetch(`/${activeTab}.json`);
+        const data = await response.json();
+        const fetchedMarkets = Object.keys(data).map((pair) => ({
+          name: pair,
+          icon: "/$.svg",
+          price: 0,
+        }));
+        setMarkets(fetchedMarkets);
+        console.log("Fetched markets:", fetchedMarkets);
 
-      const fuseInstance = new Fuse(fetchedMarkets, {
-        keys: ["name"],
-        threshold: 0.4,
-        isCaseSensitive: false,
-      });
-      setFuse(fuseInstance);
+        const fuseInstance = new Fuse(fetchedMarkets, {
+          keys: ["name"],
+          threshold: 0.4,
+          isCaseSensitive: false,
+        });
+        setFuse(fuseInstance);
+      } else {
+        setMarkets([]);
+      }
     };
 
     fetchMarkets();
   }, [activeTab]);
 
+  useEffect(() => {
+    const updatePrices = () => {
+      const updatedMarkets = markets.map((market) => ({
+        ...market,
+        price: Math.random() * 10000,
+      }));
+      setMarkets(updatedMarkets);
+    };
+
+    const interval = setInterval(updatePrices, 2000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [markets]);
+
   const getDisplayedMarkets = (): Market[] => {
-    const [firstAsset, secondAsset] = searchTerm.trim().split("/");
-    const secondAssetToUse = secondAsset
-      ? secondAsset.toUpperCase()
-      : defaultSecondAsset;
+    let displayedMarkets: Market[] = [];
 
-    if (firstAsset === "") {
-      return markets.slice(0, 20).map((market) => ({
-        ...market,
-        name: `${market.name}/${secondAssetToUse}`,
-      }));
-    }
+    if (activeTab === "favorites") {
+      displayedMarkets = favorites.map((fav) => {
+        const [firstAsset, secondAsset] = fav.split("/");
+        return {
+          name: fav,
+          icon: "/$.svg",
+          price: Math.random() * 10000,
+        };
+      });
+    } else {
+      const [firstAsset, secondAsset] = searchTerm.trim().split("/");
+      const secondAssetToUse = secondAsset
+        ? secondAsset.toUpperCase()
+        : defaultSecondAsset;
 
-    const searchResults =
-      fuse?.search(firstAsset).map((result) => result.item) || [];
-
-    if (searchResults.length === 0) {
-      return markets.slice(0, 20).map((market) => ({
-        ...market,
-        name: `${market.name}/${secondAssetToUse}`,
-      }));
-    }
-
-    if (secondAsset === "") {
-      const displayedMarkets = searchResults.slice(0, 1).flatMap((market) =>
-        markets.slice(0, 20).map((secondMarket) => ({
+      if (searchTerm.trim() === "") {
+        displayedMarkets = markets.slice(0, 20).map((market) => ({
           ...market,
-          name: `${market.name}/${secondMarket.name}`,
-        }))
-      );
-      return displayedMarkets.slice(0, 20);
+          name: `${market.name}/${secondAssetToUse}`,
+        }));
+      } else {
+        const searchResults =
+          fuse?.search(firstAsset).map((result) => result.item) || [];
+
+        if (searchResults.length === 0) {
+          displayedMarkets = markets.slice(0, 20).map((market) => ({
+            ...market,
+            name: `${market.name}/${secondAssetToUse}`,
+          }));
+        } else if (secondAsset === "") {
+          displayedMarkets = searchResults.slice(0, 1).flatMap((market) =>
+            markets.slice(0, 20).map((secondMarket) => ({
+              ...market,
+              name: `${market.name}/${secondMarket.name}`,
+            }))
+          );
+        } else {
+          displayedMarkets = searchResults.slice(0, 1).flatMap((market) => {
+            const secondMarketSearchResults =
+              fuse?.search(secondAssetToUse).map((result) => result.item) || [];
+            const secondMarkets =
+              secondMarketSearchResults.length > 0
+                ? secondMarketSearchResults
+                : markets;
+            return secondMarkets.slice(0, 20).map((secondMarket) => ({
+              ...market,
+              name: `${market.name}/${secondMarket.name}`,
+            }));
+          });
+        }
+      }
     }
 
-    const displayedMarkets = searchResults.slice(0, 1).flatMap((market) => {
-      const secondMarketSearchResults =
-        fuse?.search(secondAssetToUse).map((result) => result.item) || [];
-      const secondMarkets =
-        secondMarketSearchResults.length > 0
-          ? secondMarketSearchResults
-          : markets;
-      return secondMarkets.slice(0, 20).map((secondMarket) => ({
-        ...market,
-        name: `${market.name}/${secondMarket.name}`,
-      }));
-    });
+    if (sortByPrice) {
+      displayedMarkets.sort((a, b) => b.price - a.price);
+    }
 
     return displayedMarkets.slice(0, 20);
   };
@@ -100,11 +140,17 @@ function ResearchComponent({ searchTerm }: ResearchComponentProps) {
 
   const handleMarketClick = (market: Market) => {
     setSelectedMarket(market);
+    const pair = market.name;
+    toggleFavorite(pair);
+  };
+
+  const toggleSortByPrice = () => {
+    setSortByPrice(!sortByPrice);
   };
 
   return (
-    <div>
-      <div>
+    <div className="w-full">
+      <div className="flex space-x-4 mb-4">
         <button
           className={`tab ${activeTab === "all" ? "active" : ""}`}
           onClick={() => handleTabClick("all")}
@@ -129,26 +175,60 @@ function ResearchComponent({ searchTerm }: ResearchComponentProps) {
         >
           NYSE
         </button>
-      </div>
-      {displayedMarkets.map((market, index) => (
-        <TableRow
-          key={`${market.name}-${index}`}
-          className={`border-none cursor-pointer`}
-          onClick={() => handleMarketClick(market)}
+        <button
+          className={`tab ${activeTab === "favorites" ? "active" : ""}`}
+          onClick={() => handleTabClick("favorites")}
         >
-          <TableCell className="pl-5">
-            <div className="flex items-center space-x-3">
-              <Image
-                width={30}
-                height={30}
-                src={market.icon}
-                alt={market.name}
-              />
-              <span>{market.name}</span>
-            </div>
-          </TableCell>
-        </TableRow>
-      ))}
+          Favorites
+        </button>
+        <button
+          className={`tab ${sortByPrice ? "active" : ""}`}
+          onClick={toggleSortByPrice}
+        >
+          Sort by Price
+        </button>
+      </div>
+      <table className="w-full">
+        <thead>
+          <tr>
+            <th className="px-4 py-2">Pair</th>
+            <th className="px-4 py-2">Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          {displayedMarkets.map((market, index) => (
+            <tr
+              key={`${market.name}-${index}`}
+              className="border-none cursor-pointer"
+              onClick={() => handleMarketClick(market)}
+            >
+              <td className="px-4 py-2">
+                <div className="flex items-center space-x-3">
+                  <FaStar
+                    className={`cursor-pointer ${
+                      favorites.includes(market.name)
+                        ? "text-yellow-500"
+                        : "text-gray-400"
+                    }`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleFavorite(market.name);
+                    }}
+                  />
+                  <Image
+                    width={30}
+                    height={30}
+                    src={market.icon}
+                    alt={market.name}
+                  />
+                  <span>{market.name}</span>
+                </div>
+              </td>
+              <td className="px-4 py-2">{market.price.toFixed(2)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
