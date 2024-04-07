@@ -9,9 +9,10 @@ import { IoPersonSharp } from "react-icons/io5";
 import { BiSolidWallet } from "react-icons/bi";
 import { useWallets } from "@privy-io/react-auth";
 import { usePrivy } from "@privy-io/react-auth";
+import { FaTimes } from "react-icons/fa";
 
 export function Menu() {
-  const { ready, authenticated, user, login } = usePrivy();
+  const { ready, authenticated, user, login, logout } = usePrivy();
   const pathname = usePathname();
   const { wallets } = useWallets();
   const wallet = wallets[0];
@@ -21,11 +22,14 @@ export function Menu() {
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
-      <div className="container bg-background">
-        {disableLogin ? (
-          <h3 className="text-center text-white p-3">
-            Account: {wallet?.address}
-          </h3>
+      <div className="container bg-background flex items-center justify-center">
+        {authenticated ? (
+          <div className="text-center text-white p-3 flex items-center">
+            <h3 className="mr-2">Account: ${wallet?.address}</h3>
+            <button onClick={logout} className="text-white hover:text-gray-200">
+              <FaTimes size={10} />
+            </button>
+          </div>
         ) : (
           <button
             disabled={disableLogin}
