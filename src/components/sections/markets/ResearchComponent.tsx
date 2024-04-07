@@ -2,7 +2,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Fuse from "fuse.js";
-
+import useStore from "../../../store/useStore";
 interface Market {
   name: string;
   icon: string;
@@ -10,22 +10,18 @@ interface Market {
 
 interface ResearchComponentProps {
   searchTerm: string;
-  onMarketClick: (market: Market) => void;
-  selectedMarket: Market | null;
 }
 
-function ResearchComponent({
-  searchTerm,
-  onMarketClick,
-  selectedMarket,
-}: ResearchComponentProps) {
+function ResearchComponent({ searchTerm }: ResearchComponentProps) {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [fuse, setFuse] = useState<Fuse<Market> | null>(null);
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
+  const [activeTab, setActiveTab] = useState("all");
+  const setSelectedMarket = useStore((state) => state.setSelectedMarket);
 
   useEffect(() => {
     const fetchMarkets = async () => {
-      const response = await fetch("/assets.json");
+      const response = await fetch(`/${activeTab}.json`);
       const data = await response.json();
       const fetchedMarkets = Object.keys(data).map((pair) => ({
         name: pair,
@@ -43,9 +39,9 @@ function ResearchComponent({
     };
 
     fetchMarkets();
-  }, []);
+  }, [activeTab]);
 
-  const getDisplayedMarkets = () => {
+  const getDisplayedMarkets = (): Market[] => {
     const [firstAsset, secondAsset] = searchTerm.trim().split("/");
     const secondAssetToUse = secondAsset
       ? secondAsset.toUpperCase()
@@ -98,15 +94,47 @@ function ResearchComponent({
 
   console.log("Displayed markets:", displayedMarkets);
 
+  const handleTabClick = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  const handleMarketClick = (market: Market) => {
+    setSelectedMarket(market);
+  };
+
   return (
-    <>
+    <div>
+      <div>
+        <button
+          className={`tab ${activeTab === "all" ? "active" : ""}`}
+          onClick={() => handleTabClick("all")}
+        >
+          All
+        </button>
+        <button
+          className={`tab ${activeTab === "forex" ? "active" : ""}`}
+          onClick={() => handleTabClick("forex")}
+        >
+          Forex
+        </button>
+        <button
+          className={`tab ${activeTab === "nasdaq" ? "active" : ""}`}
+          onClick={() => handleTabClick("nasdaq")}
+        >
+          Nasdaq
+        </button>
+        <button
+          className={`tab ${activeTab === "nyse" ? "active" : ""}`}
+          onClick={() => handleTabClick("nyse")}
+        >
+          NYSE
+        </button>
+      </div>
       {displayedMarkets.map((market, index) => (
         <TableRow
           key={`${market.name}-${index}`}
-          className={`border-none cursor-pointer ${
-            selectedMarket?.name === market.name ? "bg-gray-100" : ""
-          }`}
-          onClick={() => onMarketClick(market)}
+          className={`border-none cursor-pointer`}
+          onClick={() => handleMarketClick(market)}
         >
           <TableCell className="pl-5">
             <div className="flex items-center space-x-3">
@@ -121,7 +149,7 @@ function ResearchComponent({
           </TableCell>
         </TableRow>
       ))}
-    </>
+    </div>
   );
 }
 

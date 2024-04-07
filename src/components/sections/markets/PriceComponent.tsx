@@ -3,6 +3,7 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import { addCommas } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import useStore from "../../../store/useStore";
 
 interface Market {
   name: string;
@@ -15,6 +16,8 @@ interface PriceComponentProps {
 }
 
 function PriceComponent({ market, onClose }: PriceComponentProps) {
+  const selectedMarket = useStore((state) => state.selectedMarket);
+  const setSelectedMarket = useStore((state) => state.setSelectedMarket);
   const [price, setPrice] = useState(0);
   const [dailyChange, setDailyChange] = useState(0);
   const [volume, setVolume] = useState(0);
@@ -34,10 +37,14 @@ function PriceComponent({ market, onClose }: PriceComponentProps) {
     };
   }, []);
 
+  if (!selectedMarket) {
+    return null;
+  }
+
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white p-8 rounded shadow">
-        <h2 className="text-2xl mb-4">{market.name}</h2>
+        <h2 className="text-2xl mb-4">{selectedMarket.name}</h2>
         <TableRow>
           <TableCell>Price</TableCell>
           <TableCell>{price.toFixed(2)}</TableCell>
@@ -56,7 +63,7 @@ function PriceComponent({ market, onClose }: PriceComponentProps) {
         </TableRow>
         <button
           className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
-          onClick={onClose}
+          onClick={() => setSelectedMarket(null)}
         >
           Close
         </button>
