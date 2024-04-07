@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 
-const leverageValue = [1, 2, 3, 5, 10, 20];
+const leverageValue = [1, 10, 25, 50, 100, 500];
 function SectionUserMargin() {
   return (
     <section className="flex flex-col space-y-5 mt-5">
@@ -19,7 +19,7 @@ function SectionUserMargin() {
           <div className="flex flex-col space-y-5">
             <h3 className="text-white">Leverage</h3>
             <div>
-              <Slider defaultValue={[3]} min={1} max={6} step={1} />
+              <Slider defaultValue={[6]} min={1} max={6} step={1} />
               <div className="flex items-center justify-between mt-5">
                 {leverageValue.map((x, index) => {
                   return (
@@ -44,10 +44,6 @@ function SectionUserMargin() {
               enim ad minim veniam, quis nostrud Lorem ipsum dolor sit amet,
               consectetur adipiscing elit
             </p>
-            <div className="flex items-center space-x-3">
-              <Checkbox className="w-5 h-5" />
-              <h3 className="text-white">Use my USDC Balance as collateral</h3>
-            </div>
           </div>
         </Card>
       </div>

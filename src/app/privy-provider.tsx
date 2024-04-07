@@ -1,5 +1,6 @@
 "use client";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { fantomSonicTestnet, avalancheFuji } from "viem/chains";
 
 export default function PrivyProviderWrapper({
   children,

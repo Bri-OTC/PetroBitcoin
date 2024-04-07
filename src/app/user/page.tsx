@@ -7,9 +7,9 @@ function User() {
   return (
     <div className="py-5">
       <SectionUserHeader />
+      <SectionUserMargin />
       <SectionUserReferrals />
       <SectionUserFees />
-      <SectionUserMargin />
     </div>
   );
 }

@@ -4,8 +4,12 @@ import PopupSettingUser from "@/components/popup/setting_user";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
+import { useWallets } from "@privy-io/react-auth";
 
 function SectionUserHeader() {
+  /*
+  const { wallets } = useWallets();
+  const wallet = wallets[0];*/
   return (
     <section className="px-5">
       <div className="flex items-center justify-between">
@@ -24,7 +28,7 @@ function SectionUserHeader() {
           </Button>
         </div>
       </div>
-      <h3 className="text-accent-foreground mt-5">0x0000...00000</h3>
+      <h3 className="text-accent-foreground mt-5">wallet?.address</h3>
     </section>
   );
 }
