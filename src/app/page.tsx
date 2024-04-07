@@ -1,3 +1,5 @@
+"use client";
+
 // app/page.tsx
 "use client";
 import { useState } from "react";
@@ -36,29 +38,6 @@ function Global() {
 
   return (
     <div className="w-full">
-      <div className="container bg-background">
-        <h3 className="text-center text-white p-3">Account: The Pioner Guy</h3>
-      </div>
-      <div className="bg-accent text-card-foreground">
-        <div className="flex items-center justify-between w-full container py-3 space-x-5">
-          {menus.map((x) => {
-            return (
-              <div
-                key={x.name}
-                className={`${
-                  selectedTab === x.name
-                    ? "text-primary"
-                    : "text-card-foreground"
-                } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
-                onClick={() => setSelectedTab(x.name)}
-              >
-                <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
-                <p>{x.name}</p>
-              </div>
-            );
-          })}
-        </div>
-      </div>
       <div className="container">{renderContent()}</div>
     </div>
   );
