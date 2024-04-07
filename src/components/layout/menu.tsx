@@ -22,6 +22,7 @@ export function Menu() {
   const wallet = wallets[0];
   const disableLogin = !ready || authenticated;
   const setToken = useAuthStore((state) => state.setToken);
+  const token = useAuthStore((state) => state.token) || "nope";
 
   const handleSignMessage = async () => {
     if (!wallet) {
@@ -73,7 +74,9 @@ export function Menu() {
       <div className="container bg-background flex items-center justify-center">
         {authenticated ? (
           <div className="text-center text-white p-3 flex items-center">
-            <h3 className="mr-2">Account: {wallet?.address} :setToken </h3>
+            <h3 className="mr-2">
+              Account: {wallet?.address} : {token}{" "}
+            </h3>
             {setToken === undefined && (
               <button
                 onClick={handleSignMessage}
