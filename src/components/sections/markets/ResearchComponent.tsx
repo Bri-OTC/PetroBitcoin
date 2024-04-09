@@ -23,7 +23,7 @@ function ResearchComponent({ searchTerm }: ResearchComponentProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [sortByPrice, setSortByPrice] = useState(false);
   const setSelectedMarket = useStore((state) => state.setSelectedMarket);
-  const { favorites, toggleFavorite } = useFavorites(defaultSecondAsset);
+  const { favorites, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     const fetchMarkets = async () => {
