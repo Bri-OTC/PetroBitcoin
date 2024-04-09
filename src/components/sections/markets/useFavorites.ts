@@ -6,7 +6,9 @@ interface UseFavoritesResult {
   toggleFavorite: (pair: string) => void;
 }
 
-export default function useFavorites(): UseFavoritesResult {
+export default function useFavorites(
+  defaultSecondAsset: string
+): UseFavoritesResult {
   const [favorites, setFavorites] = useState<string[]>([]);
 
   useEffect(() => {
