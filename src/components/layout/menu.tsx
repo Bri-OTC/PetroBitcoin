@@ -24,7 +24,10 @@ export function Menu() {
   const disableLogin = !ready || authenticated;
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
-  const [payload, setPayload] = useState(null);
+  const [payload, setPayload] = useState<{
+    uuid: string;
+    message: string;
+  } | null>(null);
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
 
@@ -47,6 +50,7 @@ export function Menu() {
             setPayload(payloadResponse.data);
             setPayloadError(false);
           } else {
+            setPayload(null);
             setPayloadError(true);
           }
         } catch (error) {
@@ -71,7 +75,7 @@ export function Menu() {
             method: "personal_sign",
             params: [message, wallet.address],
           });
-          console.log("signature", signature);
+          console.log("signature", signature, message);
 
           return { uuid, signature };
         } catch (error) {
@@ -91,6 +95,9 @@ export function Menu() {
 
   const attemptLogin = async (uuid: string, signature: string) => {
     try {
+      console.log("uuid", uuid);
+      console.log("signature", signature);
+
       const loginResponse = await login(uuid, signature);
       console.log("loginResponse", loginResponse);
 
@@ -106,12 +113,17 @@ export function Menu() {
       } else {
         setPayload(null);
         setLoginError(true);
+        // Prompt the user to log in again on login error
+        privyLogin();
       }
     } catch (error) {
       console.error("Error logging in:", error);
       setLoginError(true);
+      // Prompt the user to log in again on login error
+      privyLogin();
     }
   };
+
   useEffect(() => {
     if (loginError) {
       setPayload(null);
@@ -138,7 +150,21 @@ export function Menu() {
             </button>
           </div>
         ) : wallet ? (
-          <div className="text-center text-white p-3">Signing in...</div>
+          <div className="text-center text-white p-3 flex items-center">
+            <span className="mr-2">Signing in...</span>
+            <button
+              onClick={() => {
+                logout();
+                setPayload(null);
+                setToken(null);
+                setPayloadError(false);
+                setLoginError(false);
+              }}
+              className="text-white hover:text-gray-200"
+            >
+              <FaTimes size={10} />
+            </button>
+          </div>
         ) : (
           <button
             disabled={disableLogin}

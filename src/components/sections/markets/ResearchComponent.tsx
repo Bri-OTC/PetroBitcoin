@@ -138,7 +138,7 @@ function ResearchComponent({
 
   const displayedMarkets = getDisplayedMarkets();
 
-  console.log("Displayed markets:", displayedMarkets);
+  //console.log("Displayed markets:", displayedMarkets);
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
