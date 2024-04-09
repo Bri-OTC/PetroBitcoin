@@ -2,7 +2,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Fuse from "fuse.js";
-import useStore from "../../../store/useStore";
+import { useStore } from "../../../store/useStore";
 import { FaStar } from "react-icons/fa";
 import useFavorites from "./useFavorites";
 

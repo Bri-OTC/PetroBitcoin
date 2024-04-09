@@ -13,7 +13,8 @@ import { useWallets } from "@privy-io/react-auth";
 import { usePrivy } from "@privy-io/react-auth";
 import { FaTimes } from "react-icons/fa";
 import { getPayload, login } from "@pionerfriends/api-client";
-import useAuthStore from "../../store/authStore";
+import { useAuthStore } from "../../store/authStore";
+import { useEffect, useState } from "react";
 
 export function Menu() {
   const { ready, authenticated, user, login: privyLogin, logout } = usePrivy();
@@ -23,50 +24,96 @@ export function Menu() {
   const disableLogin = !ready || authenticated;
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token) || "nope";
+  const [payload, setPayload] = useState(null);
+  const [payloadError, setPayloadError] = useState(false);
+  const [loginError, setLoginError] = useState(false);
 
-  const handleSignMessage = async () => {
-    if (!wallet) {
-      return null;
-    }
+  useEffect(() => {
+    const fetchPayload = async () => {
+      if (wallet && !token) {
+        const address = wallet.address;
+        console.log("address", address);
 
-    const address = wallet.address;
-    const payloadResponse = await getPayload(address);
+        try {
+          const payloadResponse = await getPayload(address);
+          console.log("payloadResponse", payloadResponse);
 
-    if (
-      !payloadResponse ||
-      payloadResponse.status !== 200 ||
-      !payloadResponse.data.uuid ||
-      !payloadResponse.data.message
-    ) {
-      return null;
-    }
-
-    const { uuid, message } = payloadResponse.data;
-
-    try {
-      const provider = await wallet.getEthereumProvider();
-      const signature = await provider.request({
-        method: "personal_sign",
-        params: [message, address],
-      });
-
-      const loginResponse = await login(uuid, signature);
-
-      if (
-        !loginResponse ||
-        loginResponse.status !== 200 ||
-        !loginResponse.data.token
-      ) {
-        return null;
+          if (
+            payloadResponse &&
+            payloadResponse.status === 200 &&
+            payloadResponse.data.uuid &&
+            payloadResponse.data.message
+          ) {
+            setPayload(payloadResponse.data);
+            setPayloadError(false);
+          } else {
+            setPayloadError(true);
+          }
+        } catch (error) {
+          console.error("Error fetching payload:", error);
+          setPayloadError(true);
+        }
       }
+    };
 
-      const token = loginResponse.data.token;
-      console.log("token", token);
-      setToken(token);
-    } catch (error) {
-      console.error("Error signing message:", error);
+    const intervalId = setInterval(fetchPayload, payloadError ? 5000 : 45000);
+    return () => clearInterval(intervalId);
+  }, [wallet, token, payloadError]);
+
+  useEffect(() => {
+    const attemptLogin = async () => {
+      if (payload && !token) {
+        const { uuid, message } = payload;
+
+        try {
+          const provider = await wallet.getEthereumProvider();
+          console.log("provider", provider);
+          const signature = await provider.request({
+            method: "personal_sign",
+            params: [message, wallet.address],
+          });
+          console.log("signature", signature);
+
+          const loginResponse = await login(uuid, signature);
+          console.log("loginResponse", loginResponse);
+
+          if (
+            loginResponse &&
+            loginResponse.status === 200 &&
+            loginResponse.data.token
+          ) {
+            const token = loginResponse.data.token;
+            console.log("token", token);
+            setToken(token);
+            setLoginError(false);
+          } else {
+            setPayload(null);
+            setLoginError(true);
+          }
+        } catch (error) {
+          console.error("Error signing message:", error);
+          setLoginError(true);
+        }
+      }
+    };
+
+    const intervalId = setInterval(attemptLogin, loginError ? 5000 : 45000);
+    return () => clearInterval(intervalId);
+  }, [payload, wallet, token, setToken, loginError]);
+
+  useEffect(() => {
+    if (loginError) {
+      setPayload(null);
+      setToken(null);
     }
-  };
+  }, [loginError]);
+
+  useEffect(() => {
+    setPayload(null);
+    setToken(null);
+    setPayloadError(false);
+    setLoginError(false);
+  }, [wallet]);
 
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
@@ -78,10 +125,7 @@ export function Menu() {
               Account: {wallet?.address} : {token}{" "}
             </h3>
             {setToken === undefined && (
-              <button
-                onClick={handleSignMessage}
-                className="text-white hover:text-gray-200 mr-2"
-              >
+              <button className="text-white hover:text-gray-200 mr-2">
                 Sign
               </button>
             )}

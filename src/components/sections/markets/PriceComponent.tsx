@@ -3,7 +3,7 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import { addCommas } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import useStore from "../../../store/useStore";
+import { useStore } from "../../../store/useStore";
 
 interface Market {
   name: string;

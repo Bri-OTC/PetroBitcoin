@@ -15,4 +15,4 @@ const useStore = create<StoreState>((set) => ({
   setSelectedMarket: (market) => set({ selectedMarket: market }),
 }));
 
-export default useStore;
+export { useStore };

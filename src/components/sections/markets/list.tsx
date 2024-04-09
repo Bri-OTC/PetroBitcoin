@@ -28,12 +28,12 @@ function SectionMarketsList() {
   const searchHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const searchTerm = e.target.value.toLowerCase();
     setSearchTerm(searchTerm);
-    console.log("Search term:", searchTerm); // Debug: Log the search term
   };
 
   const handleMarketClick = (market: Market) => {
     setSelectedMarket(market);
   };
+
   return (
     <section className="flex flex-col h-full">
       <div className="h-[225px] md:h-[240px] sticky top-0 bg-background z-[99]">

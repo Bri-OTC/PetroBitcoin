@@ -25,11 +25,11 @@ function SectionTradeHeader() {
         <div className="flex items-center space-x-2">
           <Avatar>
             <AvatarImage src="https://github.com/shadcn.png" />
-            <AvatarFallback>TPG</AvatarFallback>
+            <AvatarFallback>USD</AvatarFallback>
           </Avatar>
           <div>
             <h2 className="font-medium">BTC-PERP</h2>
-            <p className="text-card-foreground">Bitcoin Perpetual Futures</p>
+            <p className="text-card-foreground">PIO Perpetual Swap</p>
           </div>
         </div>
       </div>

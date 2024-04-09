@@ -1,7 +1,7 @@
 // SectionTradeChart.tsx
 "use client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { useState } from "react";
 import { CgMaximizeAlt } from "react-icons/cg";
 import { FaRegClock, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
@@ -83,16 +83,20 @@ function SectionTradeChart() {
             <DialogTrigger className="bg-card p-2">
               <CgMaximizeAlt className="text-[1.1rem]" />
             </DialogTrigger>
-            <PopupChart symbol={symbol} interval={interval} />
+            <DialogContent>
+              <div className="w-full h-full flex items-center justify-center">
+                <TradingViewAdvancedChart symbol={symbol} interval={interval} />
+              </div>
+            </DialogContent>
           </Dialog>
         </div>
       </div>
       <div
         className={`${
-          showChart ? "max-h-[50rem]" : "max-h-0"
+          showChart ? "h-full" : "max-h-0"
         } overflow-hidden transition-all bg-card text-white`}
       >
-        <div className="min-h-[225px] flex items-center justify-center">
+        <div className="w-full h-full flex items-center justify-center">
           <TradingViewAdvancedChart symbol={symbol} interval={interval} />
         </div>
       </div>

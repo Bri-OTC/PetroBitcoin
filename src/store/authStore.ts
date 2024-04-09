@@ -13,4 +13,4 @@ const useAuthStore = create<AuthState>((set) => ({
   setToken: (token) => set({ token }),
 }));
 
-export default useAuthStore;
+export { useAuthStore };
