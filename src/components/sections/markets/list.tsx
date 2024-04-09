@@ -18,6 +18,7 @@ import PriceComponent from "./PriceComponent";
 
 interface Market {
   name: string;
+  price: number;
   icon: string;
 }
 
