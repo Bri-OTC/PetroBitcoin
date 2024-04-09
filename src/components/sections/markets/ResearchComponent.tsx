@@ -14,9 +14,15 @@ interface Market {
 
 interface ResearchComponentProps {
   searchTerm: string;
+  onMarketClick: (market: Market) => void;
+  selectedMarket: Market | null;
 }
 
-function ResearchComponent({ searchTerm }: ResearchComponentProps) {
+function ResearchComponent({
+  searchTerm,
+  onMarketClick,
+  selectedMarket,
+}: ResearchComponentProps) {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [fuse, setFuse] = useState<Fuse<Market> | null>(null);
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
@@ -139,7 +145,7 @@ function ResearchComponent({ searchTerm }: ResearchComponentProps) {
   };
 
   const handleMarketClick = (market: Market) => {
-    setSelectedMarket(market);
+    onMarketClick(market);
     const pair = market.name;
     toggleFavorite(pair);
   };
