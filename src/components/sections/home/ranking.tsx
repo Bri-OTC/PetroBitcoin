@@ -36,7 +36,7 @@ function SectionHomeRanking() {
       <Card className="p-0">
         <div className="flex flex-col items-center justify-center space-x-3">
           <div className="flex items-center space-x-3 justify-center mt-5">
-            {["Winners", "Losers", "Volume"].map((x, index) => {
+            {["Winners", "Losers"].map((x, index) => {
               return (
                 <h3
                   onClick={() => toggleTab(x)}
@@ -58,9 +58,6 @@ function SectionHomeRanking() {
                 </TableHead>
                 <TableHead className="text-right">
                   <p>Price</p>
-                </TableHead>
-                <TableHead className="text-right">
-                  <p>Change</p>
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -85,13 +82,6 @@ function SectionHomeRanking() {
                       }`}
                     >
                       <p>{x.price}</p>
-                    </TableCell>
-                    <TableCell
-                      className={`text-right ${
-                        x.change > 0 ? "text-green-400" : "text-red-400"
-                      }`}
-                    >
-                      <p>{x.change}%</p>
                     </TableCell>
                   </TableRow>
                 );

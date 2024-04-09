@@ -90,56 +90,14 @@ function SectionWalletTable() {
 
 const list = [
   {
-    icon: "/wallet/usd.svg",
-    market: "USD",
+    icon: "/wallet/usdc.svg",
+    market: "USDC",
     balance: 4538.81,
     value: 1000000,
   },
   {
-    icon: "/wallet/ftt.svg",
-    market: "FTT",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/bitcoin.svg",
-    market: "Bitcoin",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/tether.svg",
-    market: "USD Tether",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/ethereum.svg",
-    market: "Ethereum",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/cash.svg",
-    market: "Bitcoin Cash",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/litecoin.svg",
-    market: "Litecoin",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/xrp.svg",
-    market: "XRP",
-    balance: 4538.81,
-    value: 1000000,
-  },
-  {
-    icon: "/wallet/ascendex.svg",
-    market: "Ascendex Token (BTMX)",
+    icon: "/wallet/ftm.svg",
+    market: "FTM",
     balance: 4538.81,
     value: 1000000,
   },

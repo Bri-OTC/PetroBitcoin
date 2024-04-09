@@ -23,7 +23,7 @@ export function Menu() {
   const wallet = wallets[0];
   const disableLogin = !ready || authenticated;
   const setToken = useAuthStore((state) => state.setToken);
-  const token = useAuthStore((state) => state.token) || "nope";
+  const token = useAuthStore((state) => state.token);
   const [payload, setPayload] = useState(null);
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
@@ -56,12 +56,11 @@ export function Menu() {
       }
     };
 
-    const intervalId = setInterval(fetchPayload, payloadError ? 5000 : 45000);
-    return () => clearInterval(intervalId);
-  }, [wallet, token, payloadError]);
+    fetchPayload();
+  }, [wallet, token]);
 
   useEffect(() => {
-    const attemptLogin = async () => {
+    const signMessage = async () => {
       if (payload && !token) {
         const { uuid, message } = payload;
 
@@ -74,22 +73,7 @@ export function Menu() {
           });
           console.log("signature", signature);
 
-          const loginResponse = await login(uuid, signature);
-          console.log("loginResponse", loginResponse);
-
-          if (
-            loginResponse &&
-            loginResponse.status === 200 &&
-            loginResponse.data.token
-          ) {
-            const token = loginResponse.data.token;
-            console.log("token", token);
-            setToken(token);
-            setLoginError(false);
-          } else {
-            setPayload(null);
-            setLoginError(true);
-          }
+          return { uuid, signature };
         } catch (error) {
           console.error("Error signing message:", error);
           setLoginError(true);
@@ -97,10 +81,37 @@ export function Menu() {
       }
     };
 
-    const intervalId = setInterval(attemptLogin, loginError ? 5000 : 45000);
-    return () => clearInterval(intervalId);
-  }, [payload, wallet, token, setToken, loginError]);
+    signMessage().then((signedData) => {
+      if (signedData) {
+        const { uuid, signature } = signedData;
+        attemptLogin(uuid, signature);
+      }
+    });
+  }, [payload, wallet, token]);
 
+  const attemptLogin = async (uuid: string, signature: string) => {
+    try {
+      const loginResponse = await login(uuid, signature);
+      console.log("loginResponse", loginResponse);
+
+      if (
+        loginResponse &&
+        loginResponse.status === 200 &&
+        loginResponse.data.token
+      ) {
+        const token = loginResponse.data.token;
+        console.log("token", token);
+        setToken(token);
+        setLoginError(false);
+      } else {
+        setPayload(null);
+        setLoginError(true);
+      }
+    } catch (error) {
+      console.error("Error logging in:", error);
+      setLoginError(true);
+    }
+  };
   useEffect(() => {
     if (loginError) {
       setPayload(null);
@@ -119,21 +130,15 @@ export function Menu() {
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
       <div className="container bg-background flex items-center justify-center">
-        {authenticated ? (
+        {authenticated && token ? (
           <div className="text-center text-white p-3 flex items-center">
-            <h3 className="mr-2">
-              Account: {wallet?.address} : {token}{" "}
-            </h3>
-            {setToken === undefined && (
-              <button className="text-white hover:text-gray-200 mr-2">
-                Sign
-              </button>
-            )}
-
+            <h3 className="mr-2">Account: {wallet?.address}</h3>
             <button onClick={logout} className="text-white hover:text-gray-200">
               <FaTimes size={10} />
             </button>
           </div>
+        ) : wallet ? (
+          <div className="text-center text-white p-3">Signing in...</div>
         ) : (
           <button
             disabled={disableLogin}

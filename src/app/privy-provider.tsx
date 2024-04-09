@@ -21,7 +21,7 @@ export default function PrivyProviderWrapper({
           theme: "dark",
           accentColor: "#676FFF",
           showWalletLoginFirst: false,
-          logo: "./favicon.png",
+          logo: "./logo.svg",
         },
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
