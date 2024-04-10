@@ -22,6 +22,8 @@ interface StoreState {
   bidPrice: number;
   askPrice: number;
   symbol: string;
+  leverage: number;
+
   setBalance: (balance: number) => void;
   setCurrentMethod: (method: string) => void;
   setEntryPrice: (price: string) => void;
@@ -42,6 +44,7 @@ interface StoreState {
   setBidPrice: (price: number) => void;
   setAskPrice: (price: number) => void;
   setSymbol: (symbol: string) => void;
+  setLeverage: (leverage: number) => void;
 }
 
 export const useTradeStore = create<StoreState>((set) => ({
@@ -61,11 +64,12 @@ export const useTradeStore = create<StoreState>((set) => ({
   exitPnL: 30.73,
   stopPnL: 30.73,
   riskRewardPnL: 30.73,
-  accountLeverage: 4.89,
+  accountLeverage: 500,
   estimatedLiquidationPrice: 54611,
   bidPrice: 46423,
   askPrice: 46423,
-  symbol: "BTC-PERP",
+  symbol: "AAPL/EURUSD",
+  leverage: 500,
   setBalance: (balance) => set(() => ({ balance })),
   setCurrentMethod: (method) => set(() => ({ currentMethod: method })),
   setEntryPrice: (price) =>
@@ -93,4 +97,5 @@ export const useTradeStore = create<StoreState>((set) => ({
   setBidPrice: (price) => set(() => ({ bidPrice: price })),
   setAskPrice: (price) => set(() => ({ askPrice: price })),
   setSymbol: (symbol) => set(() => ({ symbol })),
+  setLeverage: (leverage) => set(() => ({ leverage })),
 }));

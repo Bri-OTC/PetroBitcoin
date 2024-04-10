@@ -1,11 +1,20 @@
 "use client";
-
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
+import { useTradeStore } from "../../../store/tradeStore";
 
 const leverageValue = [1, 10, 25, 50, 100, 500];
 function SectionUserMargin() {
+  const { leverage, setLeverage } = useTradeStore();
+
+  const handleLeverageChange = (event: React.FormEvent<HTMLDivElement>) => {
+    const target = event.currentTarget as HTMLDivElement;
+    const value = parseFloat(target.dataset.value || "0");
+    setLeverage(leverageValue[value - 1]);
+  };
+
   return (
     <section className="flex flex-col space-y-5 mt-5">
       <div className="border-b px-5">
@@ -19,7 +28,13 @@ function SectionUserMargin() {
           <div className="flex flex-col space-y-5">
             <h3 className="text-white">Leverage</h3>
             <div>
-              <Slider defaultValue={[6]} min={1} max={6} step={1} />
+              <Slider
+                defaultValue={[leverage]}
+                min={1}
+                max={6}
+                step={1}
+                onChange={handleLeverageChange}
+              />
               <div className="flex items-center justify-between mt-5">
                 {leverageValue.map((x, index) => {
                   return (
