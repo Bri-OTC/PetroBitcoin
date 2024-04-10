@@ -4,40 +4,61 @@ import { TbNotes, TbCoins, TbUpload, TbArrowsExchange } from "react-icons/tb";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { MdOutlineTrendingUp } from "react-icons/md";
 import { useState } from "react";
+import Deposit from "../../../components/popup/Deposit";
+import Withdraw from "../../../components/popup/Withdraw";
+import Faucet from "../../../components/popup/Faucet";
+import { BiCoinStack } from "react-icons/bi";
+import { GiGiftOfKnowledge } from "react-icons/gi";
+import { RiMoneyDollarCircleLine } from "react-icons/ri";
+import { useTradeStore } from "../../../store/tradeStore";
 
 const menu = [
   {
     name: "Deposit",
-    icon: <TbCoins />,
+    icon: <RiMoneyDollarCircleLine />,
     link: "/deposit",
   },
   {
     name: "Withdraw",
-    icon: <TbUpload />,
+    icon: <BiCoinStack />,
     link: "/withdraw",
   },
   {
     name: "Get Gaz",
-    icon: <TbArrowsExchange />,
+    icon: <GiGiftOfKnowledge />,
     link: "/get-gaz",
   },
 ];
 
 function SectionWalletHero() {
   const [showBalance, setShowBalance] = useState(true);
+  const { balance, setBalance } = useTradeStore();
+
+  const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showFaucet, setShowFaucet] = useState(false);
+
+  const handleDepositClick = () => {
+    setShowDeposit(true);
+  };
+
+  const handleWithdrawClick = () => {
+    setShowWithdraw(true);
+  };
+
+  const handleFaucetClick = () => {
+    setShowFaucet(true);
+  };
+
+  const handleClosePopup = () => {
+    setShowDeposit(false);
+    setShowWithdraw(false);
+    setShowFaucet(false);
+  };
   return (
     <section className="flex flex-col space-y-5">
       <div className="flex items-center justify-between">
         <h1>Wallet</h1>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
-            <MdOutlineTrendingUp />
-          </Button>
-          <Button variant="ghost" className="flex items-center space-x-2">
-            <TbNotes />
-            <p className="font-medium">History</p>
-          </Button>
-        </div>
       </div>
       <div className="flex flex-col">
         <div className="flex items-center justify-between">
@@ -60,7 +81,7 @@ function SectionWalletHero() {
           <div className="flex items-center justify-between mt-5">
             <div className="flex items-center space-x-1">
               <span className="text-card-foreground">≈</span>
-              <h1>US$440,000,00,000.55</h1>
+              <h1>{balance}</h1>
             </div>
             <p className="text-card-foreground text-right">
               View All Account Balance
@@ -74,6 +95,15 @@ function SectionWalletHero() {
                 key={x.name}
                 variant="ghost"
                 className="flex items-center space-x-3 hover:text-primary"
+                onClick={() => {
+                  if (x.link === "/deposit") {
+                    handleDepositClick();
+                  } else if (x.link === "/withdraw") {
+                    handleWithdrawClick();
+                  } else if (x.link === "/get-gaz") {
+                    handleFaucetClick();
+                  }
+                }}
               >
                 <div className="text-[1.25rem]">{x.icon}</div>
                 <p>{x.name}</p>
@@ -81,6 +111,14 @@ function SectionWalletHero() {
             );
           })}
         </div>
+
+        {showDeposit && (
+          <Deposit open={showDeposit} onClose={handleClosePopup} />
+        )}
+        {showWithdraw && (
+          <Withdraw open={showWithdraw} onClose={handleClosePopup} />
+        )}
+        {showFaucet && <Faucet open={showFaucet} onClose={handleClosePopup} />}
       </div>
     </section>
   );

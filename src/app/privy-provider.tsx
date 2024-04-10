@@ -26,6 +26,8 @@ export default function PrivyProviderWrapper({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
+        defaultChain: fantomSonicTestnet,
+        supportedChains: [fantomSonicTestnet, avalancheFuji],
       }}
     >
       {children}

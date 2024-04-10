@@ -19,8 +19,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Pioner Labs",
-  description: `Pioner Labs is a cryptocurrency exchange platform`,
+  title: "PIO",
+  description: `PIO testnet is a derivative trading platform`,
 };
 
 export default function RootLayout({
