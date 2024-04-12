@@ -15,7 +15,7 @@ import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { AiOutlineClose } from "react-icons/ai";
 import { Toaster, toast } from "sonner";
 
-const fantomSonicTestnet = defineChain({
+export const fantomSonicTestnet = defineChain({
   id: 64165,
   name: "Fantom Sonic Testnet",
   network: "fantom-sonic-testnet",
@@ -34,6 +34,11 @@ const fantomSonicTestnet = defineChain({
   },
 });
 
+export const sonicClient = createPublicClient({
+  chain: fantomSonicTestnet,
+  transport: http(),
+});
+
 interface FaucetProps {
   open: boolean;
   onClose: () => void;
@@ -43,11 +48,6 @@ function Faucet({ open, onClose }: FaucetProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { wallets } = useWallets();
-
-  const sonicClient = createPublicClient({
-    chain: fantomSonicTestnet,
-    transport: http(),
-  });
 
   async function handleFaucet() {
     if (wallets.length === 0) {

@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { ChangeEvent, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import ResearchComponent from "./ResearchComponent";
+import ResearchComponent from "./ResearchComponentold";
 import PriceComponent from "./PriceComponent";
 
 interface Market {

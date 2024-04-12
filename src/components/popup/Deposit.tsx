@@ -3,6 +3,37 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { AiOutlineClose } from "react-icons/ai";
+import {
+  PionerV1Compliance,
+  FakeUSD,
+  networks,
+} from "@pionerfriends/blockchain-client";
+import { getContract } from "viem";
+import { createPublicClient, http } from "viem";
+import { sonicClient } from "./Faucet";
+import { WalletLoader } from "../web3/WalletLoader";
+
+const fakeUSD = getContract({
+  address: networks.sonic.contracts.FakeUSD as `0x${string}`,
+  abi: FakeUSD,
+  client: {
+    public: sonicClient,
+    wallet: WalletLoader,
+  },
+});
+
+const balance = await fakeUSD.read.balanceOf([
+  "0xa5cc3c03994DB5b0d9A5eEdD10CabaB0813678AC",
+]);
+const hash = await fakeUSD.write.mint([100]);
+const logs = await fakeUSD.getEvents.Transfer();
+const unwatch = fakeUSD.watchEvent.Transfer(
+  {
+    from: "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+    to: "0xa5cc3c03994db5b0d9a5eedd10cabab0813678ac",
+  },
+  { onLogs: (logs) => console.log(logs) }
+);
 
 interface DepositProps {
   open: boolean;
