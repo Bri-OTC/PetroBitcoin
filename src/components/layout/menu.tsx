@@ -13,8 +13,13 @@ import { useWallets } from "@privy-io/react-auth";
 import { usePrivy } from "@privy-io/react-auth";
 import { FaTimes } from "react-icons/fa";
 import { getPayload, login } from "@pionerfriends/api-client";
+import { PionerV1 } from "@pionerfriends/blockchain-client";
+
 import { useAuthStore } from "../../store/authStore";
 import { useEffect, useState } from "react";
+import { createWalletClient, custom } from "viem";
+import { fantomSonicTestnet, avalancheFuji } from "viem/chains";
+import { WalletLoader } from "../web3/WalletLoader";
 
 export function Menu() {
   const { ready, authenticated, user, login: privyLogin, logout } = usePrivy();

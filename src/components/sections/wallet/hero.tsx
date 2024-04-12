@@ -71,7 +71,6 @@ function SectionWalletHero() {
               {showBalance ? <FaEye /> : <FaEyeSlash />}
             </div>
           </div>
-          <p className="text-card-foreground">Convert Dust</p>
         </div>
         <div
           className={`${
@@ -81,7 +80,7 @@ function SectionWalletHero() {
           <div className="flex items-center justify-between mt-5">
             <div className="flex items-center space-x-1">
               <span className="text-card-foreground">≈</span>
-              <h1>{balance}</h1>
+              <h1>USD${balance}</h1>
             </div>
             <p className="text-card-foreground text-right">
               View All Account Balance
