@@ -8,6 +8,10 @@ import {
   createWalletClient,
   parseGwei,
   defineChain,
+  getAddress,
+  Address,
+  signatureToCompactSignature,
+  compactSignatureToHex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { Button } from "@/components/ui/button";
@@ -78,7 +82,7 @@ function Faucet({ open, onClose }: FaucetProps) {
         setError("You already have enough balance");
       } else {
         const privateKey = process.env
-          .NEXT_PUBLIC_FAUCET_PRIVATE_KEY as `0x${string}`;
+          .NEXT_PUBLIC_FAUCET_PRIVATE_KEY as Address;
 
         if (!privateKey) {
           throw new Error(
@@ -86,18 +90,18 @@ function Faucet({ open, onClose }: FaucetProps) {
           );
         }
 
-        console.log("Faucet private key:", privateKey);
-
         const faucetAccount = privateKeyToAccount(privateKey);
         const faucetBalance = await sonicClient.getBalance({
-          address: faucetAccount.address,
+          address: getAddress(faucetAccount.address), // Convert the address to a consistent format
         });
+        console.log("Faucet address:", faucetAccount.address);
+
         console.log("Faucet balance:", faucetBalance);
 
         const faucetWalletClient = createWalletClient({
           chain: fantomSonicTestnet,
           transport: http(),
-          account: privateKey,
+          account: faucetAccount,
         });
 
         const transactionPromise = faucetWalletClient.sendTransaction({
