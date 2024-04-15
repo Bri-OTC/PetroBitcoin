@@ -1,8 +1,12 @@
 // components/WalletLoader.tsx
 import { useEffect, useState } from "react";
 import { useWallets } from "@privy-io/react-auth";
-import { createWalletClient, custom } from "viem";
-import { fantomSonicTestnet } from "viem/chains";
+import {
+  createWalletClient,
+  defineChain,
+  createPublicClient,
+  custom,
+} from "viem";
 
 export function WalletLoader() {
   const { wallets } = useWallets();
@@ -28,3 +32,32 @@ export function WalletLoader() {
 
   return walletClient;
 }
+
+export const fantomSonicTestnet = defineChain({
+  id: 64165,
+  name: "Fantom Sonic Testnet",
+  network: "fantom-sonic-testnet",
+  nativeCurrency: {
+    name: "Fantom",
+    symbol: "FTM",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpcapi.sonic.fantom.network/"],
+    },
+    public: {
+      http: ["https://rpcapi.sonic.fantom.network/"],
+    },
+  },
+});
+
+const walletClient =
+  typeof window !== "undefined"
+    ? createWalletClient({
+        chain: fantomSonicTestnet,
+        transport: custom(window.ethereum),
+      })
+    : null;
+
+export { walletClient };

@@ -142,7 +142,6 @@ export function Menu() {
     setPayloadError(false);
     setLoginError(false);
   }, [wallet]);
-
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
@@ -201,6 +200,27 @@ export function Menu() {
     </div>
   );
 }
+
+export const useWalletAndProvider = () => {
+  const { wallets } = useWallets();
+  const [provider, setProvider] = useState<EIP1193Provider | null>(null);
+
+  useEffect(() => {
+    const getProvider = async () => {
+      if (wallets.length > 0) {
+        const wallet = wallets[0];
+        const currentProvider = await wallet.getEthereumProvider();
+        setProvider(currentProvider);
+      } else {
+        setProvider(null);
+      }
+    };
+
+    getProvider();
+  }, [wallets]);
+
+  return { wallet: wallets[0], provider };
+};
 
 const menus = [
   { name: "Home", icon: <GoHomeFill />, link: "/" },
