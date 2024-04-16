@@ -1,3 +1,4 @@
+// Deposit.tsx
 import { useState } from "react";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ interface DepositProps {
 }
 
 function Deposit({ open, onClose }: DepositProps) {
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("100");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,15 +28,7 @@ function Deposit({ open, onClose }: DepositProps) {
           </div>
           <div>
             <h3 className="text-card-foreground">Amount</h3>
-            <div className="flex items-center space-x-5 bg-card pb-3 mt-3 border-b">
-              <Input
-                placeholder="Enter amount"
-                className="bg-transparent outline-none border-none underline-none pl-0"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-              <h3>USDC</h3>
-            </div>
+
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </div>
           <DepositSteps

@@ -14,49 +14,66 @@ import { formatNumber } from "@/lib/utils";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { PiChartPieSlice } from "react-icons/pi";
 import { FaSearch, FaSort, FaSortUp, FaSortDown } from "react-icons/fa";
-import { ChangeEvent } from "react";
 import Image from "next/image";
 import { useWalletAndProvider } from "@/components/layout/menu";
 import {
   networks,
   FakeUSD,
   PionerV1Compliance,
+  PionerV1,
 } from "@pionerfriends/blockchain-client";
-import { encodeFunctionData, Address, parseUnits, formatUnits } from "viem";
+import { encodeFunctionData, Address, formatUnits } from "viem";
 
-function SectionWalletTable() {
+function GasBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [gasBalance, setGasBalance] = useState("0");
-  const [depositedBalance, setDepositedBalance] = useState("0");
-  const [usdcBalance, setUsdcBalance] = useState("0");
-  const [sortColumn, setSortColumn] = useState<"balance" | "usdValue" | null>(
-    null
-  );
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   useEffect(() => {
-    const fetchBalances = async () => {
+    const fetchGasBalance = async () => {
       if (wallet && provider) {
         try {
-          // Fetch gas token balance
           const gasBalanceResponse = await provider.request({
             method: "eth_getBalance",
             params: [wallet.address, "latest"],
           });
           const gasBalanceInEther = formatUnits(BigInt(gasBalanceResponse), 18);
           setGasBalance(gasBalanceInEther);
+        } catch (error) {
+          console.error("Error fetching gas balance:", error);
+        }
+      }
+    };
 
-          // Fetch deposited token balance
+    fetchGasBalance();
+    const interval = setInterval(fetchGasBalance, 2500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [wallet, provider]);
+
+  return gasBalance;
+}
+
+export function DepositedBalance() {
+  const { wallet, provider } = useWalletAndProvider();
+  const [depositedBalance, setDepositedBalance] = useState("0");
+
+  useEffect(() => {
+    const fetchDepositedBalance = async () => {
+      if (wallet && provider) {
+        try {
           const dataDeposited = encodeFunctionData({
-            abi: PionerV1Compliance.abi,
-            functionName: "deposited",
+            abi: PionerV1.abi,
+            functionName: "getBalances",
             args: [wallet.address],
           });
+
           const depositedBalanceResponse = await provider.request({
             method: "eth_call",
             params: [
               {
-                to: networks.sonic.contracts.PionerV1Compliance as Address,
+                to: networks.sonic.contracts.PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest",
@@ -67,8 +84,123 @@ function SectionWalletTable() {
             18
           );
           setDepositedBalance(depositedBalanceInUnits);
+        } catch (error) {
+          console.error("Error fetching deposited balance:", error);
+        }
+      }
+    };
 
-          // Fetch USDC token balance
+    fetchDepositedBalance();
+    const interval = setInterval(fetchDepositedBalance, 2500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [wallet, provider]);
+
+  return depositedBalance;
+}
+
+export function ClaimableBalance() {
+  const { wallet, provider } = useWalletAndProvider();
+  const [depositedBalance, setDepositedBalance] = useState("0");
+
+  useEffect(() => {
+    const fetchDepositedBalance = async () => {
+      if (wallet && provider) {
+        try {
+          const dataDeposited = encodeFunctionData({
+            abi: PionerV1.abi,
+            functionName: "getGracePeriodLockedWithdrawBalance",
+            args: [wallet.address],
+          });
+
+          const depositedBalanceResponse = await provider.request({
+            method: "eth_call",
+            params: [
+              {
+                to: networks.sonic.contracts.PionerV1 as Address,
+                data: dataDeposited,
+              },
+              "latest",
+            ],
+          });
+          const depositedBalanceInUnits = formatUnits(
+            BigInt(depositedBalanceResponse),
+            18
+          );
+          setDepositedBalance(depositedBalanceInUnits);
+        } catch (error) {
+          console.error("Error fetching deposited balance:", error);
+        }
+      }
+    };
+
+    fetchDepositedBalance();
+    const interval = setInterval(fetchDepositedBalance, 2500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [wallet, provider]);
+
+  return depositedBalance;
+}
+
+export function TimeToClaim() {
+  const { wallet, provider } = useWalletAndProvider();
+  const [depositedBalance, setDepositedBalance] = useState("0");
+
+  useEffect(() => {
+    const fetchDepositedBalance = async () => {
+      if (wallet && provider) {
+        try {
+          const dataDeposited = encodeFunctionData({
+            abi: PionerV1.abi,
+            functionName: "getGracePeriodLockedTime",
+            args: [wallet.address],
+          });
+
+          const depositedBalanceResponse = await provider.request({
+            method: "eth_call",
+            params: [
+              {
+                to: networks.sonic.contracts.PionerV1 as Address,
+                data: dataDeposited,
+              },
+              "latest",
+            ],
+          });
+          const depositedBalanceInUnits = formatUnits(
+            BigInt(depositedBalanceResponse),
+            18
+          );
+          setDepositedBalance(depositedBalanceInUnits);
+        } catch (error) {
+          console.error("Error fetching deposited balance:", error);
+        }
+      }
+    };
+
+    fetchDepositedBalance();
+    const interval = setInterval(fetchDepositedBalance, 2500);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [wallet, provider]);
+
+  return depositedBalance;
+}
+
+export function USDCBalance() {
+  const { wallet, provider } = useWalletAndProvider();
+  const [usdcBalance, setUsdcBalance] = useState("0");
+
+  useEffect(() => {
+    const fetchUSDCBalance = async () => {
+      if (wallet && provider) {
+        try {
           const dataUSDC = encodeFunctionData({
             abi: FakeUSD.abi,
             functionName: "balanceOf",
@@ -90,15 +222,78 @@ function SectionWalletTable() {
           );
           setUsdcBalance(usdcBalanceInUnits);
         } catch (error) {
-          console.error("Error fetching balances:", error);
+          console.error("Error fetching USDC balance:", error);
         }
       }
     };
 
-    fetchBalances();
+    fetchUSDCBalance();
+    const interval = setInterval(fetchUSDCBalance, 10000);
+
+    return () => {
+      clearInterval(interval);
+    };
   }, [wallet, provider]);
 
-  const ftmPrice = 1.2; // Placeholder price for FTM
+  return usdcBalance;
+}
+
+export function USDCAllowance() {
+  const { wallet, provider } = useWalletAndProvider();
+  const [usdcBalance, setUsdcBalance] = useState("0");
+
+  useEffect(() => {
+    const fetchUSDCBalance = async () => {
+      if (wallet && provider) {
+        try {
+          const dataUSDC = encodeFunctionData({
+            abi: FakeUSD.abi,
+            functionName: "allowance",
+            args: [wallet.address, networks.sonic.contracts.PionerV1Compliance],
+          });
+          const usdcBalanceResponse = await provider.request({
+            method: "eth_call",
+            params: [
+              {
+                to: networks.sonic.contracts.FakeUSD as Address,
+                data: dataUSDC,
+              },
+              "latest",
+            ],
+          });
+          const usdcBalanceInUnits = formatUnits(
+            BigInt(usdcBalanceResponse),
+            18
+          );
+          setUsdcBalance(usdcBalanceInUnits);
+        } catch (error) {
+          console.error("Error fetching USDC balance:", error);
+        }
+      }
+    };
+
+    fetchUSDCBalance();
+    const interval = setInterval(fetchUSDCBalance, 10000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [wallet, provider]);
+
+  return usdcBalance;
+}
+
+function SectionWalletTable() {
+  const gasBalance = GasBalance();
+  const depositedBalance = DepositedBalance();
+  const usdcBalance = USDCBalance();
+  const withdrawBalance = ClaimableBalance();
+  const [sortColumn, setSortColumn] = useState<"balance" | "usdValue" | null>(
+    null
+  );
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const ftmPrice = 1.2;
 
   const data = [
     {
@@ -118,6 +313,12 @@ function SectionWalletTable() {
       market: "USDC (Deposited)",
       balance: depositedBalance,
       usdValue: Number(depositedBalance),
+    },
+    {
+      icon: "/wallet/usdc.svg",
+      market: "USDC (Claimable)",
+      balance: withdrawBalance,
+      usdValue: Number(withdrawBalance),
     },
   ];
 

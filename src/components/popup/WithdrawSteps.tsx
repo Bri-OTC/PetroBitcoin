@@ -10,12 +10,11 @@ import {
 import { Address, parseUnits, encodeFunctionData } from "viem";
 import { toast } from "sonner";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import MintStep from "./MintStep";
-import ApproveStep from "./ApproveStep";
-import DepositStep from "./DepositStep";
+import ClaimWithdraw from "./claimWithdrawStep";
+import InitWithdraw from "./initWithdrawStep";
 import {
-  USDCBalance,
-  USDCAllowance,
+  ClaimableBalance,
+  TimeToClaim,
   DepositedBalance,
 } from "@/components/sections/wallet/table";
 
@@ -30,7 +29,7 @@ interface DepositStepsProps {
 const fakeUSDABI = FakeUSD.abi;
 const pionerV1ComplianceABI = PionerV1Compliance.abi;
 
-function DepositSteps({
+function WithdrawSteps({
   amount,
   loading,
   setLoading,
@@ -38,13 +37,12 @@ function DepositSteps({
   onClose,
 }: DepositStepsProps) {
   const { wallet, provider } = useWalletAndProvider();
-  const mintedAmount = USDCBalance();
-  const depositedAmount = DepositedBalance();
-  const allowedAmount = USDCAllowance();
+  const timeToClaim = TimeToClaim();
+  const depositedBalance = DepositedBalance();
+  const claimableBalance = ClaimableBalance();
 
-  function handleDepositSuccess(amount: number) {}
-  function handleApproveSuccess(amount: number) {}
-  function handleMintSuccess(amount: number) {}
+  function handleWithdrawSuccess(amount: number) {}
+  function handleClaimSuccess(amount: number) {}
 
   useEffect(() => {
     if (parseFloat(amount) > 100) {
@@ -57,44 +55,33 @@ function DepositSteps({
   return (
     <div className="space-y-3">
       <div className="flex items-center">
-        <span className="mr-4">{mintedAmount} USD</span>
-        <MintStep
+        <span className="mr-4">{depositedBalance} USD</span>
+        <InitWithdraw
           amount={amount}
           loading={loading}
           setLoading={setLoading}
           setError={setError}
           provider={provider}
           wallet={wallet}
-          onMint={handleMintSuccess}
+          onEvent={handleWithdrawSuccess}
         />
       </div>
       <div className="flex items-center">
-        <span className="mr-4">{allowedAmount} USD</span>
+        <span className="mr-4">{timeToClaim} Remaining</span>
+        <span className="mr-4">{claimableBalance} USD</span>
         <div className="flex justify-end space-x-3">
-          <ApproveStep
+          <ClaimWithdraw
             amount={amount}
             loading={loading}
             setLoading={setLoading}
             setError={setError}
             provider={provider}
             wallet={wallet}
-            onApprove={handleApproveSuccess}
+            onEvent={handleClaimSuccess}
           />
         </div>
       </div>
-      <div className="flex items-center">
-        <span className="mr-4">{depositedAmount} USD</span>
-        <DepositStep
-          amount={amount}
-          loading={loading}
-          setLoading={setLoading}
-          setError={setError}
-          provider={provider}
-          wallet={wallet}
-          onDeposit={handleDepositSuccess}
-          onClose={onClose}
-        />
-      </div>
+
       <DialogClose>
         <Button variant="secondary" className="w-full">
           Cancel
@@ -104,4 +91,4 @@ function DepositSteps({
   );
 }
 
-export default DepositSteps;
+export default WithdrawSteps;
