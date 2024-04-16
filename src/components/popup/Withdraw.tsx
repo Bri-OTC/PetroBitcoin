@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { AiOutlineClose } from "react-icons/ai";
-import WithdrawSteps from "./WithdrawSteps";
+import WithdrawSteps from "./utils/WithdrawSteps";
 
 interface WithdrawProps {
   open: boolean;

@@ -4,7 +4,7 @@ import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { AiOutlineClose } from "react-icons/ai";
 import { Toaster } from "sonner";
-import DepositSteps from "./DepositSteps";
+import DepositSteps from "./utils/DepositSteps";
 
 interface DepositProps {
   open: boolean;
