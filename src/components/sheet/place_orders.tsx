@@ -10,8 +10,20 @@ import { Card } from "../ui/card";
 import { Slider } from "../ui/slider";
 import PopupModify from "../popup/modify";
 import { useTradeStore } from "@/store/tradeStore";
+import OpenQuoteButton from "@/components/sections/trade/utils/openQuote";
+import { useAuthStore } from "@/store/authStore";
+import { useWalletAndProvider } from "@/components/layout/menu";
 
 function SheetPlaceOrder() {
+  const token = useAuthStore().token;
+  const { wallet, provider } = useWalletAndProvider();
+
+  const handleOpenQuote = async () => {
+    if (!wallet || !provider || !token) {
+      return;
+    }
+  };
+
   const currentMethod = useTradeStore((state) => state.currentMethod);
   const entryPrice = useTradeStore((state) => state.entryPrice);
   const takeProfit = useTradeStore((state) => state.takeProfit);
@@ -240,7 +252,47 @@ function SheetPlaceOrder() {
           </div>
         </div>
         <DrawerClose>
-          <Button className="w-full">Place Orders</Button>
+          <OpenQuoteButton
+            request={{
+              issuerAddress: "",
+              counterpartyAddress: "",
+              version: "1.0",
+              chainId: 64165,
+              verifyingContract: "",
+              x: "",
+              parity: "0",
+              maxConfidence: "",
+              assetHex: "",
+              maxDelay: "600",
+              precision: 5,
+              imA: "",
+              imB: "",
+              dfA: "",
+              dfB: "",
+              expiryA: "",
+              expiryB: "",
+              timeLock: "",
+              nonceBoracle: 0,
+              signatureBoracle: "",
+              isLong: currentMethod === "Buy",
+              price: entryPrice,
+              amount: amount,
+              interestRate: "",
+              isAPayingApr: false,
+              frontEnd: "",
+              affiliate: "",
+              authorized: "",
+              nonceOpenQuote: 0,
+              signatureOpenQuote: "",
+              emitTime: "0",
+              messageState: 0,
+            }}
+            counterpartyAddress=""
+            assetPair={symbol}
+            isLong={currentMethod === "Buy"}
+            price={entryPrice}
+            amount={amount}
+          />
         </DrawerClose>
       </div>
     </DrawerContent>

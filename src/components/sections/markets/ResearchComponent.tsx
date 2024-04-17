@@ -28,13 +28,7 @@ function ResearchComponent({
   const { favorites, toggleFavorite } = useFavorites(defaultSecondAsset);
 
   useEffect(() => {
-    // Fetch markets based on the active tab
-    // ...
-  }, [activeTab]);
-
-  useEffect(() => {
-    // Update market prices periodically
-    // ...
+    console.log("markets", markets);
   }, [markets]);
 
   const displayedMarkets = getDisplayedMarkets(

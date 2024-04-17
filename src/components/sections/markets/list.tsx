@@ -14,7 +14,6 @@ import {
 import { ChangeEvent, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import ResearchComponent from "./ResearchComponentold";
-import PriceComponent from "./PriceComponent";
 
 interface Market {
   name: string;
@@ -79,12 +78,6 @@ function SectionMarketsList() {
           </TableBody>
         </Table>
       </div>
-      {selectedMarket && (
-        <PriceComponent
-          market={selectedMarket}
-          onClose={() => setSelectedMarket(null)}
-        />
-      )}
     </section>
   );
 }
