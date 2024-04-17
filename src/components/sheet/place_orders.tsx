@@ -38,9 +38,7 @@ function SheetPlaceOrder() {
   const isReduceTP = useTradeStore((state) => state.isReduceTP);
   const isReduceSL = useTradeStore((state) => state.isReduceSL);
   const sliderValue = useTradeStore((state) => state.sliderValue);
-  const exitPnL = useTradeStore((state) => state.exitPnL);
-  const stopPnL = useTradeStore((state) => state.stopPnL);
-  const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
+
   const accountLeverage = useTradeStore((state) => state.accountLeverage);
   const estimatedLiquidationPrice = useTradeStore(
     (state) => state.estimatedLiquidationPrice
@@ -63,6 +61,10 @@ function SheetPlaceOrder() {
   const setIsReduceTP = useTradeStore((state) => state.setIsReduceTP);
   const setIsReduceSL = useTradeStore((state) => state.setIsReduceSL);
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
+
+  const exitPnL = useTradeStore((state) => state.exitPnL);
+  const stopPnL = useTradeStore((state) => state.stopPnL);
+  const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
   return (
     <DrawerContent>
       <DrawerTitle className="text-center mt-3">BTC-PERP</DrawerTitle>

@@ -1,0 +1,16 @@
+.Notification {
+  position: fixed;
+  bottom: 0;
+
+  background-color: var(--warning);
+  padding: 12px;
+  width: 100%;
+}
+
+.Notification .center {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  max-width: var(--max-width);
+  margin: auto;
+}

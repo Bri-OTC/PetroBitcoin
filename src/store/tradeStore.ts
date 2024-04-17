@@ -1,4 +1,4 @@
-import create from "zustand";
+import { create } from "zustand";
 
 interface StoreState {
   balance: number;
@@ -10,7 +10,6 @@ interface StoreState {
   stopLossPercentage: string;
   amount: string;
   maxAmount: number;
-  amountUSD: string;
   isReduceTP: boolean;
   isReduceSL: boolean;
   sliderValue: number;
@@ -18,12 +17,11 @@ interface StoreState {
   stopPnL: number;
   riskRewardPnL: number;
   accountLeverage: number;
-  estimatedLiquidationPrice: number;
   bidPrice: number;
   askPrice: number;
   symbol: string;
   leverage: number;
-
+  currentTabIndex: string;
   setBalance: (balance: number) => void;
   setCurrentMethod: (method: string) => void;
   setEntryPrice: (price: string) => void;
@@ -32,7 +30,6 @@ interface StoreState {
   setStopLoss: (price: string) => void;
   setStopLossPercentage: (percentage: string) => void;
   setAmount: (amount: string) => void;
-  setAmountUSD: (amount: string) => void;
   setIsReduceTP: (reduce: boolean) => void;
   setIsReduceSL: (reduce: boolean) => void;
   setSliderValue: (value: number) => void;
@@ -40,11 +37,11 @@ interface StoreState {
   setStopPnL: (pnl: number) => void;
   setRiskRewardPnL: (pnl: number) => void;
   setAccountLeverage: (leverage: number) => void;
-  setEstimatedLiquidationPrice: (price: number) => void;
   setBidPrice: (price: number) => void;
   setAskPrice: (price: number) => void;
   setSymbol: (symbol: string) => void;
   setLeverage: (leverage: number) => void;
+  setCurrentTabIndex: (index: string) => void;
 }
 
 export const useTradeStore = create<StoreState>((set) => ({
@@ -56,8 +53,6 @@ export const useTradeStore = create<StoreState>((set) => ({
   stopLoss: "",
   stopLossPercentage: "",
   amount: "",
-  maxAmount: 0,
-  amountUSD: "",
   isReduceTP: false,
   isReduceSL: false,
   sliderValue: 50,
@@ -70,6 +65,9 @@ export const useTradeStore = create<StoreState>((set) => ({
   askPrice: 46423,
   symbol: "AAPL/EURUSD",
   leverage: 500,
+  maxAmount: 100000000000000000,
+  currentTabIndex: "Limit",
+
   setBalance: (balance) => set(() => ({ balance })),
   setCurrentMethod: (method) => set(() => ({ currentMethod: method })),
   setEntryPrice: (price) =>
@@ -84,7 +82,6 @@ export const useTradeStore = create<StoreState>((set) => ({
   setStopLossPercentage: (percentage) =>
     set(() => ({ stopLossPercentage: percentage })),
   setAmount: (amount) => set(() => ({ amount })),
-  setAmountUSD: (amount) => set(() => ({ amountUSD: amount })),
   setIsReduceTP: (reduce) => set(() => ({ isReduceTP: reduce })),
   setIsReduceSL: (reduce) => set(() => ({ isReduceSL: reduce })),
   setSliderValue: (value) => set(() => ({ sliderValue: value })),
@@ -92,10 +89,9 @@ export const useTradeStore = create<StoreState>((set) => ({
   setStopPnL: (pnl) => set(() => ({ stopPnL: pnl })),
   setRiskRewardPnL: (pnl) => set(() => ({ riskRewardPnL: pnl })),
   setAccountLeverage: (leverage) => set(() => ({ accountLeverage: leverage })),
-  setEstimatedLiquidationPrice: (price) =>
-    set(() => ({ estimatedLiquidationPrice: price })),
   setBidPrice: (price) => set(() => ({ bidPrice: price })),
   setAskPrice: (price) => set(() => ({ askPrice: price })),
   setSymbol: (symbol) => set(() => ({ symbol })),
   setLeverage: (leverage) => set(() => ({ leverage })),
+  setCurrentTabIndex: (index) => set(() => ({ currentTabIndex: index })),
 }));
