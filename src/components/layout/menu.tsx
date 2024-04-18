@@ -17,7 +17,12 @@ import { PionerV1 } from "@pionerfriends/blockchain-client";
 
 import { useAuthStore } from "../../store/authStore";
 import { useEffect, useState } from "react";
-import { createWalletClient, custom } from "viem";
+import {
+  createWalletClient,
+  custom,
+  recoverMessageAddress,
+  verifyMessage,
+} from "viem";
 import { fantomSonicTestnet, avalancheFuji } from "viem/chains";
 import { WalletLoader } from "../web3/WalletLoader";
 
@@ -77,12 +82,18 @@ export function Menu() {
 
         try {
           const provider = await wallet.getEthereumProvider();
-          console.log("provider", provider);
           const signature = await provider.request({
             method: "personal_sign",
             params: [message, wallet.address],
           });
-          console.log("signature", signature, message);
+
+          const recover = await verifyMessage({
+            address: wallet.address as `0x${string}`,
+
+            message: message as `0x${string}`,
+            signature: signature as `0x${string}`,
+          });
+          console.log("signature", signature, message, recover);
 
           return { uuid, signature };
         } catch (error) {

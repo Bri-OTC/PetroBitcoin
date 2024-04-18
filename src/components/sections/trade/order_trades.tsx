@@ -9,6 +9,7 @@ import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import PopupModify from "@/components/popup/modify";
 import SheetPlaceOrder from "@/components/sheet/place_orders";
 import { useTradeStore } from "@/store/tradeStore";
+import { OrderBook } from "@/components/sections/trade/OrderBook";
 
 function SectionTradeOrderTrades() {
   const accountLeverage = useTradeStore((state) => state.accountLeverage);
@@ -158,7 +159,7 @@ function SectionTradeOrderTrades() {
           </div>
         </div>
         <div className="w-full max-w-[135px] md:max-w-[250px] flex items-center justify-center text-center bg-card">
-          <h1>Depth</h1>
+          <OrderBook />
         </div>
       </div>
     </div>
