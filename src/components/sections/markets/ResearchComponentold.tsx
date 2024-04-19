@@ -5,6 +5,7 @@ import Fuse from "fuse.js";
 import { useStore } from "../../../store/useStore";
 import { FaStar } from "react-icons/fa";
 import useFavorites from "./useFavorites";
+import Link from "next/link";
 
 interface Market {
   name: string;
@@ -30,6 +31,10 @@ function ResearchComponent({
   const [sortByPrice, setSortByPrice] = useState(false);
   const setSelectedMarket = useStore((state) => state.setSelectedMarket);
   const { favorites, toggleFavorite } = useFavorites(defaultSecondAsset);
+  const menuUrl =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000/markets"
+      : "https://testnet.pio.finance/markets";
 
   useEffect(() => {
     const fetchMarkets = async () => {

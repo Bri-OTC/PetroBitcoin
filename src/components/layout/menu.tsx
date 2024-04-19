@@ -15,16 +15,10 @@ import { FaTimes } from "react-icons/fa";
 import { getPayload, login } from "@pionerfriends/api-client";
 import { PionerV1 } from "@pionerfriends/blockchain-client";
 
-import { useAuthStore } from "../../store/authStore";
+import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-import {
-  createWalletClient,
-  custom,
-  recoverMessageAddress,
-  verifyMessage,
-} from "viem";
-import { fantomSonicTestnet, avalancheFuji } from "viem/chains";
-import { WalletLoader } from "../web3/WalletLoader";
+import { createWalletClient, custom, verifyMessage } from "viem";
+import { EIP1193Provider } from "eip1193-provider";
 
 import { calculatePairPrices } from "@/components/triparty/pairPrice";
 
@@ -82,6 +76,20 @@ export function Menu() {
 
         try {
           const provider = await wallet.getEthereumProvider();
+          const walletClient = createWalletClient({
+            transport: custom(provider),
+          });
+          const signature = await walletClient.signMessage({
+            account: wallet.address as `0x${string}`,
+            message: message,
+          });
+
+          const valid = await verifyMessage({
+            address: wallet.address as `0x${string}`,
+            message: message,
+            signature: signature,
+          });
+          /*
           const signature = await provider.request({
             method: "personal_sign",
             params: [message, wallet.address],
@@ -92,8 +100,8 @@ export function Menu() {
 
             message: message as `0x${string}`,
             signature: signature as `0x${string}`,
-          });
-          console.log("signature", signature, message, recover);
+          });*/
+          console.log("signature", signature, message, valid);
 
           return { uuid, signature };
         } catch (error) {
@@ -232,6 +240,7 @@ export const useWalletAndProvider = () => {
       if (wallets.length > 0) {
         const wallet = wallets[0];
         const currentProvider = await wallet.getEthereumProvider();
+
         setProvider(currentProvider);
       } else {
         setProvider(null);

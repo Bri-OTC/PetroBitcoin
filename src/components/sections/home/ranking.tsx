@@ -9,24 +9,50 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 function SectionHomeRanking() {
+  const token = useAuthStore((state) => state.token);
+
   const [currentTab, setCurrentTab] = useState("Winners");
-  const [filteredRanking, setFilteredRanking] = useState(
-    rankingData.filter((x) => x.type.toLowerCase() === "winners")
-  );
+  const [filteredRanking, setFilteredRanking] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchRankingData(currentTab === "Winners" ? "gainers" : "losers");
+  }, [currentTab]);
 
   const toggleTab = (label: string) => {
     setCurrentTab(label);
-    if (label === "All") {
-      setFilteredRanking(rankingData);
-    } else {
-      setFilteredRanking(
-        rankingData.filter((x) => x.type.toLowerCase() === label.toLowerCase())
+    fetchRankingData(label === "Winners" ? "gainers" : "losers");
+  };
+
+  const fetchRankingData = async (topType: string) => {
+    try {
+      const headers: HeadersInit | undefined = token
+        ? { Authorization: token }
+        : undefined;
+
+      const response = await fetch(
+        `https://api.pio.finance:2096/api/v1/get_top_assets?topType=${topType}`,
+        {
+          method: "GET",
+          headers,
+        }
       );
+
+      if (response.ok) {
+        const data = await response.json();
+        const top3Assets = data.slice(0, 3);
+        setFilteredRanking(top3Assets);
+      } else {
+        console.error("Error fetching ranking data:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching ranking data:", error);
     }
   };
+
   return (
     <section className="flex flex-col space-y-5 mt-5">
       <div className="flex items-center space-x-3">
@@ -59,29 +85,37 @@ function SectionHomeRanking() {
                 <TableHead className="text-right">
                   <p>Price</p>
                 </TableHead>
+                <TableHead className="text-right">
+                  <p>24h% Change</p>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredRanking.map((x, index) => {
                 return (
-                  <TableRow key={x.icon + index}>
+                  <TableRow key={x.symbol + index}>
                     <TableCell className="text-left">
                       <div className="flex items-center space-x-2">
                         <Image
                           width={29}
                           height={29}
-                          src={x.icon}
-                          alt={x.futures}
+                          src="/home/$.svg"
+                          alt={x.symbol}
                         />
-                        <h2 className="text-white">{x.futures}</h2>
+                        <h2 className="text-white">{x.symbol}</h2>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <p>{x.price}</p>
                     </TableCell>
                     <TableCell
                       className={`text-right ${
-                        x.change > 0 ? "text-green-400" : "text-red-400"
+                        x.changesPercentage > 0
+                          ? "text-green-400"
+                          : "text-red-400"
                       }`}
                     >
-                      <p>{x.price}</p>
+                      <p>{x.changesPercentage.toFixed(2)}%</p>
                     </TableCell>
                   </TableRow>
                 );
@@ -93,85 +127,5 @@ function SectionHomeRanking() {
     </section>
   );
 }
-
-const rankingData = [
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.527,
-    change: 132.34,
-    type: "winners",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "XYZ-PERP",
-    price: 2.827,
-    change: -20.34,
-    type: "losers",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 3.111,
-    change: 120.34,
-    type: "winners",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.827,
-    change: 132.34,
-    type: "volume",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 3.111,
-    change: 120.34,
-    type: "winners",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.827,
-    change: 132.34,
-    type: "volume",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.222,
-    change: 132.34,
-    type: "volume",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.443,
-    change: -20.34,
-    type: "losers",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.827,
-    change: 132.34,
-    type: "volume",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.222,
-    change: 132.34,
-    type: "volume",
-  },
-  {
-    icon: "/home/$.svg",
-    futures: "C98-PERP",
-    price: 2.443,
-    change: -20.34,
-    type: "losers",
-  },
-];
 
 export default SectionHomeRanking;

@@ -1,13 +1,19 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "./OrderBook.css";
+import { useTradeStore } from "@/store/tradeStore";
 
 interface Order {
   price: number | null;
   amount: number | null;
 }
 
+function isMarketOpen() {}
+
 const OrderRowAsk: React.FC<Order> = ({ price, amount }) => {
   const [flashClass, setFlashClass] = useState("");
+  const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
+  const bidPrice = useTradeStore((state) => state.bidPrice);
+  const askPrice = useTradeStore((state) => state.askPrice);
 
   useEffect(() => {
     if (amount !== null) {
@@ -21,8 +27,14 @@ const OrderRowAsk: React.FC<Order> = ({ price, amount }) => {
     return null;
   }
 
+  const handleClick = () => {
+    if (price !== null) {
+      setEntryPrice(String(price));
+    }
+  };
+
   return (
-    <tr className={flashClass}>
+    <tr className={flashClass} onClick={handleClick}>
       <td className="amount">{Math.abs(amount)}</td>
       <td className="price">{price}</td>
     </tr>
@@ -31,6 +43,7 @@ const OrderRowAsk: React.FC<Order> = ({ price, amount }) => {
 
 const OrderRowBid: React.FC<Order> = ({ price, amount }) => {
   const [flashClass, setFlashClass] = useState("");
+  const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
 
   useEffect(() => {
     if (amount !== null) {
@@ -44,14 +57,19 @@ const OrderRowBid: React.FC<Order> = ({ price, amount }) => {
     return null;
   }
 
+  const handleClick = () => {
+    if (price !== null) {
+      setEntryPrice(String(price));
+    }
+  };
+
   return (
-    <tr className={flashClass}>
+    <tr className={flashClass} onClick={handleClick}>
       <td className="amount">{Math.abs(amount)}</td>
       <td className="price">{price}</td>
     </tr>
   );
 };
-
 interface OrderBookProps {
   currencyPair?: string;
   maxRows?: number;

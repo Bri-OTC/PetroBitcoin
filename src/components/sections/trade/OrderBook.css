@@ -79,5 +79,8 @@
 
 .best-prices {
   font-weight: bold;
+}
+
+.best-prices td {
   text-align: center;
 }
