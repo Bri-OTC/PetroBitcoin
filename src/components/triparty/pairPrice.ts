@@ -1,5 +1,6 @@
 import { getPrices } from "@pionerfriends/api-client";
 
+
 async function calculatePairPrices(
   pairs: string[],
   token: string | null

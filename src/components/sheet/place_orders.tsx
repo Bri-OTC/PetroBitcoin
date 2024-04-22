@@ -43,6 +43,8 @@ function SheetPlaceOrder() {
   const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
 
   const setCurrentMethod = useTradeStore((state) => state.setCurrentMethod);
+  const setCurrentTabIndex = useTradeStore((state) => state.setCurrentTabIndex);
+
   const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
   const setTakeProfit = useTradeStore((state) => state.setTakeProfit);
   const setTakeProfitPercentage = useTradeStore(
@@ -132,7 +134,7 @@ function SheetPlaceOrder() {
 
   return (
     <DrawerContent>
-      <DrawerTitle className="text-center mt-3">BTC-PERP</DrawerTitle>
+      <DrawerTitle className="text-center mt-3">{symbol}</DrawerTitle>
       <div className="flex flex-col space-y-3 p-5">
         <div className="flex border-b">
           {["Buy", "Sell"].map((x) => {
@@ -144,8 +146,8 @@ function SheetPlaceOrder() {
                   currentMethod === x
                     ? `${
                         currentMethod === "Sell"
-                          ? "border-red-500 text-red-500"
-                          : "border-green-500 text-green-500"
+                          ? "border-[#F23645] text-[#F23645]"
+                          : "border-[#089981] text-[#089981]"
                       }`
                     : "border-transparent"
                 } font-medium transition-all cursor-pointer`}
@@ -289,14 +291,15 @@ function SheetPlaceOrder() {
           />
         </div>
         <div className="flex items-center space-x-2">
-          {[25, 50, 75, 100].map((x) => {
+          {[25, 50, 75, "Max"].map((x) => {
+            const value = x === "Max" ? 100 : x;
             return (
               <h2
                 key={x + "drawer"}
-                onClick={() => setSliderValue(x)}
+                onClick={() => setSliderValue(Number(value))}
                 className="w-full bg-card py-2 text-center hover:bg-primary rounded-lg cursor-pointer"
               >
-                {x}%
+                {x}
               </h2>
             );
           })}

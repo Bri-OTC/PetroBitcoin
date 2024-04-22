@@ -1,176 +1,196 @@
 import { create } from "zustand";
+import { StoreState, initialState } from "./tradeStoreInit";
 
-interface StoreState {
-  balance: number;
-  currentMethod: string;
-  entryPrice: string;
-  takeProfit: string;
-  takeProfitPercentage: string;
-  stopLoss: string;
-  stopLossPercentage: string;
-  amount: string;
-  amountUSD: string;
-  maxAmount: number;
-  isReduceTP: boolean;
-  isReduceSL: boolean;
-  sliderValue: number;
-  exitPnL: number;
-  stopPnL: number;
-  riskRewardPnL: number;
-  accountLeverage: number;
-  bidPrice: number;
-  askPrice: number;
-  symbol: string;
-  leverage: number;
-  currentTabIndex: string;
-  estimatedLiquidationPrice: number;
+export const useTradeStore = create<StoreState>((set) => ({
+  ...initialState,
 
-  setAmountUSD: (amountUSD: string) => void;
+  setBalance: (balance) =>
+    set((state) => ({
+      balance: balance,
+      estimatedLiquidationPrice:
+        parseFloat(state.entryPrice) /
+        (1 - parseFloat(state.amount) / state.balance),
+    })),
 
-  setBalance: (balance: number) => void;
-  setCurrentMethod: (method: string) => void;
-  setEntryPrice: (price: string) => void;
-  setTakeProfit: (price: string) => void;
-  setTakeProfitPercentage: (percentage: string) => void;
-  setStopLoss: (price: string) => void;
-  setStopLossPercentage: (percentage: string) => void;
-  setAmount: (amount: string) => void;
-  setIsReduceTP: (reduce: boolean) => void;
-  setIsReduceSL: (reduce: boolean) => void;
-  setSliderValue: (value: number) => void;
-  setAccountLeverage: (leverage: number) => void;
-  setBidPrice: (price: number) => void;
-  setAskPrice: (price: number) => void;
-  setSymbol: (symbol: string) => void;
-  setLeverage: (leverage: number) => void;
-  setCurrentTabIndex: (index: string) => void;
-  setEstimatedLiquidationPrice: (price: number) => void;
-}
-
-export const useTradeStore = create<StoreState>((set, get) => ({
-  balance: 1000,
-  currentMethod: "Buy",
-  entryPrice: "0",
-  takeProfit: "0",
-  takeProfitPercentage: "0",
-  stopLoss: "0",
-  stopLossPercentage: "0",
-  amount: "0",
-  amountUSD: "0",
-
-  isReduceTP: false,
-  isReduceSL: false,
-  sliderValue: 50,
-  exitPnL: 0,
-  stopPnL: 0,
-  riskRewardPnL: 0,
-  accountLeverage: 500,
-  bidPrice: 46423,
-  askPrice: 46423,
-  symbol: "AAPL/EURUSD",
-  leverage: 500,
-  maxAmount: 100000000000000000,
-  currentTabIndex: "Limit",
-  estimatedLiquidationPrice: 0,
-
-  setBalance: (balance) => set(() => ({ balance })),
-  setCurrentMethod: (method) => set(() => ({ currentMethod: method })),
+  setCurrentMethod: (method) => set({ currentMethod: method }),
   setEntryPrice: (price) =>
     set((state) => ({
       entryPrice: price,
-      maxAmount: state.balance / parseFloat(price),
+      maxAmount: parseFloat(
+        (
+          initialState.balance /
+          (parseFloat(initialState.entryPrice) / state.leverage)
+        ).toFixed(2)
+      ),
+      estimatedLiquidationPrice:
+        parseFloat(state.entryPrice) /
+        (1 - parseFloat(state.amount) / state.balance),
     })),
+
+  //
   setTakeProfit: (price) =>
-    set((state) => ({
-      takeProfit: price,
-      takeProfitPercentage: (
-        ((parseFloat(price) - parseFloat(state.entryPrice)) /
-          parseFloat(state.entryPrice)) *
+    set((state) => {
+      const entryPrice = parseFloat(state.entryPrice);
+      const takeProfit = parseFloat(price);
+      const amount = parseFloat(state.amount);
+
+      const takeProfitPercentage = (
+        ((takeProfit - entryPrice) / entryPrice) *
         100
-      ).toFixed(2),
-      exitPnL:
-        (parseFloat(price) - parseFloat(state.entryPrice)) *
-        parseFloat(state.amount),
-      riskRewardPnL:
-        parseFloat(state.takeProfitPercentage) /
-        parseFloat(state.stopLossPercentage),
-    })),
+      ).toFixed(2);
+
+      const exitPnL = (takeProfit - entryPrice) * amount;
+      const riskRewardPnL =
+        parseFloat(takeProfitPercentage) / parseFloat(state.stopLossPercentage);
+
+      return {
+        takeProfit: price,
+        takeProfitPercentage,
+        exitPnL,
+        riskRewardPnL,
+      };
+    }),
+
+  //
   setTakeProfitPercentage: (percentage) =>
-    set((state) => ({
-      takeProfitPercentage: percentage,
-      takeProfit: (
-        parseFloat(state.entryPrice) *
-        (1 + parseFloat(percentage) / 100)
-      ).toFixed(2),
-      exitPnL:
-        (parseFloat(state.takeProfit) - parseFloat(state.entryPrice)) *
-        parseFloat(state.amount),
-      riskRewardPnL:
-        parseFloat(percentage) / parseFloat(state.stopLossPercentage),
-    })),
+    set((state) => {
+      const entryPrice = parseFloat(state.entryPrice);
+      const takeProfitPercentage = parseFloat(percentage);
+      const amount = parseFloat(state.amount);
+
+      const takeProfit = (
+        entryPrice *
+        (1 + takeProfitPercentage / 100)
+      ).toFixed(2);
+
+      const exitPnL = (parseFloat(takeProfit) - entryPrice) * amount;
+      const riskRewardPnL =
+        takeProfitPercentage / parseFloat(state.stopLossPercentage);
+
+      return {
+        takeProfitPercentage: percentage,
+        takeProfit,
+        exitPnL,
+        riskRewardPnL,
+      };
+    }),
+  //
   setStopLoss: (price) =>
-    set((state) => ({
-      stopLoss: price,
-      stopLossPercentage: (
-        ((parseFloat(state.entryPrice) - parseFloat(price)) /
-          parseFloat(state.entryPrice)) *
+    set((state) => {
+      const entryPrice = parseFloat(state.entryPrice);
+      const stopLoss = parseFloat(price);
+      const amount = parseFloat(state.amount);
+
+      const stopLossPercentage = (
+        ((entryPrice - stopLoss) / entryPrice) *
         100
-      ).toFixed(2),
-      stopPnL:
-        (parseFloat(state.entryPrice) - parseFloat(price)) *
-        parseFloat(state.amount),
-      riskRewardPnL:
-        parseFloat(state.takeProfitPercentage) /
-        parseFloat(state.stopLossPercentage),
-    })),
+      ).toFixed(2);
+
+      const stopPnL = (entryPrice - stopLoss) * amount;
+      const riskRewardPnL =
+        parseFloat(state.takeProfitPercentage) / parseFloat(stopLossPercentage);
+
+      return {
+        stopLoss: price,
+        stopLossPercentage,
+        stopPnL,
+        riskRewardPnL,
+      };
+    }),
+  //
   setStopLossPercentage: (percentage) =>
-    set((state) => ({
-      stopLossPercentage: percentage,
-      stopLoss: (
-        parseFloat(state.entryPrice) *
-        (1 - parseFloat(percentage) / 100)
-      ).toFixed(2),
-      stopPnL:
-        (parseFloat(state.entryPrice) - parseFloat(state.stopLoss)) *
-        parseFloat(state.amount),
-      riskRewardPnL:
-        parseFloat(state.takeProfitPercentage) / parseFloat(percentage),
-    })),
+    set((state) => {
+      const entryPrice = parseFloat(state.entryPrice);
+      const stopLossPercentage = parseFloat(percentage);
+      const amount = parseFloat(state.amount);
+
+      const stopLoss = (entryPrice * (1 - stopLossPercentage / 100)).toFixed(2);
+
+      const stopPnL = (entryPrice - parseFloat(stopLoss)) * amount;
+      const riskRewardPnL =
+        parseFloat(state.takeProfitPercentage) / stopLossPercentage;
+
+      return {
+        stopLossPercentage: percentage,
+        stopLoss,
+        stopPnL,
+        riskRewardPnL,
+      };
+    }),
   setAmount: (amount) =>
-    set((state) => ({
-      amount,
-      exitPnL:
-        (parseFloat(state.takeProfit) - parseFloat(state.entryPrice)) *
-        parseFloat(amount),
-      stopPnL:
-        (parseFloat(state.entryPrice) - parseFloat(state.stopLoss)) *
-        parseFloat(amount),
-    })),
-  setIsReduceTP: (reduce) => set(() => ({ isReduceTP: reduce })),
-  setIsReduceSL: (reduce) => set(() => ({ isReduceSL: reduce })),
-  setSliderValue: (value) =>
-    set((state) => ({
-      sliderValue: value,
-      amount: ((value / 100) * state.maxAmount).toFixed(2),
-    })),
-  setAccountLeverage: (leverage) => set(() => ({ accountLeverage: leverage })),
-  setBidPrice: (price) => set(() => ({ bidPrice: price })),
-  setAskPrice: (price) => set(() => ({ askPrice: price })),
-  setSymbol: (symbol) => set(() => ({ symbol })),
-  setLeverage: (leverage) => set(() => ({ leverage })),
-  setCurrentTabIndex: (index) => set(() => ({ currentTabIndex: index })),
+    set((state) => {
+      const entryPrice = parseFloat(state.entryPrice);
+      const takeProfit = parseFloat(state.takeProfit);
+      const stopLoss = parseFloat(state.stopLoss);
+
+      const exitPnL = (takeProfit - entryPrice) * parseFloat(amount);
+      const stopPnL = (entryPrice - stopLoss) * parseFloat(amount);
+
+      return {
+        amount,
+        exitPnL,
+        stopPnL,
+      };
+    }),
   setAmountUSD: (amountUSD) =>
-    set((state) => ({
-      amount: (parseFloat(amountUSD) / parseFloat(state.entryPrice)).toFixed(2),
-      exitPnL:
-        ((parseFloat(state.takeProfit) - parseFloat(state.entryPrice)) *
-          parseFloat(amountUSD)) /
-        parseFloat(state.entryPrice),
-      stopPnL:
-        ((parseFloat(state.entryPrice) - parseFloat(state.stopLoss)) *
-          parseFloat(amountUSD)) /
-        parseFloat(state.entryPrice),
-    })),
+    set((state) => {
+      const entryPrice = parseFloat(state.entryPrice);
+      const takeProfit = parseFloat(state.takeProfit);
+      const stopLoss = parseFloat(state.stopLoss);
+
+      const amount = (parseFloat(amountUSD) / entryPrice).toFixed(2);
+      const exitPnL =
+        ((takeProfit - entryPrice) * parseFloat(amountUSD)) / entryPrice;
+      const stopPnL =
+        ((entryPrice - stopLoss) * parseFloat(amountUSD)) / entryPrice;
+
+      return {
+        amountUSD,
+        amount,
+        exitPnL,
+        stopPnL,
+      };
+    }),
+  setIsReduceTP: (reduce) => set({ isReduceTP: reduce }),
+  setIsReduceSL: (reduce) => set({ isReduceSL: reduce }),
+  setSliderValue: (value) =>
+    set((state) => {
+      const maxAmount = parseFloat(
+        (
+          state.balance /
+          (parseFloat(state.entryPrice) / state.leverage)
+        ).toFixed(2)
+      );
+      const amount = ((value / 100) * maxAmount).toFixed(2);
+      const amountUSD = (
+        parseFloat(amount) * parseFloat(state.entryPrice)
+      ).toFixed(2);
+
+      return {
+        ...state,
+        sliderValue: value,
+        amount,
+        amountUSD,
+      };
+    }),
+  setAccountLeverage: (leverage) => set({ accountLeverage: leverage }),
+  setBidPrice: (price) => set({ bidPrice: price }),
+  setAskPrice: (price) => set({ askPrice: price }),
+  setSymbol: (symbol) => set({ symbol }),
+  setLeverage: (leverage) =>
+    set({
+      leverage: leverage,
+      maxAmount: parseFloat(
+        (
+          initialState.balance /
+          (parseFloat(initialState.entryPrice) / leverage)
+        ).toFixed(2)
+      ),
+    }),
+
+  //
+  setCurrentTabIndex: (index) => set({ currentTabIndex: index }),
+  //
   setEstimatedLiquidationPrice: (price) =>
-    set(() => ({ estimatedLiquidationPrice: price })),
+    set({ estimatedLiquidationPrice: price }),
 }));

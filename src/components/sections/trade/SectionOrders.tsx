@@ -10,6 +10,9 @@ import Image from "next/image";
 import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
 import { IoMdShare } from "react-icons/io";
+import PopupShare from "../../popup/share";
+import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
+import { BsThreeDotsVertical } from "react-icons/bs";
 
 interface Order {
   size: number;
@@ -138,7 +141,12 @@ function SectionOrders({
                           <p>Market Close</p>
                         </Button>
                         <Button variant="secondary">
-                          <IoMdShare />
+                          <Dialog>
+                            <DialogTrigger>
+                              <IoMdShare />
+                            </DialogTrigger>
+                            <PopupShare />
+                          </Dialog>
                         </Button>
                       </div>
                     </TableCell>

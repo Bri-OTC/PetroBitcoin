@@ -10,9 +10,10 @@ const menu = ["Orders", "Positions"];
 const getPositions = () => {
   const positions = [
     {
+      id: 0,
       size: -0.0048,
       market: "BTC-PERP",
-      icon: "/trade/bitcoin.svg",
+      icon: "/$.svg",
       mark: 45000,
       entryPrice: 312.89,
       pnl: -0.03,
@@ -22,15 +23,16 @@ const getPositions = () => {
       status: "Open",
       reduceOnly: "No",
       fillAmount: "Yes",
+      entryTime: "1",
     },
   ];
-
   return positions;
 };
 
 const getOrders = () => {
   const orders = [
     {
+      id: 0,
       size: -0.0048,
       market: "BTC-PERP",
       icon: "/trade/bitcoin.svg",
@@ -50,7 +52,7 @@ interface activeMenu {
   [key: string]: boolean;
 }
 
-function SectionTradePositionsOrders() {
+async function SectionTradePositionsOrders() {
   const [currentTab, setCurrentTab] = useState(menu[0]);
   const [currentActiveRowPositions, setCurrentActiveRowPositions] =
     useState<activeMenu>({});

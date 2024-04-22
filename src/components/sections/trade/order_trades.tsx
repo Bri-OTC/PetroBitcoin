@@ -10,6 +10,10 @@ import PopupModify from "@/components/popup/modify";
 import SheetPlaceOrder from "@/components/sheet/place_orders";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
+import { formatSymbols } from "@/components/triparty/priceUpdater";
+
+import { useAuthStore } from "@/store/authStore";
+import startMarketStatusUpdater from "@/components/triparty/marketStatusUpdater";
 
 function SectionTradeOrderTrades() {
   const accountLeverage = useTradeStore((state) => state.accountLeverage);
@@ -19,13 +23,19 @@ function SectionTradeOrderTrades() {
   const maxAmount = useTradeStore((state) => state.maxAmount);
   const currentMethod = useTradeStore((state) => state.currentMethod);
   const amount = useTradeStore((state) => state.amount);
+  const amountUSD = useTradeStore((state) => state.amountUSD);
   const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
+  const symbol = useTradeStore((state) => state.symbol);
+  const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
+  const [tooltipContent, setTooltipContent] = useState("");
+
   const setCurrentMethodStore = useTradeStore(
     (state) => state.setCurrentMethod
   );
 
   const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
-  const setEntryAmount = useTradeStore((state) => state.setAmount);
+  const setAmount = useTradeStore((state) => state.setAmount);
+  const setAmountUSD = useTradeStore((state) => state.setAmountUSD);
   const setCurrentTabIndexStore = useTradeStore(
     (state) => state.setCurrentTabIndex
   );
@@ -40,12 +50,35 @@ function SectionTradeOrderTrades() {
   }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
 
   useEffect(() => {
-    setCurrentMethodStore(currentTabIndex === "Limit" ? "Limit" : "Market");
-  }, [currentTabIndex, setCurrentMethodStore]);
+    setAmount(Math.min(parseFloat(amount), maxAmount).toString());
+    setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toFixed(2));
+  }, [amount, maxAmount, entryPrice, setAmount, setAmountUSD]);
 
   useEffect(() => {
-    setEntryAmount(Math.min(parseFloat(amount), maxAmount).toString());
-  }, [amount, maxAmount, setEntryAmount]);
+    startMarketStatusUpdater(symbol);
+  }, [symbol]);
+
+  useEffect(() => {
+    const [symbol1, symbol2] = formatSymbols(symbol);
+    const isForexPair =
+      symbol1.startsWith("forex") || symbol2.startsWith("forex");
+    const isStockPair =
+      symbol1.startsWith("stock") || symbol2.startsWith("stock");
+
+    if (isForexPair) {
+      setTooltipContent(
+        isMarketOpen ? "" : "The Forex market is currently closed."
+      );
+    } else if (isStockPair) {
+      setTooltipContent(
+        isMarketOpen ? "" : "The Stock market is currently closed."
+      );
+    } else {
+      setTooltipContent(
+        isMarketOpen ? "" : "The Crypto market is currently closed."
+      );
+    }
+  }, [isMarketOpen, symbol]);
 
   return (
     <div className="mt-5">
@@ -87,8 +120,8 @@ function SectionTradeOrderTrades() {
                     currentMethod === x
                       ? `${
                           currentMethod === "Sell"
-                            ? "border-red-500 text-red-500"
-                            : "border-green-500 text-green-500"
+                            ? "border-[#F23645] text-[#F23645]"
+                            : "border-[#089981] text-[#089981]"
                         }`
                       : "border-transparent"
                   } font-medium transition-all cursor-pointer`}
@@ -119,7 +152,7 @@ function SectionTradeOrderTrades() {
                   type="number"
                   className="pb-3 outline-none w-full border-b-[1px] bg-transparent"
                   value={amount}
-                  onChange={(e) => setEntryAmount(e.target.value)}
+                  onChange={(e) => setAmount(e.target.value)}
                 />
               </div>
               <div className="mt-5">
@@ -130,10 +163,8 @@ function SectionTradeOrderTrades() {
                 <input
                   type="number"
                   className="pb-3 outline-none w-full border-b-[1px] bg-transparent"
-                  value={(
-                    parseFloat(amount) * parseFloat(entryPrice)
-                  ).toString()}
-                  readOnly
+                  value={amountUSD}
+                  onChange={(e) => setAmountUSD(e.target.value)}
                 />
               </div>
             </div>
@@ -150,12 +181,23 @@ function SectionTradeOrderTrades() {
               {accountLeverage}x Account Leverage
             </p>
 
-            <Drawer>
-              <DrawerTrigger className="w-full bg-card py-3">
-                <p>Buy</p>
-              </DrawerTrigger>
-              <SheetPlaceOrder />
-            </Drawer>
+            <div>
+              <Drawer>
+                <DrawerTrigger
+                  className={`w-full py-3 ${
+                    isMarketOpen
+                      ? currentMethod === "Buy"
+                        ? "bg-[#089981]"
+                        : "bg-[#F23645]"
+                      : "bg-[#666EFF] cursor-not-allowed"
+                  }`}
+                  disabled={!isMarketOpen}
+                >
+                  <p>{currentMethod}</p>
+                </DrawerTrigger>
+                <SheetPlaceOrder />
+              </Drawer>
+            </div>
           </div>
         </div>
         <div className="w-full max-w-[135px] md:max-w-[250px] flex items-center justify-center text-center bg-card">

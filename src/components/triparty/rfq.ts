@@ -9,7 +9,7 @@ import {
   getPrices,
 } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
-import { adjustQuantities, getPairConfig } from "./configRead";
+import { adjustQuantities, getPairConfig } from "./config";
 import { useTradeStore } from "@/store/tradeStore";
 
 export async function getRfq() {
