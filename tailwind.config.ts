@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 
 const config = {
+  webpack5: false,
+
   darkMode: ["class"],
   content: [
     "./pages/**/*.{ts,tsx}",

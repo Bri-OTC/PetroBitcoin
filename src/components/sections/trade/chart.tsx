@@ -21,6 +21,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 import { getPrices } from "@pionerfriends/api-client";
 import PriceUpdater from "@/components/sections/trade/PriceUpdater";
+import { RfqRequestUpdater } from "@/components/triparty/rfq";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
@@ -40,6 +41,7 @@ function SectionTradeChart() {
   return (
     <div className="flex flex-col space-y-3 mt-2 px-5">
       <PriceUpdater />
+      <RfqRequestUpdater />
 
       <div className="flex items-center justify-between">
         <div>

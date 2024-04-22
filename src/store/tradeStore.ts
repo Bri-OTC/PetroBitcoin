@@ -193,4 +193,6 @@ export const useTradeStore = create<StoreState>((set) => ({
   //
   setEstimatedLiquidationPrice: (price) =>
     set({ estimatedLiquidationPrice: price }),
+
+  setEntryPriceModified: (modified) => set({ entryPriceModified: modified }),
 }));

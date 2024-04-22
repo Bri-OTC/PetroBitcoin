@@ -10,18 +10,39 @@ export default function PriceUpdater() {
   const symbol = useTradeStore((state) => state.symbol);
   const setBidPrice = useTradeStore((state) => state.setBidPrice);
   const setAskPrice = useTradeStore((state) => state.setAskPrice);
+  const entryPriceModified = useTradeStore((state) => state.entryPriceModified);
+  const setEntryPriceModified = useTradeStore(
+    (state) => state.setEntryPriceModified
+  );
+  const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
 
   useEffect(() => {
     const fetchPrices = async () => {
       const [symbol1, symbol2] = formatSymbols(symbol);
+      if (!token) return;
+
       const response = await fetch(
         `/api/prices?symbol1=${symbol1}&symbol2=${symbol2}&token=${token}&currentTabIndex=${currentTabIndex}&currentMethod=${currentMethod}`
       );
-      const data = await response.json();
 
       if (response.ok) {
-        setBidPrice(data.bidPrice);
-        setAskPrice(data.askPrice);
+        try {
+          const data = await response.json();
+          setBidPrice(data.bidPrice);
+          setAskPrice(data.askPrice);
+
+          if (currentTabIndex === "Market" && !entryPriceModified) {
+            if (currentMethod === "Buy") {
+              setEntryPrice(data.askPrice);
+            } else if (currentMethod === "Sell") {
+              setEntryPrice(data.bidPrice);
+            }
+          }
+        } catch (error) {
+          console.error("Error parsing JSON:", error);
+        }
+      } else {
+        console.error("Error fetching prices:", response.status);
       }
     };
 
@@ -30,7 +51,16 @@ export default function PriceUpdater() {
     return () => {
       clearInterval(interval);
     };
-  }, [token, symbol, currentTabIndex, currentMethod, setBidPrice, setAskPrice]);
+  }, [
+    token,
+    symbol,
+    currentTabIndex,
+    currentMethod,
+    setBidPrice,
+    setAskPrice,
+    entryPriceModified,
+    setEntryPriceModified,
+  ]);
 
   return null;
 }

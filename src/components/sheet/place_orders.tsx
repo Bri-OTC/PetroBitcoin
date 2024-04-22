@@ -70,18 +70,30 @@ function SheetPlaceOrder() {
 
   useEffect(() => {
     if (currentMethod === "Buy") {
-      setEntryPrice(askPrice.toString());
+      try {
+        setEntryPrice(askPrice.toString());
+      } catch (error) {
+        console.error("Error setting entry price:", error);
+      }
     } else if (currentMethod === "Sell") {
-      setEntryPrice(bidPrice.toString());
+      try {
+        setEntryPrice(bidPrice.toString());
+      } catch (error) {
+        console.error("Error setting entry price:", error);
+      }
     }
   }, [currentMethod, askPrice, bidPrice, setEntryPrice]);
 
   useEffect(() => {
     if (currentTabIndex === "Market") {
       if (currentMethod === "Buy") {
-        setEntryPrice(askPrice.toString());
+        try {
+          setEntryPrice(askPrice.toString());
+        } catch (error) {}
       } else if (currentMethod === "Sell") {
-        setEntryPrice(bidPrice.toString());
+        try {
+          setEntryPrice(bidPrice.toString());
+        } catch (error) {}
       }
     }
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);

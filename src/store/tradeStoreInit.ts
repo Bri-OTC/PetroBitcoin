@@ -24,6 +24,7 @@ export interface StoreState {
   leverage: number;
   currentTabIndex: string;
   estimatedLiquidationPrice: number;
+  entryPriceModified: boolean;
 
   setBalance: (balance: number) => void;
   setCurrentMethod: (method: string) => void;
@@ -44,6 +45,8 @@ export interface StoreState {
   setLeverage: (leverage: number) => void;
   setCurrentTabIndex: (index: string) => void;
   setEstimatedLiquidationPrice: (price: number) => void;
+
+  setEntryPriceModified: (modified: boolean) => void;
 }
 
 export const initialState: StoreState = {
@@ -70,7 +73,7 @@ export const initialState: StoreState = {
   leverage: 500,
   currentTabIndex: "Limit",
   estimatedLiquidationPrice: 0,
-
+  entryPriceModified: false,
   setBalance: () => {},
   setCurrentMethod: () => {},
   setEntryPrice: () => {},
@@ -90,4 +93,5 @@ export const initialState: StoreState = {
   setLeverage: () => {},
   setCurrentTabIndex: () => {},
   setEstimatedLiquidationPrice: () => {},
+  setEntryPriceModified: () => {},
 };

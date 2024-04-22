@@ -1,18 +1,20 @@
-/*import fs from "fs";
-import { Asset, Row } from "./configReader";
+import { Asset, Row } from "./config";
 
 interface SymphonyJSON {
   assets: Asset[];
 }
 
-function processSymphonyJSON(symphonyJSONPath: string): Asset[] {
-  const rawData = fs.readFileSync(symphonyJSONPath, "utf-8");
-  const jsonData: SymphonyJSON = JSON.parse(rawData);
+async function processSymphonyJSON(): Promise<Asset[]> {
+  const response = await fetch("/symphony.json");
+  const jsonData: SymphonyJSON = await response.json();
   return jsonData.assets;
 }
 
-const symphonyJSONPath = "./symphony.json";
-const symbolList: Asset[] = processSymphonyJSON(symphonyJSONPath);
+let symbolList: Asset[] = [];
+
+async function initializeSymbolList() {
+  symbolList = await processSymphonyJSON();
+}
 
 function getFieldFromAsset(
   broker: string,
@@ -39,14 +41,6 @@ function getFieldFromAsset(
 
 function findAssetByProxyTicker(proxyTicker: string): Asset | undefined {
   return symbolList.find((a) => a.proxyTicker === proxyTicker);
-}
-
-function getAllocatedBroker(proxyTicker: string): string | undefined {
-  const asset = symbolList.find((a) => a.proxyTicker === proxyTicker);
-  if (!asset) {
-    return undefined;
-  }
-  return asset.broker;
 }
 
 function getAllProxyTickers(): string[] {
@@ -212,6 +206,5 @@ export {
   getPairConfig,
   getAllProxyTickers,
   adjustQuantities,
-  getAllocatedBroker,
+  initializeSymbolList,
 };
-*/
