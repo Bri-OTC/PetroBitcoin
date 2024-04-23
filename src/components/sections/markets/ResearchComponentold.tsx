@@ -2,7 +2,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import Fuse from "fuse.js";
-import { useStore } from "../../../store/useStore";
+import { useTradeStore } from "@/store/tradeStore";
 import { FaStar } from "react-icons/fa";
 import useFavorites from "./useFavorites";
 import Link from "next/link";
@@ -29,7 +29,8 @@ function ResearchComponent({
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
   const [activeTab, setActiveTab] = useState("all");
   const [sortByPrice, setSortByPrice] = useState(false);
-  const setSelectedMarket = useStore((state) => state.setSelectedMarket);
+
+  const setSelectedMarket = useTradeStore((state) => state.setSymbol);
   const { favorites, toggleFavorite } = useFavorites(defaultSecondAsset);
   const menuUrl =
     process.env.NODE_ENV === "development"
@@ -143,16 +144,12 @@ function ResearchComponent({
 
   const displayedMarkets = getDisplayedMarkets();
 
-  //console.log("Displayed markets:", displayedMarkets);
-
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
   };
 
   const handleMarketClick = (market: Market) => {
-    onMarketClick(market);
-    const pair = market.name;
-    toggleFavorite(pair);
+    setSelectedMarket(market);
   };
 
   const toggleSortByPrice = () => {
@@ -208,11 +205,7 @@ function ResearchComponent({
         </thead>
         <tbody>
           {displayedMarkets.map((market, index) => (
-            <tr
-              key={`${market.name}-${index}`}
-              className="border-none cursor-pointer"
-              onClick={() => handleMarketClick(market)}
-            >
+            <tr key={`${market.name}-${index}`} className="border-none">
               <td className="px-4 py-2">
                 <div className="flex items-center space-x-3">
                   <FaStar
@@ -221,10 +214,7 @@ function ResearchComponent({
                         ? "text-yellow-500"
                         : "text-gray-400"
                     }`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(market.name);
-                    }}
+                    onClick={() => toggleFavorite(market.name)}
                   />
                   <Image
                     width={30}
@@ -232,7 +222,9 @@ function ResearchComponent({
                     src={market.icon}
                     alt={market.name}
                   />
-                  <span>{market.name}</span>
+                  <Link href="/trade" onClick={() => handleMarketClick(market)}>
+                    <span className="cursor-pointer">{market.name}</span>
+                  </Link>
                 </div>
               </td>
               <td className="px-4 py-2">{market.price.toFixed(2)}</td>

@@ -36,7 +36,10 @@ function GasBalance() {
             method: "eth_getBalance",
             params: [wallet.address, "latest"],
           });
-          const gasBalanceInEther = formatUnits(BigInt(gasBalanceResponse), 18);
+          const gasBalanceInEther = formatUnits(
+            BigInt(gasBalanceResponse as string),
+            18
+          );
           setGasBalance(gasBalanceInEther);
         } catch (error) {
           console.error("Error fetching gas balance:", error);
@@ -80,7 +83,7 @@ export function DepositedBalance() {
             ],
           });
           const depositedBalanceInUnits = formatUnits(
-            BigInt(depositedBalanceResponse),
+            BigInt(depositedBalanceResponse as string),
             18
           );
           setDepositedBalance(depositedBalanceInUnits);
@@ -126,7 +129,7 @@ export function ClaimableBalance() {
             ],
           });
           const depositedBalanceInUnits = formatUnits(
-            BigInt(depositedBalanceResponse),
+            BigInt(depositedBalanceResponse as string),
             18
           );
           setDepositedBalance(depositedBalanceInUnits);
@@ -172,7 +175,7 @@ export function TimeToClaim() {
             ],
           });
           const depositedBalanceInUnits = formatUnits(
-            BigInt(depositedBalanceResponse),
+            BigInt(depositedBalanceResponse as string),
             18
           );
           setDepositedBalance(depositedBalanceInUnits);
@@ -217,7 +220,7 @@ export function USDCBalance() {
             ],
           });
           const usdcBalanceInUnits = formatUnits(
-            BigInt(usdcBalanceResponse),
+            BigInt(usdcBalanceResponse as string),
             18
           );
           setUsdcBalance(usdcBalanceInUnits);
@@ -262,7 +265,7 @@ export function USDCAllowance() {
             ],
           });
           const usdcBalanceInUnits = formatUnits(
-            BigInt(usdcBalanceResponse),
+            BigInt(usdcBalanceResponse as string),
             18
           );
           setUsdcBalance(usdcBalanceInUnits);
@@ -282,7 +285,6 @@ export function USDCAllowance() {
 
   return usdcBalance;
 }
-
 function SectionWalletTable() {
   const gasBalance = GasBalance();
   const depositedBalance = DepositedBalance();

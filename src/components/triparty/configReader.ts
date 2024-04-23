@@ -126,7 +126,6 @@ function getPairConfig(
   leverage: number,
   notional: number
 ): Row {
-  console.log("getPairConfig", tickerA, tickerB, side, leverage, notional);
   const rowA = getFieldFromAsset(
     "mt5.ICMarkets",
     tickerA,
@@ -211,11 +210,15 @@ interface PrefixData {
 let prefixData: PrefixData = {};
 
 async function loadPrefixData() {
-  const response = await fetch("/getPrefix.json");
-  prefixData = await response.json();
+  if (Object.keys(prefixData).length === 0) {
+    const response = await fetch("/getPrefix.json");
+
+    prefixData = await response.json();
+  }
 }
 
 function getPrefixedName(name: string): string | undefined {
+  loadPrefixData();
   for (const prefix in prefixData) {
     if (prefixData[prefix].hasOwnProperty(name)) {
       return prefix + name;

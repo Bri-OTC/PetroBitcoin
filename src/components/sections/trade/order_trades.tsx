@@ -47,7 +47,7 @@ function SectionTradeOrderTrades() {
 
   useEffect(() => {
     const checkMarketStatus = () => {
-      startMarketStatusUpdater(symbol);
+      startMarketStatusUpdater();
     };
 
     const checkMarketStatusInterval = setInterval(checkMarketStatus, 6000); // Check every minute

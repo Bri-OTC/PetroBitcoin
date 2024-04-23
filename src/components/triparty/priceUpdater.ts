@@ -14,7 +14,6 @@ export function useActivePrice() {
 
   const activePrice = async () => {
     const [symbol1, symbol2] = formatSymbols(symbol);
-
     if (token !== null) {
       const response = await getPrices([symbol1, symbol2], token);
       if (response && response.data) {
@@ -23,7 +22,6 @@ export function useActivePrice() {
         const bidSymbol2 = parseFloat(data[symbol2]?.bidPrice || "0");
         const askSymbol1 = parseFloat(data[symbol1]?.askPrice || "0");
         const askSymbol2 = parseFloat(data[symbol2]?.askPrice || "0");
-
         const calculatedBidPrice = bidSymbol1 / bidSymbol2;
         const calculatedAskPrice = askSymbol1 / askSymbol2;
 
@@ -55,16 +53,25 @@ export function formatSymbols(symbol: string): [string, string] {
 
 let interval: NodeJS.Timeout | null = null;
 
-export function startPriceUpdater() {
+export function useStartPriceUpdater() {
   const activePrice = useActivePrice();
-  if (!interval) {
-    interval = setInterval(activePrice, 200);
-  }
+
+  const startPriceUpdater = () => {
+    if (!interval) {
+      interval = setInterval(activePrice, 200);
+    }
+  };
+
+  return startPriceUpdater;
 }
 
-export function stopPriceUpdater() {
-  if (interval) {
-    clearInterval(interval);
-    interval = null;
-  }
+export function useStopPriceUpdater() {
+  const stopPriceUpdater = () => {
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+  };
+
+  return stopPriceUpdater;
 }

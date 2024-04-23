@@ -1,4 +1,4 @@
-import { getSignedWrappedOpenQuotes, getSignedCloseQuotes } from "@pionerfriends/api-client";
+/*import { getSignedWrappedOpenQuotes, getSignedCloseQuotes } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
 
@@ -18,7 +18,7 @@ export async function hi() {
         token: string,
         timeout: number = 3000,
       ):
-*/
+
 
 const bob = await getSignedWrappedOpenQuotes(
 "1.0",
@@ -39,4 +39,4 @@ getSignedCloseQuotes(
     token: string,
     timeout: number = 3000,
   )
-}
+}*/

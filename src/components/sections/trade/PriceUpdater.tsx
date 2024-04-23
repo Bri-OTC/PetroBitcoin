@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
+import { formatSymbols } from "@/components/triparty/priceUpdater";
 
 export default function PriceUpdater() {
   const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
@@ -63,22 +64,4 @@ export default function PriceUpdater() {
   ]);
 
   return null;
-}
-
-function formatSymbols(symbol: string): [string, string] {
-  const [symbol1, symbol2] = symbol.split("/");
-  return [addPrefix(symbol1), addPrefix(symbol2)];
-}
-
-function addPrefix(symbol: string): string {
-  if (symbol.startsWith("forex.")) {
-    return symbol;
-  } else if (
-    symbol.startsWith("stock.nyse.") ||
-    symbol.startsWith("stock.nasdaq.")
-  ) {
-    return symbol.split(".").slice(-1)[0];
-  } else {
-    return `forex.${symbol}`;
-  }
 }

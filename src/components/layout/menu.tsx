@@ -222,7 +222,7 @@ export const useWalletAndProvider = () => {
         const wallet = wallets[0];
         const currentProvider = await wallet.getEthereumProvider();
 
-        setProvider(currentProvider);
+        setProvider(currentProvider as EIP1193Provider | null);
       } else {
         setProvider(null);
       }

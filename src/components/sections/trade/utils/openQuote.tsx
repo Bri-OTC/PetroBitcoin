@@ -4,6 +4,8 @@ import { useWalletAndProvider } from "@/components/layout/menu";
 import { parseUnits } from "viem";
 import { networks } from "@pionerfriends/blockchain-client";
 import { toBytes } from "viem";
+import { createWalletClient, custom, verifyMessage } from "viem";
+
 import {
   sendSignedWrappedOpenQuote,
   SignedWrappedOpenQuoteRequest,
@@ -29,12 +31,18 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const token = useAuthStore().token;
-  const { wallet, provider } = useWalletAndProvider();
+  const { wallet } = useWalletAndProvider();
 
   const handleOpenQuote = async () => {
-    if (!wallet || !provider || !token) {
+    if (!wallet || !token) {
       return;
     }
+
+    const provider = await wallet.getEthereumProvider();
+
+    const walletClient = createWalletClient({
+      transport: custom(provider),
+    });
 
     setLoading(true);
 
@@ -66,7 +74,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
       name: "PionerV1Open",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: networks.sonic.contracts.pionerV1Open,
+      verifyingContract: networks.sonic.contracts.pionerV1Open as `0x${string}`,
     };
 
     const openQuoteSignType = {
@@ -97,17 +105,20 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
       nonce: quote.nonceOpenQuote,
     };
 
-    quote.signatureOpenQuote = await provider.signTypedData(
-      domainOpen,
-      openQuoteSignType,
-      openQuoteSignValue
-    );
+    quote.signatureOpenQuote = await walletClient.signTypedData({
+      domain: domainOpen,
+      types: openQuoteSignType,
+      primaryType: "Quote",
+      message: openQuoteSignValue,
+      account: wallet.address as `0x${string}`,
+    });
 
     const domainWarper = {
       name: "PionerV1Warper",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: networks.sonic.contracts.pionerV1Warper,
+      verifyingContract: networks.sonic.contracts
+        .pionerV1Warper as `0x${string}`,
     };
 
     const bOracleSignType = {
@@ -148,11 +159,13 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
       nonce: quote.nonceBoracle,
     };
 
-    quote.signatureBoracle = await provider.signTypedData(
-      domainWarper,
-      bOracleSignType,
-      bOracleSignValue
-    );
+    quote.signatureBoracle = await walletClient.signTypedData({
+      domain: domainWarper,
+      types: bOracleSignType,
+      primaryType: "bOracleSign",
+      message: bOracleSignValue,
+      account: wallet.address as `0x${string}`,
+    });
 
     await sendSignedWrappedOpenQuote(quote, token);
 
