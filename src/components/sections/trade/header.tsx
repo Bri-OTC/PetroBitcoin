@@ -51,8 +51,8 @@ function SectionTradeHeader() {
           {isFavorite ? <FaStar className="text-primary" /> : <FaRegStar />}
         </div>
         <div className="text-right">
-          <h2>{bidPrice}</h2>
-          <h2 className="text-green-400">{askPrice}</h2>
+          <h2>{bidPrice?.toPrecision(5)}</h2>
+          <h2 className="text-green-400">{askPrice?.toPrecision(5)}</h2>
         </div>
       </div>
     </div>

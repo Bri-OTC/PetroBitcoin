@@ -2,6 +2,7 @@
 import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 import { getPrices } from "@pionerfriends/api-client";
+import { getPrefixedName } from "./configReader";
 
 export async function activePrice() {
   const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
@@ -42,21 +43,10 @@ export async function activePrice() {
 }
 
 export function formatSymbols(symbol: string): [string, string] {
-  const [symbol1, symbol2] = symbol.split("/");
-  return [addPrefix(symbol1), addPrefix(symbol2)];
-}
-
-function addPrefix(symbol: string): string {
-  if (symbol.startsWith("forex.")) {
-    return `forex.${symbol}`;
-  } else if (
-    symbol.startsWith("stock.nyse.") ||
-    symbol.startsWith("stock.nasdaq.")
-  ) {
-    return symbol.split(".").slice(-1)[0];
-  } else {
-    return symbol;
-  }
+  let [symbol1, symbol2] = symbol.split("/");
+  symbol1 = getPrefixedName(symbol1) || symbol1;
+  symbol2 = getPrefixedName(symbol2) || symbol2;
+  return [symbol1, symbol2];
 }
 
 let interval: NodeJS.Timeout | null = null;

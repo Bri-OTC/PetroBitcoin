@@ -1,12 +1,11 @@
 // SectionTradeChart.tsx
 "use client";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
-import { useState, useEffect } from "react";
 import { CgMaximizeAlt } from "react-icons/cg";
 import { FaRegClock, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
-import { BsThreeDotsVertical } from "react-icons/bs";
 import {
   Select,
   SelectContent,
@@ -14,25 +13,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import PopupChart from "../../popup/chart";
 import PopupModify from "../../popup/modify";
 import TradingViewAdvancedChart from "../../tradingview/TradingViewAdvancedChart";
 import { useTradeStore } from "@/store/tradeStore";
-import { useAuthStore } from "@/store/authStore";
-import { getPrices } from "@pionerfriends/api-client";
 import PriceUpdater from "@/components/sections/trade/PriceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
+import UpdateMarketStatus from "@/components/triparty/marketStatusUpdater";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
-  const [symbol, setSymbol] = useState("NASDAQ:AAPL");
   const [interval, setInterval] = useState("D");
 
-  const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
-  const currentMethod = useTradeStore((state) => state.currentMethod);
-  const token = useAuthStore((state) => state.token);
-  const setBidPrice = useTradeStore((state) => state.setBidPrice);
-  const setAskPrice = useTradeStore((state) => state.setAskPrice);
+  const symbol = useTradeStore((state) => state.symbol);
 
   const handleIntervalChange = (value: string) => {
     setInterval(value);
@@ -42,19 +34,19 @@ function SectionTradeChart() {
     <div className="flex flex-col space-y-3 mt-2 px-5">
       <PriceUpdater />
       <RfqRequestUpdater />
+      <UpdateMarketStatus />
 
       <div className="flex items-center justify-between">
         <div>
           <p className="text-accent-foreground">24h volume</p>
-          <p>US$2,455,213,189</p>
+          <p>US$189</p>
         </div>
         <div>
-          <p className="text-accent-foreground">Predicted funding rate</p>
+          <p className="text-accent-foreground">Funding rate</p>
           <p>
-            <span className="text-red-500">0.0022%</span> in 47 min
+            <span className="text-red-500">6.25%</span> APR
           </p>
         </div>
-        <div className="flex items-center space-x-5"></div>
       </div>
       <div className="flex items-center justify-between">
         <Select onValueChange={handleIntervalChange}>
@@ -108,24 +100,6 @@ function SectionTradeChart() {
       </div>
     </div>
   );
-}
-
-function formatSymbols(symbol: string): [string, string] {
-  const [symbol1, symbol2] = symbol.split("/");
-  return [addPrefix(symbol1), addPrefix(symbol2)];
-}
-
-function addPrefix(symbol: string): string {
-  if (symbol.startsWith("forex.")) {
-    return `forex.${symbol}`;
-  } else if (
-    symbol.startsWith("stock.nyse.") ||
-    symbol.startsWith("stock.nasdaq.")
-  ) {
-    return symbol.split(".").slice(-1)[0];
-  } else {
-    return symbol;
-  }
 }
 
 export default SectionTradeChart;

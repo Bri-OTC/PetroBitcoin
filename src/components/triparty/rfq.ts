@@ -4,7 +4,12 @@ import {
   QuoteResponse,
 } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
-import { adjustQuantities, getPairConfig } from "./configReader";
+import {
+  adjustQuantities,
+  getPairConfig,
+  initializeSymbolList,
+  loadPrefixData,
+} from "./configReader";
 import { useTradeStore } from "@/store/tradeStore";
 import { useEffect } from "react";
 import { useRfqRequestStore } from "@/store/rfqStore";
@@ -88,11 +93,22 @@ export const useRfqRequest = () => {
   };
 
   useEffect(() => {
-    if (token != null) {
-      setRfqRequest();
+    const intervalId = setInterval(() => {
+      initializeSymbolList();
+      loadPrefixData();
+    }, 500000);
 
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [rfqRequest, token]);
+
+  useEffect(() => {
+    if (token != null) {
       const sendRfqRequest = async () => {
         try {
+          await setRfqRequest();
+
           await sendRfq(rfqRequest, token);
           console.log("RFQ request sent successfully");
         } catch (error) {
@@ -102,7 +118,7 @@ export const useRfqRequest = () => {
 
       const intervalId = setInterval(() => {
         sendRfqRequest();
-      }, 1000);
+      }, 5000);
 
       return () => {
         clearInterval(intervalId);

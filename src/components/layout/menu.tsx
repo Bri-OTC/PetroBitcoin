@@ -89,18 +89,7 @@ export function Menu() {
             message: message,
             signature: signature,
           });
-          /*
-          const signature = await provider.request({
-            method: "personal_sign",
-            params: [message, wallet.address],
-          });
 
-          const recover = await verifyMessage({
-            address: wallet.address as `0x${string}`,
-
-            message: message as `0x${string}`,
-            signature: signature as `0x${string}`,
-          });*/
           console.log("signature", signature, message, valid);
 
           return { uuid, signature };

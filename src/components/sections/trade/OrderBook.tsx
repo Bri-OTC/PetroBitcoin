@@ -1,19 +1,16 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "./OrderBook.css";
 import { useTradeStore } from "@/store/tradeStore";
+import { useQuoteStore } from "@/store/quoteStore";
 
 interface Order {
   price: number | null;
   amount: number | null;
 }
 
-function isMarketOpen() {}
-
 const OrderRowAsk: React.FC<Order> = ({ price, amount }) => {
   const [flashClass, setFlashClass] = useState("");
   const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
-  const bidPrice = useTradeStore((state) => state.bidPrice);
-  const askPrice = useTradeStore((state) => state.askPrice);
 
   useEffect(() => {
     if (amount !== null) {
@@ -35,8 +32,8 @@ const OrderRowAsk: React.FC<Order> = ({ price, amount }) => {
 
   return (
     <tr className={flashClass} onClick={handleClick}>
-      <td className="amount">{Math.abs(amount)}</td>
-      <td className="price">{price}</td>
+      <td className="amount">{Math.abs(amount).toFixed(6)}</td>
+      <td className="price">{price.toFixed(6)}</td>
     </tr>
   );
 };
@@ -65,59 +62,94 @@ const OrderRowBid: React.FC<Order> = ({ price, amount }) => {
 
   return (
     <tr className={flashClass} onClick={handleClick}>
-      <td className="amount">{Math.abs(amount)}</td>
-      <td className="price">{price}</td>
+      <td className="amount">{Math.abs(amount).toFixed(6)}</td>
+      <td className="price">{price.toFixed(6)}</td>
     </tr>
   );
 };
+
 interface OrderBookProps {
-  currencyPair?: string;
   maxRows?: number;
+  isOrderBookOn: boolean;
 }
 
 const OrderBook: React.FC<OrderBookProps> = ({
-  currencyPair = "btcusd",
   maxRows = 5,
+  isOrderBookOn,
 }) => {
   const [orders, setOrders] = useState<{ bids: number[][]; asks: number[][] }>({
     bids: [],
     asks: [],
   });
-  const [currencyBase, currencyQuote] = currencyPair
-    .toUpperCase()
-    .match(/.{1,3}/g) || ["", ""];
+  const [isLoading, setIsLoading] = useState(true);
+
+  const bidPrice = useTradeStore((state) => state.bidPrice);
+  const askPrice = useTradeStore((state) => state.askPrice);
+  const { bidQty, askQty } = useQuoteStore();
 
   useEffect(() => {
     const subscribe = {
       event: "bts:subscribe",
-      data: { channel: `order_book_${currencyPair}` },
+      data: { channel: `order_book_btcusd` },
     };
 
-    const ws = new WebSocket("wss://ws.bitstamp.net");
+    const ws = new WebSocket(process.env.NEXT_PUBLIC_WSS_URL || "");
     ws.onopen = () => ws.send(JSON.stringify(subscribe));
-    ws.onmessage = (event) => setOrders(JSON.parse(event.data).data);
+    ws.onmessage = (event) => {
+      setOrders(JSON.parse(event.data).data);
+      setIsLoading(false);
+    };
     ws.onclose = () => ws.close();
     return () => ws.close();
-  }, [currencyPair]);
+  }, []);
 
   const { asksToDisplay, bidsToDisplay } = useMemo(() => {
-    const asks = (orders.asks || [])
+    if (!bidPrice || !askPrice || !bidQty || !askQty)
+      return { asksToDisplay: [], bidsToDisplay: [] };
+
+    const spread = askPrice - bidPrice;
+    const askPrices = orders?.asks?.map(([price]) => price) || [];
+    const bidPrices = orders?.bids?.map(([price]) => price) || [];
+
+    const askQtyPerRow = askQty / maxRows;
+    const bidQtyPerRow = bidQty / maxRows;
+
+    const asks = askPrices
       .slice(0, maxRows)
-      .map(([price, amount]) => ({ price, amount: -amount }))
+      .map((price, i) => {
+        const amount = orders?.asks[i][1] * (askQtyPerRow / orders?.asks[0][1]);
+        const newPrice =
+          askPrice +
+          (price - askPrices[0]) *
+            (spread / (askPrices[0] - bidPrices[bidPrices.length - 1]));
+        return { price: newPrice, amount: -amount };
+      })
       .reverse();
 
-    const bids = (orders.bids || [])
-      .slice(0, maxRows)
-      .map(([price, amount]) => ({ price, amount }));
+    const bids = bidPrices.slice(-maxRows).map((price, i) => {
+      const amount =
+        orders?.bids[orders?.bids.length - maxRows + i][1] *
+        (bidQtyPerRow / orders?.bids[orders?.bids.length - 1][1]);
+      const newPrice =
+        bidPrice -
+        (bidPrices[bidPrices.length - 1] - price) *
+          (spread / (askPrices[0] - bidPrices[bidPrices.length - 1]));
+      return { price: newPrice, amount };
+    });
 
     return {
       asksToDisplay: asks,
       bidsToDisplay: bids,
     };
-  }, [orders, maxRows]);
+  }, [orders, maxRows, bidPrice, askPrice, bidQty, askQty]);
 
-  const bestBid = orders.bids?.[0]?.[0] || "-";
-  const bestAsk = orders.asks?.[0]?.[0] || "-";
+  if (!isOrderBookOn) {
+    return <div className="market-closed">Market Closed</div>;
+  }
+
+  if (isLoading) {
+    return <div className="loading">Loading...</div>;
+  }
 
   return (
     <div className="order-container">
@@ -137,9 +169,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
             />
           ))}
           <tr className="best-prices">
-            <td colSpan={2}>
-              Bid: {bestBid} | Ask: {bestAsk}
-            </td>
+            <td className="bid-price">Bid: {bidPrice.toFixed(6)}</td>
+            <td className="ask-price">Ask: {askPrice.toFixed(6)}</td>
           </tr>
           {bidsToDisplay.map(({ price, amount }, index) => (
             <OrderRowBid
