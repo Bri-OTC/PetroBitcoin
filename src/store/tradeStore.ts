@@ -127,7 +127,8 @@ export const useTradeStore = create<StoreState>((set) => ({
       const stopPnL = (entryPrice - stopLoss) * parseFloat(amount);
 
       return {
-        amount,
+        amount: amount.toString(),
+
         exitPnL,
         stopPnL,
       };
@@ -138,14 +139,14 @@ export const useTradeStore = create<StoreState>((set) => ({
       const takeProfit = parseFloat(state.takeProfit);
       const stopLoss = parseFloat(state.stopLoss);
 
-      const amount = (parseFloat(amountUSD) / entryPrice).toFixed(2);
+      const amount = (parseFloat(amountUSD) / entryPrice).toString();
       const exitPnL =
         ((takeProfit - entryPrice) * parseFloat(amountUSD)) / entryPrice;
       const stopPnL =
         ((entryPrice - stopLoss) * parseFloat(amountUSD)) / entryPrice;
 
       return {
-        amountUSD,
+        amountUSD: amountUSD.toString(),
         amount,
         exitPnL,
         stopPnL,
@@ -161,10 +162,10 @@ export const useTradeStore = create<StoreState>((set) => ({
           (parseFloat(state.entryPrice) / state.leverage)
         ).toFixed(2)
       );
-      const amount = ((value / 100) * maxAmount).toFixed(2);
+      const amount = ((value / 100) * maxAmount).toString();
       const amountUSD = (
         parseFloat(amount) * parseFloat(state.entryPrice)
-      ).toFixed(2);
+      ).toString();
 
       return {
         ...state,

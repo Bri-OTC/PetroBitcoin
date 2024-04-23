@@ -51,7 +51,7 @@ export const useRfqRequest = () => {
       const sConfig = await getPairConfig(
         symbol1,
         symbol2,
-        "long",
+        "short",
         leverage,
         parseFloat(entryPrice) * adjustedQuantitiesResult.sQuantity
       );
@@ -64,28 +64,28 @@ export const useRfqRequest = () => {
         assetBId: symbol2,
         sPrice: String(entryPrice),
         sQuantity: amount,
-        sInterestRate: "",
-        sIsPayingApr: false,
-        sImA: "",
-        sImB: sConfig?.funding?.toString() || "",
-        sDfA: sConfig?.funding?.toString() || "",
-        sDfB: sConfig?.funding?.toString() || "",
-        sExpirationA: sConfig?.funding?.toString() || "",
-        sExpirationB: sConfig?.funding?.toString() || "",
-        sTimelockA: sConfig?.funding?.toString() || "",
-        sTimelockB: sConfig?.funding?.toString() || "",
+        sInterestRate: sConfig?.funding?.toString(),
+        sIsPayingApr: lConfig?.isAPayingApr || true,
+        sImA: sConfig?.imA?.toString(),
+        sImB: sConfig?.imB?.toString() || "",
+        sDfA: sConfig?.dfA?.toString() || "",
+        sDfB: sConfig?.dfB?.toString() || "",
+        sExpirationA: sConfig?.expiryA?.toString() || "",
+        sExpirationB: sConfig?.expiryB?.toString() || "",
+        sTimelockA: sConfig?.timeLockA?.toString() || "",
+        sTimelockB: sConfig?.timeLockA?.toString() || "",
         lPrice: String(entryPrice),
         lQuantity: amount,
         lInterestRate: lConfig?.funding?.toString() || "",
-        lIsPayingApr: false,
-        lImA: lConfig?.funding?.toString() || "",
-        lImB: lConfig?.funding?.toString() || "",
-        lDfA: lConfig?.funding?.toString() || "",
-        lDfB: lConfig?.funding?.toString() || "",
-        lExpirationA: lConfig?.funding?.toString() || "",
-        lExpirationB: lConfig?.funding?.toString() || "",
-        lTimelockA: lConfig?.funding?.toString() || "",
-        lTimelockB: lConfig?.funding?.toString() || "",
+        lIsPayingApr: lConfig?.isAPayingApr || true,
+        lImA: lConfig?.imA?.toString() || "",
+        lImB: lConfig?.imB?.toString() || "",
+        lDfA: lConfig?.dfA?.toString() || "",
+        lDfB: lConfig?.dfB?.toString() || "",
+        lExpirationA: lConfig?.expiryA?.toString() || "",
+        lExpirationB: lConfig?.expiryB?.toString() || "",
+        lTimelockA: lConfig?.timeLockA?.toString() || "",
+        lTimelockB: lConfig?.timeLockA?.toString() || "",
       });
     } catch (error) {
       console.error("Error updating RFQ request:", error);
@@ -124,7 +124,7 @@ export const useRfqRequest = () => {
         clearInterval(intervalId);
       };
     }
-  }, [rfqRequest, token]);
+  }, [rfqRequest, token, setRfqRequest]);
 
   return { rfqRequest, setRfqRequest };
 };

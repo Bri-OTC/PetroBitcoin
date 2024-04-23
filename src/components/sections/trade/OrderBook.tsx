@@ -81,7 +81,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
     bids: [],
     asks: [],
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const bidPrice = useTradeStore((state) => state.bidPrice);
   const askPrice = useTradeStore((state) => state.askPrice);
@@ -97,7 +97,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
     ws.onopen = () => ws.send(JSON.stringify(subscribe));
     ws.onmessage = (event) => {
       setOrders(JSON.parse(event.data).data);
-      setIsLoading(false);
     };
     ws.onclose = () => ws.close();
     return () => ws.close();

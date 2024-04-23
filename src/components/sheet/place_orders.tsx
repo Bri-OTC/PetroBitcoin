@@ -136,12 +136,12 @@ function SheetPlaceOrder() {
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
-    setAmountUSD((parseFloat(value) * parseFloat(entryPrice)).toFixed(2));
+    setAmountUSD(String(parseFloat(value) * parseFloat(entryPrice)));
   };
 
   const handleAmountUSDChange = (value: string) => {
     setAmountUSD(value);
-    setAmount((parseFloat(value) / parseFloat(entryPrice)).toFixed(2));
+    setAmount(String(parseFloat(value) / parseFloat(entryPrice)));
   };
 
   return (
@@ -330,7 +330,7 @@ function SheetPlaceOrder() {
             <h3>{stopPnL} USD</h3>
           </div>
           <div className="flex flex-col items-center space-y-2 text-center">
-            <h3>Risk Reward PnL</h3>
+            <h3>Risk Reward</h3>
             <h3>{riskRewardPnL} USD</h3>
           </div>
         </div>

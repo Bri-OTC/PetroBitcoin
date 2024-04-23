@@ -153,14 +153,6 @@ export function Menu() {
     setLoginError(false);
   }, [wallet]);
 
-  const ex = ["forex.EURUSD/stock.nasdaq.AAPL", "stock.nyse.ABBV/forex.GBPUSD"];
-
-  useEffect(() => {
-    if (token) {
-      calculatePairPrices(ex, token).then((res) => console.log(res));
-    }
-  });
-
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
