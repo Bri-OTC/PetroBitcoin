@@ -19,7 +19,7 @@ export default function PriceUpdater() {
 
   useEffect(() => {
     const fetchPrices = async () => {
-      const [symbol1, symbol2] = formatSymbols(symbol);
+      const [symbol1, symbol2] = await formatSymbols(symbol);
       if (!token) return;
 
       const response = await fetch(

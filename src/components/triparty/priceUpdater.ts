@@ -13,7 +13,7 @@ export function useActivePrice() {
   const setAskPrice = useTradeStore((state) => state.setAskPrice);
 
   const activePrice = async () => {
-    const [symbol1, symbol2] = formatSymbols(symbol);
+    const [symbol1, symbol2] = await formatSymbols(symbol);
     if (token !== null) {
       const response = await getPrices([symbol1, symbol2], token);
       if (response && response.data) {
@@ -39,23 +39,19 @@ export function useActivePrice() {
       }
     }
   };
-
   return activePrice;
 }
 
-export function formatSymbols(symbol: string): [string, string] {
+export async function formatSymbols(symbol: string): Promise<[string, string]> {
   let [symbol1, symbol2] = symbol.split("/");
-  symbol1 = getPrefixedName(symbol1) || symbol1;
-  symbol2 = getPrefixedName(symbol2) || symbol2;
-  console.log(symbol1, symbol2, "symbol");
+  symbol1 = (await getPrefixedName(symbol1)) || symbol1;
+  symbol2 = (await getPrefixedName(symbol2)) || symbol2;
   return [symbol1, symbol2];
 }
-
 let interval: NodeJS.Timeout | null = null;
 
 export function useStartPriceUpdater() {
   const activePrice = useActivePrice();
-
   const startPriceUpdater = () => {
     if (!interval) {
       interval = setInterval(activePrice, 200);

@@ -1,6 +1,6 @@
 // SectionTradeChart.tsx
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { CgMaximizeAlt } from "react-icons/cg";
@@ -16,15 +16,19 @@ import {
 import PopupModify from "../../popup/modify";
 import TradingViewAdvancedChart from "../../tradingview/TradingViewAdvancedChart";
 import { useTradeStore } from "@/store/tradeStore";
-import PriceUpdater from "@/components/sections/trade/PriceUpdater";
+import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import UpdateMarketStatus from "@/components/triparty/marketStatusUpdater";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
   const [interval, setInterval] = useState("D");
-
   const symbol = useTradeStore((state) => state.symbol);
+  const activePrice = useActivePrice();
+
+  useEffect(() => {
+    activePrice();
+  }, [activePrice]);
 
   const handleIntervalChange = (value: string) => {
     setInterval(value);
@@ -32,7 +36,6 @@ function SectionTradeChart() {
 
   return (
     <div className="flex flex-col space-y-3 mt-2 px-5">
-      <PriceUpdater />
       <RfqRequestUpdater />
       <UpdateMarketStatus />
 

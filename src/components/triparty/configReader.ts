@@ -23,9 +23,8 @@ function getFieldFromAsset(
   leverage: number,
   notional: number
 ): Row | undefined {
-  const asset = symbolList.find(
-    (a) => a.broker === broker && a.proxyTicker === proxyTicker
-  );
+  const asset = symbolList.find((a) => a.proxyTicker === proxyTicker);
+
   if (asset) {
     const row = asset.notional?.find(
       (r) =>
@@ -58,7 +57,7 @@ function getMaxNotionalForMaxLeverage(
   const asset = findAssetByProxyTicker(proxyTicker);
   if (asset) {
     const rows = asset.notional?.filter(
-      (r) => r.side === side && r.leverage <= maxLeverage
+      (r) => r.side === side && r.leverage <= maxLeverage - 1
     );
     if (rows && rows.length > 0) {
       const maxNotionalRow = rows.reduce((prev, current) =>
@@ -119,13 +118,17 @@ function adjustQuantities(
   return { sQuantity, lQuantity };
 }
 
-function getPairConfig(
+async function getPairConfig(
   tickerA: string,
   tickerB: string,
   side: string,
   leverage: number,
   notional: number
-): Row {
+): Promise<Row> {
+  if (Object.keys(symbolList).length === 0) {
+    await initializeSymbolList();
+  }
+
   const rowA = getFieldFromAsset(
     "mt5.ICMarkets",
     tickerA,
@@ -133,6 +136,7 @@ function getPairConfig(
     leverage,
     notional
   );
+
   const rowB = getFieldFromAsset(
     "mt5.ICMarkets",
     tickerB,
@@ -212,13 +216,12 @@ let prefixData: PrefixData = {};
 async function loadPrefixData() {
   if (Object.keys(prefixData).length === 0) {
     const response = await fetch("/getPrefix.json");
-
     prefixData = await response.json();
   }
 }
 
-function getPrefixedName(name: string): string | undefined {
-  loadPrefixData();
+async function getPrefixedName(name: string): Promise<string | undefined> {
+  await loadPrefixData();
   for (const prefix in prefixData) {
     if (prefixData[prefix].hasOwnProperty(name)) {
       return prefix + name;

@@ -10,8 +10,9 @@ interface MarketStatusResponse {
   isTheCryptoMarketOpen: boolean;
 }
 
-const UpdateMarketStatus = () => {
+const UpdateMarketStatus: React.FC = () => {
   const symbol = useTradeStore((state) => state.symbol);
+  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
 
   const updateMarketStatus = async () => {
     try {
@@ -25,19 +26,16 @@ const UpdateMarketStatus = () => {
           },
         }
       );
-      const data: MarketStatusResponse = await response.json();
 
-      const [symbol1, symbol2] = formatSymbols(symbol);
-      console.log("symbol1", symbol1);
-      console.log("symbol2", symbol2);
-      console.log("data", data);
+      const data: MarketStatusResponse = await response.json();
+      const [resolvedSymbol1, resolvedSymbol2] = await formatSymbols(symbol);
+      const symbol1 = await resolvedSymbol1;
+      const symbol2 = await resolvedSymbol2;
 
       const isForexPair =
         symbol1.startsWith("forex") || symbol2.startsWith("forex");
       const isStockPair =
         symbol1.startsWith("stock") || symbol2.startsWith("stock");
-
-      const setIsMarketOpen = useAuthStore.getState().setIsMarketOpen;
 
       if (isForexPair) {
         setIsMarketOpen(data.isTheForexMarketOpen);
@@ -53,12 +51,9 @@ const UpdateMarketStatus = () => {
 
   useEffect(() => {
     updateMarketStatus();
-    const interval = setInterval(() => {
-      updateMarketStatus();
-    }, 6000);
-
+    const interval = setInterval(updateMarketStatus, 6000);
     return () => clearInterval(interval);
-  }, [symbol]);
+  }, [symbol, setIsMarketOpen]);
 
   return null;
 };

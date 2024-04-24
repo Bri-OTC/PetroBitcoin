@@ -149,7 +149,7 @@ function ResearchComponent({
   };
 
   const handleMarketClick = (market: Market) => {
-    setSelectedMarket(market);
+    setSelectedMarket(market.name);
   };
 
   const toggleSortByPrice = () => {
