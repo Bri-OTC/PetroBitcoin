@@ -34,7 +34,7 @@ function GasBalance() {
         try {
           const gasBalanceResponse = await provider.request({
             method: "eth_getBalance",
-            params: [wallet.address, "latest"],
+            params: [wallet.address as Address, "latest" as const],
           });
           const gasBalanceInEther = formatUnits(
             BigInt(gasBalanceResponse as string),
@@ -79,7 +79,7 @@ export function DepositedBalance() {
                 to: networks.sonic.contracts.PionerV1 as Address,
                 data: dataDeposited,
               },
-              "latest",
+              "latest" as const,
             ],
           });
           const depositedBalanceInUnits = formatUnits(
