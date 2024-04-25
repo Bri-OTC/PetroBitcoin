@@ -28,17 +28,15 @@ const UpdateMarketStatus: React.FC = () => {
             },
           }
         );
-
         const data: MarketStatusResponse = await response.json();
 
         const [resolvedSymbol1, resolvedSymbol2] = await formatSymbols(symbol);
-        const symbol1 = await resolvedSymbol1;
-        const symbol2 = await resolvedSymbol2;
-
         const isForexPair =
-          symbol1.startsWith("forex") || symbol2.startsWith("forex");
+          resolvedSymbol1.startsWith("forex") ||
+          resolvedSymbol2.startsWith("forex");
         const isStockPair =
-          symbol1.startsWith("stock") || symbol2.startsWith("stock");
+          resolvedSymbol1.startsWith("stock") ||
+          resolvedSymbol2.startsWith("stock");
 
         if (isForexPair) {
           setIsMarketOpen(data.isTheForexMarketOpen);
@@ -54,7 +52,7 @@ const UpdateMarketStatus: React.FC = () => {
     };
 
     updateMarketStatus();
-    const interval = setInterval(updateMarketStatus, 6000);
+    const interval = setInterval(updateMarketStatus, 60000); // Check every minute
 
     return () => clearInterval(interval);
   }, [symbol, setIsMarketOpen]);
