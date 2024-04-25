@@ -1,180 +1,63 @@
-"use client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
-import { FaEquals } from "react-icons/fa";
-import { useState, useEffect } from "react";
-import SheetPlaceOrder from "@/components/sheet/place_orders";
-import { useTradeStore } from "@/store/tradeStore";
-import { OrderBook } from "@/components/sections/trade/OrderBook";
+// marketStatusUpdater.ts
+import { useEffect } from "react";
+import { formatSymbols } from "@/components/triparty/priceUpdater";
 import { useAuthStore } from "@/store/authStore";
-import startMarketStatusUpdater from "@/components/triparty/marketStatusUpdater";
+import { useTradeStore } from "@/store/tradeStore";
 
-function SectionTradeOrderTrades() {
-  const {
-    accountLeverage,
-    bidPrice,
-    askPrice,
-    entryPrice,
-    maxAmount,
-    currentMethod,
-    amount,
-    amountUSD,
-    currentTabIndex,
-    symbol,
-    setCurrentMethod: setCurrentMethodStore,
-    setEntryPrice,
-    setAmount,
-    setAmountUSD,
-    setCurrentTabIndex: setCurrentTabIndexStore,
-    setCurrentTabIndex,
-  } = useTradeStore();
-
-  const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
-
-  useEffect(() => {
-    if (currentTabIndex === "Market") {
-      setEntryPrice(
-        currentMethod === "Buy" ? bidPrice.toString() : askPrice.toString()
-      );
-    }
-  }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
-
-  useEffect(() => {
-    setAmount(amount);
-    setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toFixed(5));
-  }, [amount, maxAmount, entryPrice, setAmount, setAmountUSD]);
-
-  useEffect(() => {
-    const checkMarketStatus = () => {
-      startMarketStatusUpdater();
-    };
-
-    const checkMarketStatusInterval = setInterval(checkMarketStatus, 6000); // Check every minute
-
-    return () => {
-      clearInterval(checkMarketStatusInterval);
-    };
-  }, [symbol]);
-
-  return (
-    <div className="mt-5">
-      <div className="border-b flex space-x-5 px-5">
-        {["Limit", "Market"].map((x) => (
-          <div
-            key={x}
-            onClick={() => {
-              setCurrentTabIndex(x);
-              setCurrentTabIndexStore(x);
-            }}
-          >
-            <h2
-              className={`${
-                currentTabIndex === x ? "text-white" : "text-card-foreground"
-              } transition-all font-medium cursor-pointer`}
-            >
-              {x}
-            </h2>
-            <div
-              className={`w-[18px] h-[4px] ${
-                currentTabIndex === x ? "bg-white" : "bg-transparent"
-              } mt-3 transition-all`}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="flex items-stretch space-x-5 pt-5 px-5">
-        <div className="w-full flex flex-col space-y-5">
-          <div className="flex border-b">
-            {["Buy", "Sell"].map((x) => (
-              <h3
-                key={x}
-                onClick={() => setCurrentMethodStore(x)}
-                className={`w-full text-center pb-3 border-b-[3px] ${
-                  currentMethod === x
-                    ? currentMethod === "Sell"
-                      ? "border-[#F23645] text-[#F23645]"
-                      : "border-[#089981] text-[#089981]"
-                    : "border-transparent"
-                } font-medium transition-all cursor-pointer`}
-              >
-                {x}
-              </h3>
-            ))}
-          </div>
-
-          <div className="flex flex-col space-y-5">
-            <p className="text-card-foreground">Price</p>
-            <div className="flex pb-3 items-center space-x-2 border-b">
-              <Input
-                type="number"
-                className="border-none bg-transparent px-0"
-                placeholder="Input Price"
-                value={entryPrice}
-                onChange={(e) => setEntryPrice(e.target.value)}
-                disabled={currentTabIndex === "Market"}
-              />
-              <p>USD</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="flex flex-col space-y-2 w-full">
-                <p className="text-card-foreground">Amount (Contracts)</p>
-                <input
-                  type="number"
-                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
-              <div className="mt-5">
-                <FaEquals className="text-[0.8rem]" />
-              </div>
-              <div className="flex flex-col space-y-2 w-full">
-                <p className="text-card-foreground">Amount (USD)</p>
-                <input
-                  type="number"
-                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent"
-                  value={amountUSD}
-                  onChange={(e) => setAmountUSD(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {["25", "50", "75", "100"].map((x) => (
-                <Button key={x} variant="ghost" className="w-full px-3 py-2">
-                  <h3 className="font-medium">{x}%</h3>
-                </Button>
-              ))}
-            </div>
-            <p className="text-card-foreground">
-              {accountLeverage}x Account Leverage
-            </p>
-
-            <div>
-              <Drawer>
-                <DrawerTrigger
-                  className={`w-full py-3 ${
-                    isMarketOpen
-                      ? currentMethod === "Buy"
-                        ? "bg-[#089981]"
-                        : "bg-[#F23645]"
-                      : "bg-[#666EFF] cursor-not-allowed"
-                  }`}
-                  disabled={!isMarketOpen}
-                >
-                  <p>{currentMethod}</p>
-                </DrawerTrigger>
-                <SheetPlaceOrder />
-              </Drawer>
-            </div>
-          </div>
-        </div>
-        <div className="w-full max-w-[135px] md:max-w-[250px] flex items-center justify-center text-center bg-card">
-          <OrderBook maxRows={5} isOrderBookOn={isMarketOpen} />
-        </div>
-      </div>
-    </div>
-  );
+interface MarketStatusResponse {
+  isTheStockMarketOpen: boolean;
+  isTheEuronextMarketOpen: boolean;
+  isTheForexMarketOpen: boolean;
+  isTheCryptoMarketOpen: boolean;
 }
 
-export default SectionTradeOrderTrades;
+const UpdateMarketStatus: React.FC = () => {
+  const symbol = useTradeStore((state) => state.symbol);
+  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
+
+  useEffect(() => {
+    const updateMarketStatus = async () => {
+      try {
+        const response = await fetch(
+          "https://api.pio.finance:2096/api/v1/is_market_open",
+          {
+            method: "GET",
+            headers: {
+              Authorization:
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQwOTE3NTgsImRhdGEiOnsibm9uY2UiOiJjMTE5ODc1Njg2MmU3NDc4YzI1OTUyMDdlM2Q3ZDcxMDdjNmE3N2IwZjQ0ZTEzN2ZmZjBhY2ZkNGRiNzQ1MzhkIiwiYWRkcmVzcyI6IjB4ZDBkZGY5MTU2OTNmMTNjZjliM2I2OWRmZjQ0ZWU3N2M5MDE4ODJmOCJ9LCJpYXQiOjE3MTM0ODY5NTh9.4-Nl4C-NzXaVVnGlalaqsXXLeEyzX8wrbueRCt9QzLo",
+            },
+          }
+        );
+        const data: MarketStatusResponse = await response.json();
+
+        const [resolvedSymbol1, resolvedSymbol2] = await formatSymbols(symbol);
+        const isForexPair =
+          resolvedSymbol1.startsWith("forex") ||
+          resolvedSymbol2.startsWith("forex");
+        const isStockPair =
+          resolvedSymbol1.startsWith("stock") ||
+          resolvedSymbol2.startsWith("stock");
+
+        if (isForexPair) {
+          setIsMarketOpen(data.isTheForexMarketOpen);
+        } else if (isStockPair) {
+          setIsMarketOpen(data.isTheStockMarketOpen);
+        } else {
+          setIsMarketOpen(data.isTheCryptoMarketOpen);
+        }
+      } catch (error) {
+        console.error("Error fetching market status:", error);
+        setIsMarketOpen(false);
+      }
+    };
+
+    updateMarketStatus();
+    const interval = setInterval(updateMarketStatus, 60000); // Check every minute
+
+    return () => clearInterval(interval);
+  }, [symbol, setIsMarketOpen]);
+
+  return null;
+};
+
+export default UpdateMarketStatus;

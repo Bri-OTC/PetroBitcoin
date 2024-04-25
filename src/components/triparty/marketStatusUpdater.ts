@@ -1,3 +1,4 @@
+// marketStatusUpdater.ts
 import { useEffect } from "react";
 import { formatSymbols } from "@/components/triparty/priceUpdater";
 import { useAuthStore } from "@/store/authStore";
