@@ -47,10 +47,13 @@ function SectionTradeOrderTrades() {
 
   useEffect(() => {
     const checkMarketStatus = () => {
-      startMarketStatusUpdater();
+      const props = {
+        symbol: symbol,
+      };
+      startMarketStatusUpdater(props);
     };
 
-    const checkMarketStatusInterval = setInterval(checkMarketStatus, 6000); // Check every minute
+    const checkMarketStatusInterval = setInterval(checkMarketStatus, 60000); // Check every minute
 
     return () => {
       clearInterval(checkMarketStatusInterval);
