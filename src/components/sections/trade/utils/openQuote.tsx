@@ -28,12 +28,18 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const walletClient = useAuthStore((state) => state.walletClient);
   const wallet = useAuthStore((state) => state.wallet);
   const token = useAuthStore((state) => state.token);
-  const symbol = useTradeStore((state) => state.symbol);
+  const symbol: string = useTradeStore((state) => state.symbol);
   const updateRfqRequest = useRfqRequestStore(
     (state) => state.updateRfqRequest
   );
 
-  const currentMethod = useTradeStore((state) => state.currentMethod);
+  const currentMethod: string = useTradeStore((state) => state.currentMethod);
+  const entryPrice: string = useTradeStore((state) => state.entryPrice);
+  const amount: string = useTradeStore((state) => state.amount);
+  const isReduceTP: boolean = useTradeStore((state) => state.isReduceTP);
+  const isReduceSL: boolean = useTradeStore((state) => state.isReduceSL);
+  const stopLoss: string = useTradeStore((state) => state.stopLoss);
+  const takeProfit: string = useTradeStore((state) => state.takeProfit);
 
   const handleOpenQuote = async () => {
     if (!wallet || !wallet.address || !token || !walletClient) {
@@ -46,10 +52,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     setLoading(true);
     const paddedSymbol = symbol.padEnd(32, "\0");
     const assetHex = bytesToHex(toBytes(paddedSymbol));
-
-    console.log(assetHex);
-    const entryPrice = useTradeStore((state) => state.entryPrice);
-    const amount = useTradeStore((state) => state.amount);
 
     const quote: SignedWrappedOpenQuoteRequest = {
       ...request,
@@ -177,11 +179,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     });
 
     await sendSignedWrappedOpenQuote(quote, token);
-
-    const isReduceTP = useTradeStore((state) => state.isReduceTP);
-    const isReduceSL = useTradeStore((state) => state.isReduceSL);
-    const stopLoss = useTradeStore((state) => state.stopLoss);
-    const takeProfit = useTradeStore((state) => state.takeProfit);
 
     if (isReduceTP) {
       const domainClose = {
