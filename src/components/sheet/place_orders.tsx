@@ -337,8 +337,8 @@ function SheetPlaceOrder() {
         <DrawerClose>
           <OpenQuoteButton
             request={{
-              issuerAddress: "",
-              counterpartyAddress: "",
+              issuerAddress: "0x0000000000000000000000000000000000000000",
+              counterpartyAddress: "0x0000000000000000000000000000000000000000",
               version: "1.0",
               chainId: 64165,
               verifyingContract: "",
@@ -370,11 +370,6 @@ function SheetPlaceOrder() {
               emitTime: "0",
               messageState: 0,
             }}
-            counterpartyAddress=""
-            assetPair={symbol}
-            isLong={currentMethod === "Buy"}
-            price={entryPrice}
-            amount={amount}
           />
         </DrawerClose>
       </div>

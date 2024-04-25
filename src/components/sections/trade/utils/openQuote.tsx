@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { useWalletAndProvider } from "@/components/layout/menu";
 import { parseUnits } from "viem";
 import { networks } from "@pionerfriends/blockchain-client";
-import { toBytes } from "viem";
-import { createWalletClient, custom, verifyMessage } from "viem";
+import { toBytes, bytesToHex } from "viem";
+import { useTradeStore } from "@/store/tradeStore";
+import { useRfqRequestStore } from "@/store/rfqStore";
 
 import {
   sendSignedWrappedOpenQuote,
   SignedWrappedOpenQuoteRequest,
+  sendSignedCloseQuote,
+  SignedCloseQuoteRequest,
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
 
@@ -21,52 +23,55 @@ interface OpenQuoteButtonProps {
   amount: string;
 }
 
-const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
-  request,
-  counterpartyAddress,
-  assetPair,
-  isLong,
-  price,
-  amount,
-}) => {
+const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const [loading, setLoading] = useState(false);
-  const token = useAuthStore().token;
-  const { wallet } = useWalletAndProvider();
+  const walletClient = useAuthStore((state) => state.walletClient);
+  const wallet = useAuthStore((state) => state.wallet);
+  const token = useAuthStore((state) => state.token);
+  const symbol = useTradeStore((state) => state.symbol);
+  const updateRfqRequest = useRfqRequestStore(
+    (state) => state.updateRfqRequest
+  );
+
+  const currentMethod = useTradeStore((state) => state.currentMethod);
 
   const handleOpenQuote = async () => {
-    if (!wallet || !token) {
+    if (!wallet || !wallet.address || !token || !walletClient) {
+      console.error(
+        "Wallet, wallet address, token, or walletClient is missing"
+      );
       return;
     }
 
-    const provider = await wallet.getEthereumProvider();
-
-    const walletClient = createWalletClient({
-      transport: custom(provider),
-    });
-
     setLoading(true);
+    const paddedSymbol = symbol.padEnd(32, "\0");
+    const assetHex = bytesToHex(toBytes(paddedSymbol));
+
+    console.log(assetHex);
+    const entryPrice = useTradeStore((state) => state.entryPrice);
+    const amount = useTradeStore((state) => state.amount);
 
     const quote: SignedWrappedOpenQuoteRequest = {
       ...request,
       issuerAddress: wallet.address,
-      counterpartyAddress,
+      counterpartyAddress: "0x0000000000000000000000000000000000000000",
       version: "1.0",
       chainId: 64165,
       verifyingContract: "0x0000000000000000000000000000000000000000",
       x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
       parity: String(0),
       maxConfidence: String(parseUnits("1", 18)),
-      assetHex: String(toBytes(assetPair, { size: 32 })),
+      assetHex: assetHex,
       maxDelay: "600",
       precision: 5,
-      isLong,
-      price,
-      amount,
+      isLong: currentMethod === "Buy" ? true : false,
+      price: entryPrice,
+      amount: amount,
       frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       authorized: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       nonceOpenQuote: 0,
-      emitTime: "0",
+      emitTime: String(Date.now()),
       messageState: 0,
     };
 
@@ -105,12 +110,16 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
       nonce: quote.nonceOpenQuote,
     };
 
+    console.log(walletClient);
+    console.log(wallet.address);
+    console.log(wallet);
+
     quote.signatureOpenQuote = await walletClient.signTypedData({
       domain: domainOpen,
       types: openQuoteSignType,
       primaryType: "Quote",
       message: openQuoteSignValue,
-      account: wallet.address as `0x${string}`,
+      account: wallet.address,
     });
 
     const domainWarper = {
@@ -168,6 +177,130 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
     });
 
     await sendSignedWrappedOpenQuote(quote, token);
+
+    const isReduceTP = useTradeStore((state) => state.isReduceTP);
+    const isReduceSL = useTradeStore((state) => state.isReduceSL);
+    const stopLoss = useTradeStore((state) => state.stopLoss);
+    const takeProfit = useTradeStore((state) => state.takeProfit);
+
+    if (isReduceTP) {
+      const domainClose = {
+        name: "PionerV1Close",
+        version: "1.0",
+        chainId: 64165,
+        verifyingContract: networks.sonic.contracts
+          .pionerV1Close as `0x${string}`,
+      };
+
+      const OpenCloseQuoteType = {
+        OpenCloseQuote: [
+          { name: "bContractId", type: "uint256" },
+          { name: "price", type: "uint256" },
+          { name: "amount", type: "uint256" },
+          { name: "limitOrStop", type: "uint256" },
+          { name: "expiry", type: "uint256" },
+          { name: "authorized", type: "address" },
+          { name: "nonce", type: "uint256" },
+        ],
+      };
+
+      const openCloseQuoteValue = {
+        bContractId: 1,
+        price: takeProfit,
+        amount: quote.amount,
+        limitOrStop: parseFloat(takeProfit),
+        expiry: 17139884340000,
+        authorized: quote.counterpartyAddress,
+        nonce: 0,
+      };
+
+      const signatureTP = await walletClient.signTypedData({
+        domain: domainClose,
+        types: OpenCloseQuoteType,
+        primaryType: "OpenCloseQuote",
+        message: openCloseQuoteValue,
+        account: wallet.address as `0x${string}`,
+      });
+
+      const tpQuote: SignedCloseQuoteRequest = {
+        issuerAddress: quote.issuerAddress,
+        counterpartyAddress: quote.counterpartyAddress,
+        version: quote.version,
+        chainId: quote.chainId,
+        verifyingContract: networks.sonic.contracts.pionerV1Close,
+        bcontractId: 1,
+        price: takeProfit,
+        amount: quote.amount,
+        limitOrStop: parseFloat(takeProfit),
+        expiry: String(17139884340000),
+        authorized: quote.counterpartyAddress,
+        nonce: 0,
+        signatureClose: signatureTP,
+        emitTime: quote.emitTime,
+        messageState: 0,
+      };
+
+      await sendSignedCloseQuote(tpQuote, token);
+    }
+    if (isReduceSL) {
+      const domainClose = {
+        name: "PionerV1Close",
+        version: "1.0",
+        chainId: 64165,
+        verifyingContract: networks.sonic.contracts
+          .pionerV1Close as `0x${string}`,
+      };
+
+      const OpenCloseQuoteType = {
+        OpenCloseQuote: [
+          { name: "bContractId", type: "uint256" },
+          { name: "price", type: "uint256" },
+          { name: "amount", type: "uint256" },
+          { name: "limitOrStop", type: "uint256" },
+          { name: "expiry", type: "uint256" },
+          { name: "authorized", type: "address" },
+          { name: "nonce", type: "uint256" },
+        ],
+      };
+
+      const openCloseQuoteValue = {
+        bContractId: 1,
+        price: stopLoss,
+        amount: quote.amount,
+        limitOrStop: 0, // Stop order
+        expiry: 17139884340000,
+        authorized: quote.counterpartyAddress,
+        nonce: 0,
+      };
+
+      const signatureSL = await walletClient.signTypedData({
+        domain: domainClose,
+        types: OpenCloseQuoteType,
+        primaryType: "OpenCloseQuote",
+        message: openCloseQuoteValue,
+        account: wallet.address as `0x${string}`,
+      });
+
+      const slQuote: SignedCloseQuoteRequest = {
+        issuerAddress: quote.issuerAddress,
+        counterpartyAddress: quote.counterpartyAddress,
+        version: quote.version,
+        chainId: quote.chainId,
+        verifyingContract: networks.sonic.contracts.pionerV1Close,
+        bcontractId: 1,
+        price: stopLoss,
+        amount: quote.amount,
+        limitOrStop: 0, // Stop order
+        expiry: String(17139884340000),
+        authorized: quote.counterpartyAddress,
+        nonce: 0,
+        signatureClose: signatureSL,
+        emitTime: quote.emitTime,
+        messageState: 0,
+      };
+
+      await sendSignedCloseQuote(slQuote, token);
+    }
 
     setLoading(false);
   };

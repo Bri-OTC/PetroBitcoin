@@ -13,20 +13,27 @@ import { useWallets } from "@privy-io/react-auth";
 import { usePrivy } from "@privy-io/react-auth";
 import { FaTimes } from "react-icons/fa";
 import { getPayload, login } from "@pionerfriends/api-client";
-import { PionerV1 } from "@pionerfriends/blockchain-client";
 
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-import { createWalletClient, custom, verifyMessage } from "viem";
-import { EIP1193Provider } from "eip1193-provider";
+import {
+  createWalletClient,
+  custom,
+  verifyMessage,
+  EIP1193Provider,
+} from "viem";
 
 import { calculatePairPrices } from "@/components/triparty/pairPrice";
 
 export function Menu() {
+  const setProvider = useAuthStore((state) => state.setProvider);
+  const setWalletClient = useAuthStore((state) => state.setWalletClient);
   const { ready, authenticated, user, login: privyLogin, logout } = usePrivy();
   const pathname = usePathname();
   const { wallets } = useWallets();
   const wallet = wallets[0];
+  const setWallet = useAuthStore((state) => state.setWallet);
+
   const disableLogin = !ready || authenticated;
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
@@ -78,7 +85,13 @@ export function Menu() {
           const provider = await wallet.getEthereumProvider();
           const walletClient = createWalletClient({
             transport: custom(provider),
+            account: wallet.address as `0x${string}`,
           });
+          setProvider(provider);
+          setWalletClient(walletClient);
+          setWallet(wallet);
+          console.log("meny walletClient", walletClient);
+
           const signature = await walletClient.signMessage({
             account: wallet.address as `0x${string}`,
             message: message,
