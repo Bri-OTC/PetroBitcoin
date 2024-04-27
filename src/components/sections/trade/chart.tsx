@@ -19,6 +19,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import UpdateMarketStatus from "@/components/triparty/marketStatusUpdater";
+import QuoteWss from "@/components/triparty/quote";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
@@ -38,6 +39,7 @@ function SectionTradeChart() {
     <div className="flex flex-col space-y-3 mt-2 px-5">
       <RfqRequestUpdater />
       <UpdateMarketStatus />
+      <QuoteWss />
 
       <div className="flex items-center justify-between">
         <div>

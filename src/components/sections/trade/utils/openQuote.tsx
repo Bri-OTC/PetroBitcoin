@@ -16,11 +16,6 @@ import { Button } from "@/components/ui/button";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
-  counterpartyAddress: string;
-  assetPair: string;
-  isLong: boolean;
-  price: string;
-  amount: string;
 }
 
 const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {

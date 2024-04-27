@@ -24,7 +24,7 @@ const UpdateMarketStatus: React.FC = () => {
             method: "GET",
             headers: {
               Authorization:
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQwOTE3NTgsImRhdGEiOnsibm9uY2UiOiJjMTE5ODc1Njg2MmU3NDc4YzI1OTUyMDdlM2Q3ZDcxMDdjNmE3N2IwZjQ0ZTEzN2ZmZjBhY2ZkNGRiNzQ1MzhkIiwiYWRkcmVzcyI6IjB4ZDBkZGY5MTU2OTNmMTNjZjliM2I2OWRmZjQ0ZWU3N2M5MDE4ODJmOCJ9LCJpYXQiOjE3MTM0ODY5NTh9.4-Nl4C-NzXaVVnGlalaqsXXLeEyzX8wrbueRCt9QzLo",
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQ4NTU0MDMsImRhdGEiOnsibm9uY2UiOiJkYzFjZTFmNTg2ODNjYzQxNzBkNGM2YzU0OGVmMzY1MTczOWMxODE1MjI2MjhmOWU1ZTRiZTllMTJiNjdiNGU5IiwiYWRkcmVzcyI6IjB4ZDBkZGY5MTU2OTNmMTNjZjliM2I2OWRmZjQ0ZWU3N2M5MDE4ODJmOCJ9LCJpYXQiOjE3MTQyNTA2MDN9.zvsezZxuNDd-lc23niGYsfeSTPr9Fm78i88v3rwPbhQ",
             },
           }
         );

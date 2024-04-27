@@ -34,7 +34,6 @@ export function Menu() {
   const wallet = wallets[0];
   const setWallet = useAuthStore((state) => state.setWallet);
 
-  const disableLogin = !ready || authenticated;
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
   const [payload, setPayload] = useState<{
@@ -43,6 +42,35 @@ export function Menu() {
   } | null>(null);
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
+
+  const disableLogin = !!(authenticated && token);
+
+  useEffect(() => {
+    clearAllData();
+    console.log("clearAllData");
+  }, []);
+
+  function clearAllData() {
+    // Clear cookies
+    const cookies = document.cookie.split(";");
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+    }
+    // Clear local storage
+    localStorage.clear();
+    // Clear session storage
+    sessionStorage.clear();
+  }
+  useEffect(() => {
+    if (ready && !authenticated && !token) {
+      logout();
+
+      privyLogin();
+    }
+  }, [ready, authenticated, token]);
 
   useEffect(() => {
     const fetchPayload = async () => {
@@ -141,14 +169,10 @@ export function Menu() {
       } else {
         setPayload(null);
         setLoginError(true);
-        // Prompt the user to log in again on login error
-        privyLogin();
       }
     } catch (error) {
       console.error("Error logging in:", error);
       setLoginError(true);
-      // Prompt the user to log in again on login error
-      privyLogin();
     }
   };
 
@@ -170,37 +194,50 @@ export function Menu() {
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
       <div className="container bg-background flex items-center justify-center">
-        {authenticated && token ? (
-          <div className="text-center text-white p-3 flex items-center">
-            <h3 className="mr-2">Account: {wallet?.address}</h3>
-            <button onClick={logout} className="text-white hover:text-gray-200">
-              <FaTimes size={10} />
-            </button>
-          </div>
-        ) : wallet ? (
-          <div className="text-center text-white p-3 flex items-center">
-            <span className="mr-2">Signing in...</span>
+        {ready ? (
+          authenticated && token ? (
+            <div className="text-center text-white p-3 flex items-center">
+              <h3 className="mr-2">Account: {wallet?.address}</h3>
+              <button
+                onClick={logout}
+                className="text-white hover:text-gray-200"
+              >
+                <FaTimes size={10} />
+              </button>
+            </div>
+          ) : wallet ? (
+            <div className="text-center text-white p-3 flex items-center">
+              <span className="mr-2">Signing in...</span>
+              <button
+                onClick={() => {
+                  logout();
+                  setPayload(null);
+                  setToken(null);
+                  setPayloadError(false);
+                  setLoginError(false);
+                }}
+                className="text-white hover:text-gray-200"
+              >
+                <FaTimes size={10} />
+              </button>
+            </div>
+          ) : (
             <button
+              disabled={disableLogin}
               onClick={() => {
-                logout();
                 setPayload(null);
                 setToken(null);
                 setPayloadError(false);
                 setLoginError(false);
+                privyLogin();
               }}
-              className="text-white hover:text-gray-200"
+              className="text-center text-white p-3"
             >
-              <FaTimes size={10} />
+              Log in
             </button>
-          </div>
+          )
         ) : (
-          <button
-            disabled={disableLogin}
-            onClick={privyLogin}
-            className="text-center text-white p-3"
-          >
-            Log in
-          </button>
+          <div className="text-center text-white p-3">Loading...</div>
         )}
       </div>
       <div className="bg-accent text-card-foreground">
