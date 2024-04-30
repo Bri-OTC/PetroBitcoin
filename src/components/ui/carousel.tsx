@@ -39,12 +39,11 @@ function Carousel({ images }: { images: string[] }) {
         {images.map((x, index) => {
           return (
             <div
-              key={x + "pagination"}
-              className={`${
-                currentActiveIndex === index
+              key={x + "pagination" + index}
+              className={`${currentActiveIndex === index
                   ? "bg-primary w-[10px] md:w-[30px]"
                   : "bg-card-foreground"
-              } w-[5px] md:w-[10px] h-[5px] md:h-[10px] rounded-full transition-all`}
+                } w-[5px] md:w-[10px] h-[5px] md:h-[10px] rounded-full transition-all`}
             />
           );
         })}

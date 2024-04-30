@@ -29,6 +29,7 @@ function SectionHomeRanking() {
 
   const fetchRankingData = async (topType: string) => {
     try {
+      console.log("token:" + token)
       const headers: HeadersInit | undefined = token
         ? { Authorization: token }
         : undefined;
@@ -67,9 +68,8 @@ function SectionHomeRanking() {
                 <h3
                   onClick={() => toggleTab(x)}
                   key={x}
-                  className={`px-4 py-2 border ${
-                    currentTab == x ? "text-primary bg-[#2B3139]" : "text-white"
-                  } rounded-xl cursor-pointer transition-all`}
+                  className={`px-4 py-2 border ${currentTab == x ? "text-primary bg-[#2B3139]" : "text-white"
+                    } rounded-xl cursor-pointer transition-all`}
                 >
                   {x}
                 </h3>
@@ -109,11 +109,10 @@ function SectionHomeRanking() {
                       <p>{x.price}</p>
                     </TableCell>
                     <TableCell
-                      className={`text-right ${
-                        x.changesPercentage > 0
-                          ? "text-green-400"
-                          : "text-red-400"
-                      }`}
+                      className={`text-right ${x.changesPercentage > 0
+                        ? "text-green-400"
+                        : "text-red-400"
+                        }`}
                     >
                       <p>{x.changesPercentage.toFixed(2)}%</p>
                     </TableCell>

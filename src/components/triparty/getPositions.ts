@@ -1,4 +1,4 @@
-export async function sendSignedFillOpenQuote(
+/*export async function sendSignedFillOpenQuote(
   quote: SignedFillOpenQuoteRequest,
   token: string,
   timeout: number = 3000
@@ -13,7 +13,7 @@ export async function sendSignedFillOpenQuote(
       timeout: timeout,
     }
   );
-}
+}*/
 
 export interface signedFillOpenQuoteResponse {
   issuerAddress: string;

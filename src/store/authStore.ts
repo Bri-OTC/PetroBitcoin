@@ -1,5 +1,7 @@
 // src/store/authStore.ts
 import { create } from "zustand";
+import Cookies from "js-cookie";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { createWalletClient, custom } from "viem";
 import { EIP1193Provider } from "@privy-io/react-auth";
 
@@ -24,7 +26,20 @@ const useAuthStore = create<AuthState>((set) => ({
   provider: null,
   walletClient: null,
   wallet: null,
-  setToken: (token) => set({ token }),
+  setToken: (token) => {
+    if (token) {
+      const decodedToken = jwt.decode(token) as JwtPayload;
+      if (decodedToken && decodedToken.exp) {
+        const expirationDate = new Date(decodedToken.exp * 1000);
+        console.log("TOKEN" + token)
+        set({ token });
+        Cookies.set("token", token, { expires: expirationDate });
+      }
+    } else {
+      set({ token: null });
+      Cookies.remove("token"); // Remove token from cookie
+    }
+  },
   setIsMarketOpen: (isOpen) => set({ isMarketOpen: isOpen }),
   setProvider: (provider) => set({ provider }),
   setWalletClient: (walletClient) => set({ walletClient }),

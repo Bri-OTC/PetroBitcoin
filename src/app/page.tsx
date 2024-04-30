@@ -15,10 +15,13 @@ import Trade from "./trade/page";
 import Wallet from "./wallet/page";
 import User from "./user/page";
 
+import { useAuthStore } from "@/store/authStore";
+
 function Global() {
   const [selectedTab, setSelectedTab] = useState("Landing");
   const { ready, authenticated } = usePrivy();
-  const disableLogin = !ready || authenticated;
+  const token = useAuthStore((state) => state.token);
+  const disableLogin = ready && authenticated && token;
 
   const renderContent = () => {
     switch (selectedTab) {

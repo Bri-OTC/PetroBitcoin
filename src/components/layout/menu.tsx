@@ -3,6 +3,7 @@
 "use client";
 
 import Link from "next/link";
+import Cookies from "js-cookie";
 import { usePathname } from "next/navigation";
 import { GoHomeFill } from "react-icons/go";
 import { MdOutlineInsertChart } from "react-icons/md";
@@ -10,9 +11,9 @@ import { RiExchangeBoxLine } from "react-icons/ri";
 import { IoPersonSharp } from "react-icons/io5";
 import { BiSolidWallet } from "react-icons/bi";
 import { useWallets } from "@privy-io/react-auth";
-import { usePrivy } from "@privy-io/react-auth";
+import { usePrivy, useLogin } from "@privy-io/react-auth";
 import { FaTimes } from "react-icons/fa";
-import { getPayload, login } from "@pionerfriends/api-client";
+import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
@@ -28,7 +29,7 @@ import { calculatePairPrices } from "@/components/triparty/pairPrice";
 export function Menu() {
   const setProvider = useAuthStore((state) => state.setProvider);
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
-  const { ready, authenticated, user, login: privyLogin, logout } = usePrivy();
+  const { ready, authenticated, user, logout } = usePrivy();
   const pathname = usePathname();
   const { wallets } = useWallets();
   const wallet = wallets[0];
@@ -45,10 +46,28 @@ export function Menu() {
 
   const disableLogin = !!(authenticated && token);
 
+  const { login } = useLogin({
+    onComplete: async (user, isNewUser, wasAlreadyAuthenticated) => {
+      console.log(user, isNewUser, wasAlreadyAuthenticated);
+      await fetchPayload();
+      //await signMessage();
+    },
+    onError: (error) => {
+      console.log(error);
+    },
+  });
+
   useEffect(() => {
+    const tokenFromCookie = Cookies.get("token");
+    if (tokenFromCookie && !token) {
+      setToken(tokenFromCookie);
+    }
+  }, []);
+
+  /*useEffect(() => {
     clearAllData();
     console.log("clearAllData");
-  }, []);
+  }, []);*/
 
   function clearAllData() {
     // Clear cookies
@@ -64,97 +83,98 @@ export function Menu() {
     // Clear session storage
     sessionStorage.clear();
   }
-  useEffect(() => {
+  /*useEffect(() => {
     if (ready && !authenticated && !token) {
       logout();
 
       privyLogin();
     }
-  }, [ready, authenticated, token]);
+  }, [ready, authenticated, token]);*/
 
-  useEffect(() => {
-    const fetchPayload = async () => {
-      if (wallet && !token) {
-        const address = wallet.address;
-        console.log("address", address);
+  const fetchPayload = async () => {
+    console.log("fetchPayload")
+    if (wallet && !token) {
+      const address = wallet.address;
+      console.log("address", address);
 
-        try {
-          const payloadResponse = await getPayload(address);
-          console.log("payloadResponse", payloadResponse);
+      try {
+        const payloadResponse = await getPayload(address);
+        console.log("payloadResponse", payloadResponse);
 
-          if (
-            payloadResponse &&
-            payloadResponse.status === 200 &&
-            payloadResponse.data.uuid &&
-            payloadResponse.data.message
-          ) {
-            setPayload(payloadResponse.data);
-            setPayloadError(false);
-          } else {
-            setPayload(null);
-            setPayloadError(true);
-          }
-        } catch (error) {
-          console.error("Error fetching payload:", error);
+        if (
+          payloadResponse &&
+          payloadResponse.status === 200 &&
+          payloadResponse.data.uuid &&
+          payloadResponse.data.message
+        ) {
+          setPayload(payloadResponse.data);
+          setPayloadError(false);
+        } else {
+          setPayload(null);
           setPayloadError(true);
         }
+      } catch (error) {
+        console.error("Error fetching payload:", error);
+        setPayloadError(true);
       }
-    };
+    }
+  };
 
-    fetchPayload();
-  }, [wallet, token]);
+  const signMessage = async () => {
+    console.log("signMessage")
+    console.log(payload, token)
+    if (payload && !token) {
+      const { uuid, message } = payload;
+
+      try {
+        const provider = await wallet.getEthereumProvider();
+        const walletClient = createWalletClient({
+          transport: custom(provider),
+          account: wallet.address as `0x${string}`,
+        });
+        setProvider(provider);
+        setWalletClient(walletClient);
+        setWallet(wallet);
+        console.log("meny walletClient", walletClient);
+
+        const signature = await walletClient.signMessage({
+          account: wallet.address as `0x${string}`,
+          message: message,
+        });
+
+        const valid = await verifyMessage({
+          address: wallet.address as `0x${string}`,
+          message: message,
+          signature: signature,
+        });
+
+        console.log("signature", signature, message, valid);
+
+        return { uuid, signature };
+      } catch (error) {
+        console.error("Error signing message:", error);
+        setLoginError(true);
+      }
+    }
+  };
 
   useEffect(() => {
-    const signMessage = async () => {
-      if (payload && !token) {
-        const { uuid, message } = payload;
-
-        try {
-          const provider = await wallet.getEthereumProvider();
-          const walletClient = createWalletClient({
-            transport: custom(provider),
-            account: wallet.address as `0x${string}`,
-          });
-          setProvider(provider);
-          setWalletClient(walletClient);
-          setWallet(wallet);
-          console.log("meny walletClient", walletClient);
-
-          const signature = await walletClient.signMessage({
-            account: wallet.address as `0x${string}`,
-            message: message,
-          });
-
-          const valid = await verifyMessage({
-            address: wallet.address as `0x${string}`,
-            message: message,
-            signature: signature,
-          });
-
-          console.log("signature", signature, message, valid);
-
-          return { uuid, signature };
-        } catch (error) {
-          console.error("Error signing message:", error);
-          setLoginError(true);
+    if (payload) {
+      signMessage().then((signedData) => {
+        if (signedData) {
+          const { uuid, signature } = signedData;
+          attemptLogin(uuid, signature);
         }
-      }
-    };
-
-    signMessage().then((signedData) => {
-      if (signedData) {
-        const { uuid, signature } = signedData;
-        attemptLogin(uuid, signature);
-      }
-    });
-  }, [payload, wallet, token]);
+      });
+    }
+  }, [payload]);
 
   const attemptLogin = async (uuid: string, signature: string) => {
     try {
       console.log("uuid", uuid);
       console.log("signature", signature);
 
-      const loginResponse = await login(uuid, signature);
+      const loginResponse = await apiLogin(uuid, signature);
       console.log("loginResponse", loginResponse);
 
       if (
@@ -178,34 +198,36 @@ export function Menu() {
 
   useEffect(() => {
     if (loginError) {
+      logout();
       setPayload(null);
       setToken(null);
+      setPayloadError(false);
+      setLoginError(false);
     }
   }, [loginError]);
-
-  useEffect(() => {
-    setPayload(null);
-    setToken(null);
-    setPayloadError(false);
-    setLoginError(false);
-  }, [wallet]);
 
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
       <div className="container bg-background flex items-center justify-center">
         {ready ? (
-          authenticated && token ? (
+          ready && authenticated && token ? (
             <div className="text-center text-white p-3 flex items-center">
               <h3 className="mr-2">Account: {wallet?.address}</h3>
               <button
-                onClick={logout}
+                onClick={() => {
+                  logout();
+                  setPayload(null);
+                  setToken(null);
+                  setPayloadError(false);
+                  setLoginError(false);
+                }}
                 className="text-white hover:text-gray-200"
               >
                 <FaTimes size={10} />
               </button>
             </div>
-          ) : wallet ? (
+          ) : payload ? (
             <div className="text-center text-white p-3 flex items-center">
               <span className="mr-2">Signing in...</span>
               <button
@@ -229,7 +251,9 @@ export function Menu() {
                 setToken(null);
                 setPayloadError(false);
                 setLoginError(false);
-                privyLogin();
+                if (ready) {
+                  login();
+                }
               }}
               className="text-center text-white p-3"
             >
@@ -247,9 +271,8 @@ export function Menu() {
               <Link
                 href={x.link}
                 key={x.name}
-                className={`${
-                  pathname === x.link ? "text-primary" : "text-card-foreground"
-                } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
+                className={`${pathname === x.link ? "text-primary" : "text-card-foreground"
+                  } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
               >
                 <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
                 <p>{x.name}</p>
