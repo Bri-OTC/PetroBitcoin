@@ -24,7 +24,6 @@ import {
   EIP1193Provider,
 } from "viem";
 
-import { calculatePairPrices } from "@/components/triparty/pairPrice";
 
 export function Menu() {
   const setProvider = useAuthStore((state) => state.setProvider);
@@ -59,15 +58,10 @@ export function Menu() {
 
   useEffect(() => {
     const tokenFromCookie = Cookies.get("token");
-    if (tokenFromCookie && !token) {
+    if (tokenFromCookie && !token && ready && authenticated) {
       setToken(tokenFromCookie);
     }
-  }, []);
-
-  /*useEffect(() => {
-    clearAllData();
-    console.log("clearAllData");
-  }, []);*/
+  }, [authenticated]);
 
   function clearAllData() {
     // Clear cookies
@@ -83,24 +77,13 @@ export function Menu() {
     // Clear session storage
     sessionStorage.clear();
   }
-  /*useEffect(() => {
-    if (ready && !authenticated && !token) {
-      logout();
-
-      privyLogin();
-    }
-  }, [ready, authenticated, token]);*/
 
   const fetchPayload = async () => {
-    console.log("fetchPayload")
     if (wallet && !token) {
       const address = wallet.address;
-      console.log("address", address);
 
       try {
         const payloadResponse = await getPayload(address);
-        console.log("payloadResponse", payloadResponse);
-
         if (
           payloadResponse &&
           payloadResponse.status === 200 &&
@@ -121,8 +104,6 @@ export function Menu() {
   };
 
   const signMessage = async () => {
-    console.log("signMessage")
-    console.log(payload, token)
     if (payload && !token) {
       const { uuid, message } = payload;
 
@@ -171,11 +152,8 @@ export function Menu() {
 
   const attemptLogin = async (uuid: string, signature: string) => {
     try {
-      console.log("uuid", uuid);
-      console.log("signature", signature);
 
       const loginResponse = await apiLogin(uuid, signature);
-      console.log("loginResponse", loginResponse);
 
       if (
         loginResponse &&
@@ -183,7 +161,6 @@ export function Menu() {
         loginResponse.data.token
       ) {
         const token = loginResponse.data.token;
-        console.log("token", token);
         setToken(token);
         setLoginError(false);
       } else {

@@ -19,8 +19,10 @@ function SectionHomeRanking() {
   const [filteredRanking, setFilteredRanking] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchRankingData(currentTab === "Winners" ? "gainers" : "losers");
-  }, [currentTab]);
+    if (token) {
+      fetchRankingData(currentTab === "Winners" ? "gainers" : "losers");
+    }
+  }, [currentTab, token]);
 
   const toggleTab = (label: string) => {
     setCurrentTab(label);
@@ -29,7 +31,6 @@ function SectionHomeRanking() {
 
   const fetchRankingData = async (topType: string) => {
     try {
-      console.log("token:" + token)
       const headers: HeadersInit | undefined = token
         ? { Authorization: token }
         : undefined;

@@ -4,41 +4,55 @@ import { Card } from "@/components/ui/card";
 const TradingViewAdvancedChart = ({ symbol, interval }) => {
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/tv.js";
+  let widgetOptions = {
+    autosize: true,
+    symbol: symbol,
+    interval: interval,
+    timezone: "Etc/UTC",
+    theme: "dark",
+    style: "1",
+    locale: "en",
+    enable_publishing: false,
+    hide_side_toolbar: true,
+    hide_top_toolbar: true,
+    calendar: false,
+    hide_volume: true,
+    allow_symbol_change: false,
+    container_id: "tradingview-advanced-chart",
+  };
+
+  const initChart = () => {
+    const scriptElement = document.getElementById('tv_chart_script');
+    if (scriptElement) {
+      scriptElement.parentNode.removeChild(scriptElement);
+    }
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.id = 'tv_chart_script';
     script.async = true;
     script.onload = () => {
-      if (typeof TradingView !== "undefined") {
-        new window.TradingView.widget({
-          autosize: true,
-          symbol: symbol,
-          interval: interval,
-          timezone: "Etc/UTC",
-          theme: "dark",
-          style: "1",
-          locale: "en",
-          enable_publishing: false,
-          hide_side_toolbar: true,
-          hide_top_toolbar: true,
-          calendar: false,
-          hide_volume: true,
+      window.tvWidget = new TradingView.widget(widgetOptions);
 
-          allow_symbol_change: false,
-          container_id: containerRef.current.id,
-        });
-      }
-    };
-
-    containerRef.current.appendChild(script);
-
-    return () => {
-      if (containerRef.current) {
-        while (containerRef.current.firstChild) {
-          containerRef.current.removeChild(containerRef.current.firstChild);
+      const styleElements = document.querySelectorAll('style');
+      styleElements.forEach(element => {
+        if (element.textContent.includes('.tradingview-widget-copyright')) {
+          element.parentNode.removeChild(element);
         }
-      }
+      });
     };
+    document.body.appendChild(script);
+  };
+
+  useEffect(() => {
+    initChart();
+  }, []);
+
+  useEffect(() => {
+    if (window.tvWidget) {
+      widgetOptions.symbol = symbol;
+      widgetOptions.interval = interval;
+      initChart();
+    }
   }, [symbol, interval]);
 
   return (

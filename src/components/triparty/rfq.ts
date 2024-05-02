@@ -95,6 +95,7 @@ export const useRfqRequest = () => {
   };
 
   useEffect(() => {
+    console.log("HFEZHFHEZYUHFYEZGHYFGHYZEHGHYUEZGHGYHEZYUGFHYH")
     const intervalId = setInterval(() => {
       initializeSymbolList();
       loadPrefixData();

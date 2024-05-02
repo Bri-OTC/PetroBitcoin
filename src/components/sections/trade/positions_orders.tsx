@@ -52,7 +52,7 @@ interface activeMenu {
   [key: string]: boolean;
 }
 
-async function SectionTradePositionsOrders() {
+function SectionTradePositionsOrders() {
   const [currentTab, setCurrentTab] = useState(menu[0]);
   const [currentActiveRowPositions, setCurrentActiveRowPositions] =
     useState<activeMenu>({});
@@ -105,16 +105,14 @@ async function SectionTradePositionsOrders() {
           return (
             <div key={x + index} onClick={() => setCurrentTab(x)}>
               <h2
-                className={`${
-                  currentTab === x ? "text-primary" : "text-card-foreground"
-                } transition-all font-medium cursor-pointer`}
+                className={`${currentTab === x ? "text-primary" : "text-card-foreground"
+                  } transition-all font-medium cursor-pointer`}
               >
                 {x} ({x === "Positions" ? positions.length : orders.length})
               </h2>
               <div
-                className={`w-[18px] h-[4px] ${
-                  currentTab === x ? "bg-primary" : "bg-transparent"
-                } mt-3 transition-all`}
+                className={`w-[18px] h-[4px] ${currentTab === x ? "bg-primary" : "bg-transparent"
+                  } mt-3 transition-all`}
               />
             </div>
           );

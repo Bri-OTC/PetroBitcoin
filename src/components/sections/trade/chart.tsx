@@ -23,7 +23,7 @@ import QuoteWss from "@/components/triparty/quote";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
-  const [interval, setInterval] = useState("D");
+  const [interval, setInterval] = useState("60");
   const symbol = useTradeStore((state) => state.symbol);
   const activePrice = useActivePrice();
 
@@ -60,12 +60,9 @@ function SectionTradeChart() {
             <SelectValue placeholder="1D" className="outline-none" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="1">1m</SelectItem>
-            <SelectItem value="5">5m</SelectItem>
-            <SelectItem value="15">15m</SelectItem>
-            <SelectItem value="60">1h</SelectItem>
             <SelectItem value="D">1d</SelectItem>
             <SelectItem value="W">1w</SelectItem>
+            <SelectItem value="M">1m</SelectItem>
           </SelectContent>
         </Select>
         <div className="flex items-center space-x-2">
@@ -95,9 +92,8 @@ function SectionTradeChart() {
         </div>
       </div>
       <div
-        className={`${
-          showChart ? "h-full" : "max-h-0"
-        } overflow-hidden transition-all bg-card text-white`}
+        className={`${showChart ? "h-full" : "max-h-0"
+          } overflow-hidden transition-all bg-card text-white`}
       >
         <div className="w-full h-full flex items-center justify-center">
           <TradingViewAdvancedChart symbol={symbol} interval={interval} />
