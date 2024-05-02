@@ -70,18 +70,13 @@ const OrderRowBid: React.FC<Order> = ({ price, amount }) => {
 
 interface OrderBookProps {
   maxRows?: number;
-  isOrderBookOn: boolean;
 }
 
-const OrderBook: React.FC<OrderBookProps> = ({
-  maxRows = 5,
-  isOrderBookOn,
-}) => {
+const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
   const [orders, setOrders] = useState<{ bids: number[][]; asks: number[][] }>({
     bids: [],
     asks: [],
   });
-  const [isLoading, setIsLoading] = useState(false);
 
   const bidPrice = useTradeStore((state) => state.bidPrice);
   const askPrice = useTradeStore((state) => state.askPrice);
@@ -93,30 +88,36 @@ const OrderBook: React.FC<OrderBookProps> = ({
       data: { channel: `order_book_btcusd` },
     };
 
-    const ws = new WebSocket(process.env.NEXT_PUBLIC_WSS_URL || "");
+    const ws = new WebSocket("wss://ws.bitstamp.net");
     ws.onopen = () => ws.send(JSON.stringify(subscribe));
-    ws.onmessage = (event) => {
-      setOrders(JSON.parse(event.data).data);
-    };
+    ws.onmessage = (event) => setOrders(JSON.parse(event.data).data);
     ws.onclose = () => ws.close();
     return () => ws.close();
   }, []);
 
   const { asksToDisplay, bidsToDisplay } = useMemo(() => {
-    if (!bidPrice || !askPrice || !bidQty || !askQty)
+    if (
+      !bidPrice ||
+      !askPrice ||
+      !bidQty ||
+      !askQty ||
+      !orders.asks ||
+      !orders.bids
+    )
       return { asksToDisplay: [], bidsToDisplay: [] };
 
     const spread = askPrice - bidPrice;
-    const askPrices = orders?.asks?.map(([price]) => price) || [];
-    const bidPrices = orders?.bids?.map(([price]) => price) || [];
+    const askPrices = orders.asks.map(([price]) => price);
+    const bidPrices = orders.bids.map(([price]) => price);
 
-    const askQtyPerRow = askQty / maxRows;
-    const bidQtyPerRow = bidQty / maxRows;
+    const totalAskQty = orders.asks.reduce((sum, [_, qty]) => sum + qty, 0);
+    const totalBidQty = orders.bids.reduce((sum, [_, qty]) => sum + qty, 0);
 
     const asks = askPrices
       .slice(0, maxRows)
       .map((price, i) => {
-        const amount = orders?.asks[i][1] * (askQtyPerRow / orders?.asks[0][1]);
+        const amount =
+          totalAskQty > 0 ? (orders.asks[i][1] / totalAskQty) * askQty : 0;
         const newPrice =
           askPrice +
           (price - askPrices[0]) *
@@ -127,8 +128,10 @@ const OrderBook: React.FC<OrderBookProps> = ({
 
     const bids = bidPrices.slice(-maxRows).map((price, i) => {
       const amount =
-        orders?.bids[orders?.bids.length - maxRows + i][1] *
-        (bidQtyPerRow / orders?.bids[orders?.bids.length - 1][1]);
+        totalBidQty > 0
+          ? (orders.bids[orders.bids.length - maxRows + i][1] / totalBidQty) *
+            bidQty
+          : 0;
       const newPrice =
         bidPrice -
         (bidPrices[bidPrices.length - 1] - price) *
@@ -141,14 +144,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
       bidsToDisplay: bids,
     };
   }, [orders, maxRows, bidPrice, askPrice, bidQty, askQty]);
-
-  if (!isOrderBookOn) {
-    return <div className="market-closed">Market Closed</div>;
-  }
-
-  if (isLoading) {
-    return <div className="loading">Loading...</div>;
-  }
 
   return (
     <div className="order-container">

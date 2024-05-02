@@ -42,18 +42,6 @@ function SectionTradeChart() {
       <QuoteWss />
 
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-accent-foreground">24h volume</p>
-          <p>US$189</p>
-        </div>
-        <div>
-          <p className="text-accent-foreground">Funding rate</p>
-          <p>
-            <span className="text-red-500">6.25%</span> APR
-          </p>
-        </div>
-      </div>
-      <div className="flex items-center justify-between">
         <Select onValueChange={handleIntervalChange}>
           <SelectTrigger className="w-fit flex items-center space-x-2">
             <FaRegClock />
@@ -66,12 +54,6 @@ function SectionTradeChart() {
           </SelectContent>
         </Select>
         <div className="flex items-center space-x-2">
-          <Dialog>
-            <DialogTrigger className="bg-card p-2">
-              <HiOutlineCog6Tooth className="text-[1.1rem]" />
-            </DialogTrigger>
-            <PopupModify />
-          </Dialog>
           <Button
             onClick={() => setShowChart(!showChart)}
             size="icon"
@@ -92,8 +74,9 @@ function SectionTradeChart() {
         </div>
       </div>
       <div
-        className={`${showChart ? "h-full" : "max-h-0"
-          } overflow-hidden transition-all bg-card text-white`}
+        className={`${
+          showChart ? "h-full" : "max-h-0"
+        } overflow-hidden transition-all bg-card text-white`}
       >
         <div className="w-full h-full flex items-center justify-center">
           <TradingViewAdvancedChart symbol={symbol} interval={interval} />

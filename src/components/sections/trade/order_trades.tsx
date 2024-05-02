@@ -149,10 +149,14 @@ function SectionTradeOrderTrades() {
                 </Button>
               ))}
             </div>
-            <p className="text-card-foreground">
-              {accountLeverage}x Account Leverage
-            </p>
-
+            <div className="flex items-center space-x-2">
+              <p className="text-card-foreground">
+                {accountLeverage}x Account Leverage
+              </p>
+              <p className="text-card-foreground">
+                <span className="text-red-500">6.25%</span> APR
+              </p>
+            </div>
             <div>
               <Drawer>
                 <DrawerTrigger

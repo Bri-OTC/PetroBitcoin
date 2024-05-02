@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { parseUnits } from "viem";
 import { networks } from "@pionerfriends/blockchain-client";
-import { toBytes, bytesToHex } from "viem";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
+import { PionerV1Wrapper } from "@pionerfriends/blockchain-client";
+import {
+  accounts,
+  pionerV1OpenContract,
+  pionerV1WrapperContract,
+  wallets,
+  web3Client,
+} from "./init";
 
+import { Address, bytesToHex, parseUnits, toBytes } from "viem";
 import {
   sendSignedWrappedOpenQuote,
   SignedWrappedOpenQuoteRequest,
@@ -49,7 +56,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     const assetHex = bytesToHex(toBytes(paddedSymbol));
 
     const quote: SignedWrappedOpenQuoteRequest = {
-      ...request,
       issuerAddress: wallet.address,
       counterpartyAddress: "0x0000000000000000000000000000000000000000",
       version: "1.0",
@@ -57,17 +63,30 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       verifyingContract: "0x0000000000000000000000000000000000000000",
       x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
       parity: String(0),
-      maxConfidence: String(parseUnits("1", 18)),
+      maxConfidence: parseUnits("1", 18).toString(),
       assetHex: assetHex,
       maxDelay: "600",
       precision: 5,
+      imA: parseUnits("1", 18).toString(),
+      imB: parseUnits("1", 18).toString(),
+      dfA: parseUnits("1", 18).toString(),
+      dfB: parseUnits("1", 18).toString(),
+      expiryA: parseUnits("1", 18).toString(),
+      expiryB: parseUnits("1", 18).toString(),
+      timeLock: parseUnits("1", 18).toString(),
+      nonceBoracle: 0,
+      signatureBoracle: "",
       isLong: currentMethod === "Buy" ? true : false,
-      price: entryPrice,
-      amount: amount,
+      price: parseUnits(entryPrice, 18).toString(),
+      amount: parseUnits(amount, 18).toString(),
+      interestRate: parseUnits("1", 18).toString(),
+      isAPayingApr: true,
+
       frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
-      authorized: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
+      authorized: "0x0000000000000000000000000000000000000000",
       nonceOpenQuote: 0,
+      signatureOpenQuote: "",
       emitTime: String(Date.now()),
       messageState: 0,
     };
@@ -103,7 +122,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       isAPayingAPR: quote.isAPayingApr,
       frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
-      authorized: quote.counterpartyAddress,
+      authorized: quote.authorized,
       nonce: quote.nonceOpenQuote,
     };
 
@@ -116,7 +135,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       types: openQuoteSignType,
       primaryType: "Quote",
       message: openQuoteSignValue,
-      account: wallet.address,
     });
 
     const domainWarper = {
@@ -149,7 +167,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
     const bOracleSignValue = {
       x: quote.x,
-      parity: quote.parity,
+      parity: parseInt(quote.parity),
       maxConfidence: quote.maxConfidence,
       assetHex: quote.assetHex,
       maxDelay: quote.maxDelay,
@@ -164,14 +182,31 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       signatureHashOpenQuote: quote.signatureOpenQuote,
       nonce: quote.nonceBoracle,
     };
+    console.log("hi");
 
     quote.signatureBoracle = await walletClient.signTypedData({
       domain: domainWarper,
       types: bOracleSignType,
       primaryType: "bOracleSign",
       message: bOracleSignValue,
-      account: wallet.address as `0x${string}`,
     });
+
+    const { request } = await web3Client.simulateContract({
+      address: pionerV1WrapperContract[64165] as Address,
+      abi: PionerV1Wrapper.abi,
+      functionName: "wrapperOpenQuoteMM",
+      args: [
+        bOracleSignValue,
+        quote.signatureBoracle,
+        openQuoteSignValue,
+        quote.signatureOpenQuote,
+        parseUnits("50", 18).toString(),
+      ],
+      account: accounts[0],
+    });
+
+    const hash = await wallets[0].writeContract(request);
+    console.log(hash);
 
     await sendSignedWrappedOpenQuote(quote, token);
 
@@ -198,9 +233,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
       const openCloseQuoteValue = {
         bContractId: 1,
-        price: takeProfit,
+        price: parseUnits(takeProfit, 18).toString(),
         amount: quote.amount,
-        limitOrStop: parseFloat(takeProfit),
+        limitOrStop: parseUnits(takeProfit, 18).toString(),
         expiry: 17139884340000,
         authorized: quote.counterpartyAddress,
         nonce: 0,
@@ -221,9 +256,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         chainId: quote.chainId,
         verifyingContract: networks.sonic.contracts.pionerV1Close,
         bcontractId: 1,
-        price: takeProfit,
+        price: parseUnits(takeProfit, 18).toString(),
         amount: quote.amount,
-        limitOrStop: parseFloat(takeProfit),
+        limitOrStop: parseUnits(takeProfit, 18).toString(),
         expiry: String(17139884340000),
         authorized: quote.counterpartyAddress,
         nonce: 0,
@@ -257,7 +292,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
       const openCloseQuoteValue = {
         bContractId: 1,
-        price: stopLoss,
+        price: parseUnits(stopLoss, 18).toString(),
         amount: quote.amount,
         limitOrStop: 0, // Stop order
         expiry: 17139884340000,
@@ -280,7 +315,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         chainId: quote.chainId,
         verifyingContract: networks.sonic.contracts.pionerV1Close,
         bcontractId: 1,
-        price: stopLoss,
+        price: parseUnits(stopLoss, 18).toString(),
         amount: quote.amount,
         limitOrStop: 0, // Stop order
         expiry: String(17139884340000),
