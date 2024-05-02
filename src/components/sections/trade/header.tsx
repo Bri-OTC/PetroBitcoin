@@ -6,20 +6,38 @@ import { MdMenu } from "react-icons/md";
 import { useTradeStore } from "@/store/tradeStore";
 import Link from "next/link";
 import useFavorites from "@/components/sections/markets/useFavorites";
+import styles from "./Header.module.css";
 
 function SectionTradeHeader() {
   const symbol = useTradeStore((state) => state.symbol);
   const accountLeverage = useTradeStore((state) => state.accountLeverage);
   const bidPrice = useTradeStore((state) => state.bidPrice);
   const askPrice = useTradeStore((state) => state.askPrice);
-
   const [firstAsset, secondAsset] = symbol.split("/");
   const { favorites, toggleFavorite } = useFavorites(secondAsset);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [bidFade, setBidFade] = useState(false);
+  const [askFade, setAskFade] = useState(false);
 
   useEffect(() => {
     setIsFavorite(favorites.includes(symbol));
   }, [favorites, symbol]);
+
+  useEffect(() => {
+    setBidFade(true);
+    const timer = setTimeout(() => {
+      setBidFade(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [bidPrice]);
+
+  useEffect(() => {
+    setAskFade(true);
+    const timer = setTimeout(() => {
+      setAskFade(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [askPrice]);
 
   const handleToggleFavorite = () => {
     toggleFavorite(firstAsset);
@@ -51,8 +69,12 @@ function SectionTradeHeader() {
           {isFavorite ? <FaStar className="text-primary" /> : <FaRegStar />}
         </div>
         <div className="text-right">
-          <h2>{bidPrice?.toPrecision(5)}</h2>
-          <h2 className="text-green-400">{askPrice?.toPrecision(5)}</h2>
+          <h2 className={`${bidFade ? styles.bidFade : ""}`}>
+            {bidPrice?.toPrecision(5)}
+          </h2>
+          <h2 className={`text-green-400 ${askFade ? styles.askFade : ""}`}>
+            {askPrice?.toPrecision(5)}
+          </h2>
         </div>
       </div>
     </div>

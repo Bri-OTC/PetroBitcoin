@@ -62,8 +62,8 @@ const OrderRowBid: React.FC<Order> = ({ price, amount }) => {
 
   return (
     <tr className={flashClass} onClick={handleClick}>
-      <td className="amount">{Math.abs(amount).toFixed(6)}</td>
-      <td className="price">{price.toFixed(6)}</td>
+      <td className="amount">{Math.abs(amount).toFixed(7)}</td>
+      <td className="price">{price.toFixed(7)}</td>
     </tr>
   );
 };

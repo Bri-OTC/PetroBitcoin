@@ -29,6 +29,7 @@ function SectionTradeOrderTrades() {
     setCurrentTabIndex: setCurrentTabIndexStore,
     setCurrentTabIndex,
   } = useTradeStore();
+  const setSliderValue = useTradeStore((state) => state.setSliderValue);
 
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
 
@@ -39,11 +40,6 @@ function SectionTradeOrderTrades() {
       );
     }
   }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
-
-  useEffect(() => {
-    setAmount(amount);
-    setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toFixed(5));
-  }, [amount, maxAmount, entryPrice, setAmount, setAmountUSD]);
 
   useEffect(() => {
     const checkMarketStatus = () => {
@@ -111,7 +107,7 @@ function SectionTradeOrderTrades() {
             <div className="flex pb-3 items-center space-x-2 border-b">
               <Input
                 type="number"
-                className="border-none bg-transparent px-0"
+                className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={entryPrice}
                 onChange={(e) => setEntryPrice(e.target.value)}
@@ -119,12 +115,12 @@ function SectionTradeOrderTrades() {
               />
               <p>USD</p>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <div className="flex flex-col space-y-2 w-full">
                 <p className="text-card-foreground">Amount (Contracts)</p>
                 <input
                   type="number"
-                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent"
+                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                 />
@@ -136,17 +132,21 @@ function SectionTradeOrderTrades() {
                 <p className="text-card-foreground">Amount (USD)</p>
                 <input
                   type="number"
-                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent"
+                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                   value={amountUSD}
                   onChange={(e) => setAmountUSD(e.target.value)}
                 />
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              {["25", "50", "75", "100"].map((x) => (
-                <Button key={x} variant="ghost" className="w-full px-3 py-2">
-                  <h3 className="font-medium">{x}%</h3>
-                </Button>
+              {[25, 50, 75, 100].map((x) => (
+                <button
+                  key={x}
+                  onClick={() => setSliderValue(x)}
+                  className="w-full bg-card py-2 text-center hover:bg-primary rounded-lg cursor-pointer"
+                >
+                  {x}%
+                </button>
               ))}
             </div>
             <div className="flex items-center space-x-2">

@@ -6,6 +6,7 @@ import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
 import { CgMaximizeAlt } from "react-icons/cg";
 import { FaRegClock, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
+import TradingViewPopup from "@/components/popup/chart";
 import {
   Select,
   SelectContent,
@@ -13,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import PopupModify from "../../popup/modify";
+
 import TradingViewAdvancedChart from "../../tradingview/TradingViewAdvancedChart";
 import { useTradeStore } from "@/store/tradeStore";
 import { useActivePrice } from "@/components/triparty/priceUpdater";
@@ -61,16 +62,6 @@ function SectionTradeChart() {
           >
             {showChart ? <FaRegEye /> : <FaRegEyeSlash />}
           </Button>
-          <Dialog>
-            <DialogTrigger className="bg-card p-2">
-              <CgMaximizeAlt className="text-[1.1rem]" />
-            </DialogTrigger>
-            <DialogContent>
-              <div className="w-full h-full flex items-center justify-center">
-                <TradingViewAdvancedChart symbol={symbol} interval={interval} />
-              </div>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
       <div

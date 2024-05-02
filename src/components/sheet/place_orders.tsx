@@ -183,7 +183,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">Entry Price</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={entryPrice}
                 onChange={(e) => setEntryPrice(e.target.value)}
@@ -201,7 +201,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">Take profit exit</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={takeProfit}
                 onChange={(e) => handleTakeProfitChange(e.target.value)}
@@ -214,7 +214,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">% Gain</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={takeProfitPercentage}
                 onChange={(e) => setTakeProfitPercentage(e.target.value)}
@@ -236,7 +236,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">Stop loss</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={stopLoss}
                 onChange={(e) => handleStopLossChange(e.target.value)}
@@ -249,7 +249,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">% Loss</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={stopLossPercentage}
                 onChange={(e) => setStopLossPercentage(e.target.value)}
@@ -271,7 +271,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">Amount</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
@@ -285,7 +285,7 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">Amount</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="bg-transparent border-none"
+                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                 placeholder="Input Price"
                 value={amountUSD}
                 onChange={(e) => handleAmountUSDChange(e.target.value)}
