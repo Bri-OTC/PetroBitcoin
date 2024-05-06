@@ -13,8 +13,12 @@ import { IoMdShare } from "react-icons/io";
 import PopupShare from "../../popup/share";
 import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
+import SheetPlaceClose from "@/components/sheet/place_close";
+import CancelAll from "./utils/cancelAll";
 
-interface Order {
+export interface Order {
+  id: string;
   size: number;
   market: string;
   icon: string;
@@ -138,7 +142,7 @@ function SectionOrders({
                           onClick={() => hideRow(x.market)}
                           variant="secondary"
                         >
-                          <p>Market Close</p>
+                          <CancelAll orders={orders} />
                         </Button>
                         <Button variant="secondary">
                           <Dialog>
@@ -148,6 +152,12 @@ function SectionOrders({
                             <PopupShare />
                           </Dialog>
                         </Button>
+                        <Drawer>
+                          <DrawerTrigger>
+                            <p>TP/SL</p>
+                          </DrawerTrigger>
+                          <SheetPlaceClose />
+                        </Drawer>
                       </div>
                     </TableCell>
                   </TableRow>

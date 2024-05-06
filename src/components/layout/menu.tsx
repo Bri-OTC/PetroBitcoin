@@ -24,14 +24,14 @@ import {
   EIP1193Provider,
 } from "viem";
 
-
 export function Menu() {
-  const setProvider = useAuthStore((state) => state.setProvider);
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
   const { ready, authenticated, user, logout } = usePrivy();
   const pathname = usePathname();
   const { wallets } = useWallets();
   const wallet = wallets[0];
+  const setProvider = useAuthStore((state) => state.setProvider);
+  const setEthersSigner = useAuthStore((state) => state.setEthersSigner);
   const setWallet = useAuthStore((state) => state.setWallet);
 
   const setToken = useAuthStore((state) => state.setToken);
@@ -62,21 +62,6 @@ export function Menu() {
       setToken(tokenFromCookie);
     }
   }, [authenticated]);
-
-  function clearAllData() {
-    // Clear cookies
-    const cookies = document.cookie.split(";");
-    for (let i = 0; i < cookies.length; i++) {
-      const cookie = cookies[i];
-      const eqPos = cookie.indexOf("=");
-      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-      document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-    }
-    // Clear local storage
-    localStorage.clear();
-    // Clear session storage
-    sessionStorage.clear();
-  }
 
   const fetchPayload = async () => {
     if (wallet && !token) {
@@ -152,7 +137,6 @@ export function Menu() {
 
   const attemptLogin = async (uuid: string, signature: string) => {
     try {
-
       const loginResponse = await apiLogin(uuid, signature);
 
       if (
@@ -248,8 +232,9 @@ export function Menu() {
               <Link
                 href={x.link}
                 key={x.name}
-                className={`${pathname === x.link ? "text-primary" : "text-card-foreground"
-                  } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
+                className={`${
+                  pathname === x.link ? "text-primary" : "text-card-foreground"
+                } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
               >
                 <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
                 <p>{x.name}</p>

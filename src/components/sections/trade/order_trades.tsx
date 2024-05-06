@@ -32,6 +32,7 @@ function SectionTradeOrderTrades() {
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
 
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
+  const testBool = true;
 
   useEffect(() => {
     if (currentTabIndex === "Market") {
@@ -161,13 +162,13 @@ function SectionTradeOrderTrades() {
               <Drawer>
                 <DrawerTrigger
                   className={`w-full py-3 ${
-                    isMarketOpen
+                    testBool
                       ? currentMethod === "Buy"
                         ? "bg-[#089981]"
                         : "bg-[#F23645]"
                       : "bg-[#666EFF] cursor-not-allowed"
                   }`}
-                  disabled={!isMarketOpen}
+                  disabled={!testBool}
                 >
                   <p>{currentMethod}</p>
                 </DrawerTrigger>

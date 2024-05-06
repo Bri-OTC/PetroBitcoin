@@ -35,7 +35,7 @@ const getOrders = () => {
       id: 0,
       size: -0.0048,
       market: "BTC-PERP",
-      icon: "/trade/bitcoin.svg",
+      icon: "/trade/$.svg",
       trigger: 45000,
       amount: 312.89,
       filled: -0.03,
@@ -105,14 +105,16 @@ function SectionTradePositionsOrders() {
           return (
             <div key={x + index} onClick={() => setCurrentTab(x)}>
               <h2
-                className={`${currentTab === x ? "text-primary" : "text-card-foreground"
-                  } transition-all font-medium cursor-pointer`}
+                className={`${
+                  currentTab === x ? "text-primary" : "text-card-foreground"
+                } transition-all font-medium cursor-pointer`}
               >
                 {x} ({x === "Positions" ? positions.length : orders.length})
               </h2>
               <div
-                className={`w-[18px] h-[4px] ${currentTab === x ? "bg-primary" : "bg-transparent"
-                  } mt-3 transition-all`}
+                className={`w-[18px] h-[4px] ${
+                  currentTab === x ? "bg-primary" : "bg-transparent"
+                } mt-3 transition-all`}
               />
             </div>
           );

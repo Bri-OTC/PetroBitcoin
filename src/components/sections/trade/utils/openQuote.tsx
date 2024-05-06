@@ -11,7 +11,7 @@ import {
   wallets,
   web3Client,
 } from "./init";
-
+import { useWallets } from "@privy-io/react-auth";
 import { Address, bytesToHex, parseUnits, toBytes } from "viem";
 import {
   sendSignedWrappedOpenQuote,
@@ -38,18 +38,22 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const currentMethod: string = useTradeStore((state) => state.currentMethod);
   const entryPrice: string = useTradeStore((state) => state.entryPrice);
   const amount: string = useTradeStore((state) => state.amount);
-  const isReduceTP: boolean = useTradeStore((state) => state.isReduceTP);
-  const isReduceSL: boolean = useTradeStore((state) => state.isReduceSL);
-  const stopLoss: string = useTradeStore((state) => state.stopLoss);
-  const takeProfit: string = useTradeStore((state) => state.takeProfit);
 
   const handleOpenQuote = async () => {
-    if (!wallet || !wallet.address || !token || !walletClient) {
-      console.error(
-        "Wallet, wallet address, token, or walletClient is missing"
-      );
+    console.log(`handleOpenQuote : ${wallet}`);
+    if (!wallet || !token || !walletClient || !wallet.address) {
+      /*
+      console.error(`Wallet : ${!wallet} `);
+      console.error(`token : ${!token}`);
+      console.error(`walletClient ${!walletClient}`);
+      console.error(`wallet.address ${!wallet.address}`);
+      */
+      console.error(" Missing wallet, token, walletClient or wallet.address");
+
       return;
     }
+    const ethersProvider = await wallet.getEthersProvider();
+    const ethersSigner = await ethersProvider.getSigner();
 
     setLoading(true);
     const paddedSymbol = symbol.padEnd(32, "\0");
@@ -126,18 +130,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonce: quote.nonceOpenQuote,
     };
 
-    console.log(walletClient);
-    console.log(wallet.address);
-    console.log(wallet);
-
-    quote.signatureOpenQuote = await walletClient.signTypedData({
-      domain: domainOpen,
-      types: openQuoteSignType,
-      primaryType: "Quote",
-      message: openQuoteSignValue,
-    });
-
-    const domainWarper = {
+    const domainWrapper = {
       name: "PionerV1Warper",
       version: "1.0",
       chainId: 64165,
@@ -182,152 +175,22 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       signatureHashOpenQuote: quote.signatureOpenQuote,
       nonce: quote.nonceBoracle,
     };
-    console.log("hi");
+    const signatureOpenQuote = await ethersSigner._signTypedData(
+      domainOpen,
+      openQuoteSignType,
+      openQuoteSignValue
+    );
 
-    quote.signatureBoracle = await walletClient.signTypedData({
-      domain: domainWarper,
-      types: bOracleSignType,
-      primaryType: "bOracleSign",
-      message: bOracleSignValue,
-    });
+    bOracleSignValue.signatureHashOpenQuote = signatureOpenQuote;
 
-    const { request } = await web3Client.simulateContract({
-      address: pionerV1WrapperContract[64165] as Address,
-      abi: PionerV1Wrapper.abi,
-      functionName: "wrapperOpenQuoteMM",
-      args: [
-        bOracleSignValue,
-        quote.signatureBoracle,
-        openQuoteSignValue,
-        quote.signatureOpenQuote,
-        parseUnits("50", 18).toString(),
-      ],
-      account: accounts[0],
-    });
-
-    const hash = await wallets[0].writeContract(request);
-    console.log(hash);
-
+    const signatureBoracle = await ethersSigner._signTypedData(
+      domainWrapper,
+      bOracleSignType,
+      bOracleSignValue
+    );
+    quote.signatureBoracle = signatureBoracle;
+    quote.signatureOpenQuote = signatureOpenQuote;
     await sendSignedWrappedOpenQuote(quote, token);
-
-    if (isReduceTP) {
-      const domainClose = {
-        name: "PionerV1Close",
-        version: "1.0",
-        chainId: 64165,
-        verifyingContract: networks.sonic.contracts
-          .pionerV1Close as `0x${string}`,
-      };
-
-      const OpenCloseQuoteType = {
-        OpenCloseQuote: [
-          { name: "bContractId", type: "uint256" },
-          { name: "price", type: "uint256" },
-          { name: "amount", type: "uint256" },
-          { name: "limitOrStop", type: "uint256" },
-          { name: "expiry", type: "uint256" },
-          { name: "authorized", type: "address" },
-          { name: "nonce", type: "uint256" },
-        ],
-      };
-
-      const openCloseQuoteValue = {
-        bContractId: 1,
-        price: parseUnits(takeProfit, 18).toString(),
-        amount: quote.amount,
-        limitOrStop: parseUnits(takeProfit, 18).toString(),
-        expiry: 17139884340000,
-        authorized: quote.counterpartyAddress,
-        nonce: 0,
-      };
-
-      const signatureTP = await walletClient.signTypedData({
-        domain: domainClose,
-        types: OpenCloseQuoteType,
-        primaryType: "OpenCloseQuote",
-        message: openCloseQuoteValue,
-        account: wallet.address as `0x${string}`,
-      });
-
-      const tpQuote: SignedCloseQuoteRequest = {
-        issuerAddress: quote.issuerAddress,
-        counterpartyAddress: quote.counterpartyAddress,
-        version: quote.version,
-        chainId: quote.chainId,
-        verifyingContract: networks.sonic.contracts.pionerV1Close,
-        bcontractId: 1,
-        price: parseUnits(takeProfit, 18).toString(),
-        amount: quote.amount,
-        limitOrStop: parseUnits(takeProfit, 18).toString(),
-        expiry: String(17139884340000),
-        authorized: quote.counterpartyAddress,
-        nonce: 0,
-        signatureClose: signatureTP,
-        emitTime: quote.emitTime,
-        messageState: 0,
-      };
-
-      await sendSignedCloseQuote(tpQuote, token);
-    }
-    if (isReduceSL) {
-      const domainClose = {
-        name: "PionerV1Close",
-        version: "1.0",
-        chainId: 64165,
-        verifyingContract: networks.sonic.contracts
-          .pionerV1Close as `0x${string}`,
-      };
-
-      const OpenCloseQuoteType = {
-        OpenCloseQuote: [
-          { name: "bContractId", type: "uint256" },
-          { name: "price", type: "uint256" },
-          { name: "amount", type: "uint256" },
-          { name: "limitOrStop", type: "uint256" },
-          { name: "expiry", type: "uint256" },
-          { name: "authorized", type: "address" },
-          { name: "nonce", type: "uint256" },
-        ],
-      };
-
-      const openCloseQuoteValue = {
-        bContractId: 1,
-        price: parseUnits(stopLoss, 18).toString(),
-        amount: quote.amount,
-        limitOrStop: 0, // Stop order
-        expiry: 17139884340000,
-        authorized: quote.counterpartyAddress,
-        nonce: 0,
-      };
-
-      const signatureSL = await walletClient.signTypedData({
-        domain: domainClose,
-        types: OpenCloseQuoteType,
-        primaryType: "OpenCloseQuote",
-        message: openCloseQuoteValue,
-        account: wallet.address as `0x${string}`,
-      });
-
-      const slQuote: SignedCloseQuoteRequest = {
-        issuerAddress: quote.issuerAddress,
-        counterpartyAddress: quote.counterpartyAddress,
-        version: quote.version,
-        chainId: quote.chainId,
-        verifyingContract: networks.sonic.contracts.pionerV1Close,
-        bcontractId: 1,
-        price: parseUnits(stopLoss, 18).toString(),
-        amount: quote.amount,
-        limitOrStop: 0, // Stop order
-        expiry: String(17139884340000),
-        authorized: quote.counterpartyAddress,
-        nonce: 0,
-        signatureClose: signatureSL,
-        emitTime: quote.emitTime,
-        messageState: 0,
-      };
-
-      await sendSignedCloseQuote(slQuote, token);
-    }
 
     setLoading(false);
   };

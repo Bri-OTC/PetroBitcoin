@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-// import Swiper and modules styles
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -42,10 +41,10 @@ export default function RootLayout({
         >
           <PrivyProviderWrapper>
             <div className="bg-black">
-              <div className="flex flex-col h-[100vh] bg-background max-w-[1024px] mx-auto">
+              <div className="flex flex-col h-[100vh] bg-background">
                 <div className="h-full flex flex-col">
                   <div className="h-full max-h-[90vh] overflow-y-auto">
-                    <div>{children}</div>
+                    <div className="max-w-[1024px] mx-auto">{children}</div>
                   </div>
                   <Menu />
                 </div>
