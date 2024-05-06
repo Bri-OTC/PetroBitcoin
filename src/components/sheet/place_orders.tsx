@@ -89,18 +89,18 @@ function SheetPlaceOrder() {
       if (currentMethod === "Buy") {
         try {
           setEntryPrice(askPrice.toString());
-        } catch (error) {}
+        } catch (error) { }
       } else if (currentMethod === "Sell") {
         try {
           setEntryPrice(bidPrice.toString());
-        } catch (error) {}
+        } catch (error) { }
       }
     }
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);
 
   useEffect(() => {
-    setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toFixed(2));
-  }, [amount, entryPrice, setAmountUSD]);
+    setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toString());
+  }, [entryPrice]);
 
   const handleTakeProfitChange = (value: string) => {
     setTakeProfit(value);
@@ -154,15 +154,13 @@ function SheetPlaceOrder() {
               <h2
                 key={x + "drawer"}
                 onClick={() => setCurrentMethod(x)}
-                className={`w-full text-center pb-3 border-b-[3px] ${
-                  currentMethod === x
-                    ? `${
-                        currentMethod === "Sell"
-                          ? "border-[#F23645] text-[#F23645]"
-                          : "border-[#089981] text-[#089981]"
-                      }`
-                    : "border-transparent"
-                } font-medium transition-all cursor-pointer`}
+                className={`w-full text-center pb-3 border-b-[3px] ${currentMethod === x
+                  ? `${currentMethod === "Sell"
+                    ? "border-[#F23645] text-[#F23645]"
+                    : "border-[#089981] text-[#089981]"
+                  }`
+                  : "border-transparent"
+                  } font-medium transition-all cursor-pointer`}
               >
                 {x}
               </h2>

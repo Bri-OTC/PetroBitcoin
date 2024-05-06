@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { FaEquals } from "react-icons/fa";
-import { useState, useEffect } from "react";
+import { ChangeEvent, useEffect } from "react";
 import SheetPlaceOrder from "@/components/sheet/place_orders";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
@@ -33,6 +33,16 @@ function SectionTradeOrderTrades() {
 
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
   const testBool = true;
+
+  const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setAmount(e.target.value);
+    setAmountUSD((parseFloat(e.target.value) * parseFloat(entryPrice)).toString());
+  };
+
+  const handleAmountUSDChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setAmountUSD(e.target.value);
+    setAmount((parseFloat(e.target.value) / parseFloat(entryPrice)).toString());
+  };
 
   useEffect(() => {
     if (currentTabIndex === "Market") {
@@ -69,16 +79,14 @@ function SectionTradeOrderTrades() {
             }}
           >
             <h2
-              className={`${
-                currentTabIndex === x ? "text-white" : "text-card-foreground"
-              } transition-all font-medium cursor-pointer`}
+              className={`${currentTabIndex === x ? "text-white" : "text-card-foreground"
+                } transition-all font-medium cursor-pointer`}
             >
               {x}
             </h2>
             <div
-              className={`w-[18px] h-[4px] ${
-                currentTabIndex === x ? "bg-white" : "bg-transparent"
-              } mt-3 transition-all`}
+              className={`w-[18px] h-[4px] ${currentTabIndex === x ? "bg-white" : "bg-transparent"
+                } mt-3 transition-all`}
             />
           </div>
         ))}
@@ -90,13 +98,12 @@ function SectionTradeOrderTrades() {
               <h3
                 key={x}
                 onClick={() => setCurrentMethodStore(x)}
-                className={`w-full text-center pb-3 border-b-[3px] ${
-                  currentMethod === x
-                    ? currentMethod === "Sell"
-                      ? "border-[#F23645] text-[#F23645]"
-                      : "border-[#089981] text-[#089981]"
-                    : "border-transparent"
-                } font-medium transition-all cursor-pointer`}
+                className={`w-full text-center pb-3 border-b-[3px] ${currentMethod === x
+                  ? currentMethod === "Sell"
+                    ? "border-[#F23645] text-[#F23645]"
+                    : "border-[#089981] text-[#089981]"
+                  : "border-transparent"
+                  } font-medium transition-all cursor-pointer`}
               >
                 {x}
               </h3>
@@ -123,7 +130,7 @@ function SectionTradeOrderTrades() {
                   type="number"
                   className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                   value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
+                  onChange={handleAmountChange}
                 />
               </div>
               <div className="mt-5">
@@ -135,7 +142,7 @@ function SectionTradeOrderTrades() {
                   type="number"
                   className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
                   value={amountUSD}
-                  onChange={(e) => setAmountUSD(e.target.value)}
+                  onChange={handleAmountUSDChange}
                 />
               </div>
             </div>
@@ -161,13 +168,12 @@ function SectionTradeOrderTrades() {
             <div>
               <Drawer>
                 <DrawerTrigger
-                  className={`w-full py-3 ${
-                    testBool
-                      ? currentMethod === "Buy"
-                        ? "bg-[#089981]"
-                        : "bg-[#F23645]"
-                      : "bg-[#666EFF] cursor-not-allowed"
-                  }`}
+                  className={`w-full py-3 ${testBool
+                    ? currentMethod === "Buy"
+                      ? "bg-[#089981]"
+                      : "bg-[#F23645]"
+                    : "bg-[#666EFF] cursor-not-allowed"
+                    }`}
                   disabled={!testBool}
                 >
                   <p>{currentMethod}</p>
