@@ -80,7 +80,7 @@ function InitWithdraw({
         disabled={loading || !amount || parseFloat(amount) > 100}
         className="w-full"
       >
-        {loading ? "Withdrawing..." : "Withdraw"}
+        {loading ? "Withdrawing..." : "1. Withdraw"}
       </Button>
     </div>
   );

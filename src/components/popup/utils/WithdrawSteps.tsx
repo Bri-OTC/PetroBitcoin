@@ -54,8 +54,8 @@ function WithdrawSteps({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center">
-        <span className="mr-4">{depositedBalance} USD</span>
+      <div className="flex justify-between items-center">
+        <span>{depositedBalance} USD</span>
         <InitWithdraw
           amount={amount}
           loading={loading}
@@ -66,22 +66,21 @@ function WithdrawSteps({
           onEvent={handleWithdrawSuccess}
         />
       </div>
-      <div className="flex items-center">
-        <span className="mr-4">{timeToClaim} Remaining</span>
-        <span className="mr-4">{claimableBalance} USD</span>
-        <div className="flex justify-end space-x-3">
-          <ClaimWithdraw
-            amount={amount}
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            provider={provider}
-            wallet={wallet}
-            onEvent={handleClaimSuccess}
-          />
+      <div className="flex justify-between items-center">
+        <div>
+          <span>5min lock</span>
+          <span className="ml-4">{claimableBalance} USD</span>
         </div>
+        <ClaimWithdraw
+          amount={amount}
+          loading={loading}
+          setLoading={setLoading}
+          setError={setError}
+          provider={provider}
+          wallet={wallet}
+          onEvent={handleClaimSuccess}
+        />
       </div>
-
       <DialogClose>
         <Button variant="secondary" className="w-full">
           Cancel

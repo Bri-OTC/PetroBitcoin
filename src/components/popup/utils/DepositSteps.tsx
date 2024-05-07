@@ -56,8 +56,8 @@ function DepositSteps({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center">
-        <span className="mr-4">{mintedAmount} USD</span>
+      <div className="flex justify-between items-center">
+        <span>{mintedAmount} USD</span>
         <MintStep
           amount={amount}
           loading={loading}
@@ -68,22 +68,20 @@ function DepositSteps({
           onMint={handleMintSuccess}
         />
       </div>
-      <div className="flex items-center">
-        <span className="mr-4">{allowedAmount} USD</span>
-        <div className="flex justify-end space-x-3">
-          <ApproveStep
-            amount={amount}
-            loading={loading}
-            setLoading={setLoading}
-            setError={setError}
-            provider={provider}
-            wallet={wallet}
-            onApprove={handleApproveSuccess}
-          />
-        </div>
+      <div className="flex justify-between items-center">
+        <span>{allowedAmount} USD</span>
+        <ApproveStep
+          amount={amount}
+          loading={loading}
+          setLoading={setLoading}
+          setError={setError}
+          provider={provider}
+          wallet={wallet}
+          onApprove={handleApproveSuccess}
+        />
       </div>
-      <div className="flex items-center">
-        <span className="mr-4">{depositedAmount} USD</span>
+      <div className="flex justify-between items-center">
+        <span>{depositedAmount} USD</span>
         <DepositStep
           amount={amount}
           loading={loading}

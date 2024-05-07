@@ -137,7 +137,7 @@ function MintStep({
   return (
     <div className="flex justify-end space-x-3">
       <Button onClick={handleMint} disabled={loading || !amount}>
-        {loading ? "Minting..." : "Mint"}
+        {loading ? "Minting..." : "1. Mint"}
       </Button>
     </div>
   );

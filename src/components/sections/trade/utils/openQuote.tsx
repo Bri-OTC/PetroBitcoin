@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { contracts, getTypedDataDomain, networks } from "@pionerfriends/blockchain-client";
+import {
+  contracts,
+  getTypedDataDomain,
+  networks,
+} from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { PionerV1Wrapper } from "@pionerfriends/blockchain-client";
@@ -20,13 +24,21 @@ import {
   SignedCloseQuoteRequest,
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
+import {
+  convertToBytes32,
+  parseDecimalValue,
+} from "@/components/triparty/utils";
+import { DepositedBalance } from "@/components/sections/wallet/table";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
 }
 
 const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
+  const depositedBalance = DepositedBalance();
+
   const [loading, setLoading] = useState(false);
+  const [sufficientBalance, setSufficientBalance] = useState(true);
   const walletClient = useAuthStore((state) => state.walletClient);
   const wallet = useAuthStore((state) => state.wallet);
   const token = useAuthStore((state) => state.token);
@@ -34,6 +46,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const updateRfqRequest = useRfqRequestStore(
     (state) => state.updateRfqRequest
   );
+  const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
 
   const currentMethod: string = useTradeStore((state) => state.currentMethod);
   const entryPrice: string = useTradeStore((state) => state.entryPrice);
@@ -41,22 +54,24 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
   const handleOpenQuote = async () => {
     if (!wallet || !token || !walletClient || !wallet.address) {
-      /*
-        console.error(`Wallet : ${wallet} `);
-        console.error(`token : ${token}`);
-        console.error(`walletClient ${walletClient}`);
-        console.error(`wallet.address ${wallet.address}`);
-      */
       console.error(" Missing wallet, token, walletClient or wallet.address");
-
       return;
     }
+
+    const requiredBalance =
+      currentMethod === "Buy"
+        ? parseFloat(rfqRequest.lImA) + parseFloat(rfqRequest.lDfA)
+        : parseFloat(rfqRequest.sImB) + parseFloat(rfqRequest.sDfB);
+
+    if (Number(depositedBalance) < requiredBalance) {
+      setSufficientBalance(false);
+      return;
+    }
+
     const ethersProvider = await wallet.getEthersProvider();
     const ethersSigner = await ethersProvider.getSigner();
 
     setLoading(true);
-    const paddedSymbol = symbol.padEnd(32, "\0");
-    const assetHex = bytesToHex(toBytes(paddedSymbol));
 
     const quote: SignedWrappedOpenQuoteRequest = {
       issuerAddress: wallet.address,
@@ -66,25 +81,46 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       verifyingContract: "0x0000000000000000000000000000000000000000",
       x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
       parity: String(0),
-      maxConfidence: parseUnits("1", 18).toString(),
-      assetHex: assetHex,
+      maxConfidence: parseDecimalValue("1"),
+      assetHex: convertToBytes32(symbol),
       maxDelay: "600",
       precision: 5,
-      imA: parseUnits("1", 18).toString(),
-      imB: parseUnits("1", 18).toString(),
-      dfA: parseUnits("1", 18).toString(),
-      dfB: parseUnits("1", 18).toString(),
-      expiryA: parseUnits("1", 18).toString(),
-      expiryB: parseUnits("1", 18).toString(),
-      timeLock: parseUnits("1", 18).toString(),
+      imA:
+        currentMethod === "Buy"
+          ? parseDecimalValue(rfqRequest.lImA)
+          : parseDecimalValue(rfqRequest.sImA),
+      imB:
+        currentMethod === "Buy"
+          ? parseDecimalValue(rfqRequest.lImB)
+          : parseDecimalValue(rfqRequest.sImB),
+      dfA:
+        currentMethod === "Buy"
+          ? parseDecimalValue(rfqRequest.lDfA)
+          : parseDecimalValue(rfqRequest.sDfA),
+      dfB:
+        currentMethod === "Buy"
+          ? parseDecimalValue(rfqRequest.lDfB)
+          : parseDecimalValue(rfqRequest.sDfB),
+      expiryA:
+        currentMethod === "Buy"
+          ? rfqRequest.lExpirationA
+          : rfqRequest.sExpirationA,
+      expiryB:
+        currentMethod === "Buy"
+          ? rfqRequest.lExpirationB
+          : rfqRequest.sExpirationB,
+      timeLock:
+        currentMethod === "Buy" ? rfqRequest.lTimelockA : rfqRequest.sTimelockA,
       nonceBoracle: 0,
       signatureBoracle: "",
       isLong: currentMethod === "Buy" ? true : false,
-      price: parseUnits(entryPrice, 18).toString(),
-      amount: parseUnits(amount, 18).toString(),
-      interestRate: parseUnits("1", 18).toString(),
+      price: parseDecimalValue(entryPrice),
+      amount: parseDecimalValue(amount),
+      interestRate:
+        currentMethod === "Buy"
+          ? parseDecimalValue(rfqRequest.lInterestRate)
+          : parseDecimalValue(rfqRequest.sInterestRate),
       isAPayingApr: true,
-
       frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       authorized: "0x0000000000000000000000000000000000000000",
@@ -94,7 +130,10 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       messageState: 0,
     };
 
-    const domainOpen = getTypedDataDomain(contracts.PionerV1Open, networks.sonic.pionerChainId);
+    const domainOpen = getTypedDataDomain(
+      contracts.PionerV1Open,
+      networks.sonic.pionerChainId
+    );
 
     const openQuoteSignType = {
       Quote: [
@@ -124,7 +163,10 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonce: quote.nonceOpenQuote,
     };
 
-    const domainWrapper = getTypedDataDomain(contracts.PionerV1Wrapper, networks.sonic.pionerChainId);
+    const domainWrapper = getTypedDataDomain(
+      contracts.PionerV1Wrapper,
+      networks.sonic.pionerChainId
+    );
 
     const bOracleSignType = {
       bOracleSign: [
@@ -163,6 +205,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       signatureHashOpenQuote: quote.signatureOpenQuote,
       nonce: quote.nonceBoracle,
     };
+
     const signatureOpenQuote = await ethersSigner._signTypedData(
       domainOpen,
       openQuoteSignType,
@@ -178,7 +221,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     );
     quote.signatureBoracle = signatureBoracle;
     quote.signatureOpenQuote = signatureOpenQuote;
+
     await sendSignedWrappedOpenQuote(quote, token);
+    console.log("Open Quote sent");
 
     setLoading(false);
   };

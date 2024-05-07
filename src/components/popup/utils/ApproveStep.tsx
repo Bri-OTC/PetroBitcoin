@@ -88,7 +88,7 @@ function ApproveStep({
   return (
     <div className="flex justify-end space-x-3">
       <Button onClick={handleApprove} disabled={loading || !amount}>
-        {loading ? "Approving..." : "Approve"}
+        {loading ? "Approving..." : "2. Approve"}
       </Button>
     </div>
   );

@@ -11,6 +11,7 @@ import { BiCoinStack } from "react-icons/bi";
 import { GiGiftOfKnowledge } from "react-icons/gi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { useTradeStore } from "../../../store/tradeStore";
+import { DepositedBalance } from "./table";
 
 const menu = [
   {
@@ -31,6 +32,8 @@ const menu = [
 ];
 
 function SectionWalletHero() {
+  const depositedBalance = DepositedBalance();
+
   const [showBalance, setShowBalance] = useState(true);
   const { balance, setBalance } = useTradeStore();
 
@@ -80,7 +83,7 @@ function SectionWalletHero() {
           <div className="flex items-center justify-between mt-5">
             <div className="flex items-center space-x-1">
               <span className="text-card-foreground">≈</span>
-              <h1>USD${balance}</h1>
+              <h1>USD${depositedBalance}</h1>
             </div>
             <p className="text-card-foreground text-right">
               View All Account Balance

@@ -83,7 +83,7 @@ function DepositStep({
         disabled={loading || !amount || parseFloat(amount) > 100}
         className="w-full"
       >
-        {loading ? "Depositing..." : "Deposit"}
+        {loading ? "Depositing..." : "3. Deposit"}
       </Button>
     </div>
   );

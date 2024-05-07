@@ -80,7 +80,7 @@ function ClaimWithdraw({
         disabled={loading || !amount || parseFloat(amount) > 100}
         className="w-full"
       >
-        {loading ? "Claiming..." : "Claim"}
+        {loading ? "Claiming..." : "2. Claim"}
       </Button>
     </div>
   );
