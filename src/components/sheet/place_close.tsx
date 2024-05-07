@@ -220,7 +220,7 @@ function SheetPlaceOrder() {
           </div>
           <div className="flex flex-col items-center space-y-2 text-center">
             <h3>Risk Reward</h3>
-            <h3>{riskRewardPnL} USD</h3>
+            <h3>{riskRewardPnL} </h3>
           </div>
         </div>
         <DrawerClose>

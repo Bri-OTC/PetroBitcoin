@@ -196,76 +196,8 @@ function SheetPlaceOrder() {
             <PopupModify />
           </Dialog>
         </div>
-        <div className="flex space-x-5 justify-between items-end">
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">Take profit exit</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={takeProfit}
-                onChange={(e) => handleTakeProfitChange(e.target.value)}
-                disabled={!isReduceTP}
-              />
-              <p>USD</p>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">% Gain</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={takeProfitPercentage}
-                onChange={(e) => setTakeProfitPercentage(e.target.value)}
-                disabled={!isReduceTP}
-              />
-              <p>%</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-center space-y-1">
-            <p>TP</p>
-            <Checkbox
-              checked={isReduceTP}
-              onCheckedChange={handleTPCheckboxChange}
-            />
-          </div>
-        </div>
-        <div className="flex space-x-5 justify-between items-end">
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">Stop loss</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={stopLoss}
-                onChange={(e) => handleStopLossChange(e.target.value)}
-                disabled={!isReduceSL}
-              />
-              <p>USD</p>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">% Loss</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={stopLossPercentage}
-                onChange={(e) => setStopLossPercentage(e.target.value)}
-                disabled={!isReduceSL}
-              />
-              <p>%</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-center space-y-1">
-            <p>SL</p>
-            <Checkbox
-              checked={isReduceSL}
-              onCheckedChange={handleSLCheckboxChange}
-            />
-          </div>
-        </div>
+        <div className="flex space-x-5 justify-between items-end"></div>
+
         <div className="flex space-x-5 justify-between items-end">
           <div className="flex flex-col space-y-2 w-full">
             <h3 className="text-left text-card-foreground">Amount</h3>
@@ -286,7 +218,7 @@ function SheetPlaceOrder() {
             <div className="flex items-center space-x-5 border-b">
               <Input
                 className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
+                placeholder="Contracts Ammount"
                 value={amountUSD}
                 onChange={(e) => handleAmountUSDChange(e.target.value)}
               />

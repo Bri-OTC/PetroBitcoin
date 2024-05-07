@@ -9,16 +9,10 @@ import {
 import Image from "next/image";
 import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
-import { IoMdShare } from "react-icons/io";
-import PopupShare from "../../popup/share";
-import { Dialog, DialogTrigger } from "@radix-ui/react-dialog";
-import { BsThreeDotsVertical } from "react-icons/bs";
-import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
-import SheetPlaceClose from "@/components/sheet/place_close";
-import CancelAll from "./utils/cancelAll";
+import { FaEdit } from "react-icons/fa";
 
 export interface Order {
-  id: string;
+  id: number;
   size: number;
   market: string;
   icon: string;
@@ -26,8 +20,12 @@ export interface Order {
   amount: number;
   filled: number;
   remainingSize: number;
-  estLiq: number;
   breakEvenPrice: number;
+  limitPrice: string;
+  status: string;
+  reduceOnly: string;
+  fillAmount: string;
+  entryTime: string;
 }
 
 interface SectionOrdersProps {
@@ -47,26 +45,24 @@ function SectionOrders({
     <Table className="whitespace-nowrap">
       <TableHeader>
         <TableRow className="hover:bg-background border-none">
-          <TableHead className="w-[50px] pr-0"></TableHead>
+          <TableHead className="pr-0"></TableHead>
           <TableHead>
             <p className="text-card-foreground">Size / Market</p>
           </TableHead>
           <TableHead>
-            <p className="text-card-foreground">Trigger</p>
-            <p>/ Amount</p>
+            <p className="text-card-foreground">Trigger / Amount</p>
           </TableHead>
           <TableHead className="text-right">
-            <p className="text-card-foreground">Filled</p>
-            <p className="text-card-foreground">/ Remaining Size</p>
+            <p className="text-card-foreground">Filled / Remaining Size</p>
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {orders.map((x, index) => {
           return (
-            <Fragment key={x.market + "Orders"}>
+            <Fragment key={x.market + "Fragment"}>
               {index !== 0 && (
-                <TableRow key={x.market + "Positions"} className="border-none">
+                <TableRow key={x.market + "Orders"} className="border-none">
                   <TableCell className="py-2"></TableCell>
                 </TableRow>
               )}
@@ -95,18 +91,12 @@ function SectionOrders({
                 <TableCell>
                   <div>
                     <h3>{x.trigger}</h3>
-                    <h3 className="text-card-foreground">{x.amount} USD</h3>
+                    <h3 className="text-card-foreground">{x.amount}</h3>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div>
-                    <h3
-                      className={`${
-                        x.filled >= 0 ? "text-green-400" : "text-red-400"
-                      }`}
-                    >
-                      {x.filled}
-                    </h3>
+                    <h3>{x.filled}</h3>
                     <h3 className="text-card-foreground">{x.remainingSize}</h3>
                   </div>
                 </TableCell>
@@ -118,16 +108,20 @@ function SectionOrders({
                     className="bg-card hover:bg-card border-none"
                   >
                     <TableCell colSpan={4} className="py-1">
-                      <div className="w-full flex justify-around">
-                        <div className="text-center">
-                          <p className="text-card-foreground">Est. Liq</p>
-                          <p className="font-medium">{x.estLiq}</p>
-                        </div>
-                        <div className="text-center">
+                      <div className="w-full flex justify-between">
+                        <div className="w-full text-center">
                           <p className="text-card-foreground">
-                            Break-even price
+                            Break Even Price
                           </p>
                           <p className="font-medium">{x.breakEvenPrice}</p>
+                        </div>
+                        <div className="text-center w-full">
+                          <p className="text-card-foreground">Limit Price</p>
+                          <p className="font-medium">{x.limitPrice}</p>
+                        </div>
+                        <div className="text-right w-full">
+                          <p className="text-card-foreground">Status</p>
+                          <p className="font-medium">{x.status}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -136,28 +130,35 @@ function SectionOrders({
                     key={x.market + "Orders" + "Child" + "2"}
                     className="bg-card hover:bg-card border-none"
                   >
+                    <TableCell colSpan={4} className="py-1">
+                      <div className="w-full flex justify-around">
+                        <div className="text-center">
+                          <p className="text-card-foreground">Reduce Only</p>
+                          <p className="font-medium">{x.reduceOnly}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-card-foreground">Fill Amount</p>
+                          <p className="font-medium">{x.fillAmount}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow
+                    key={x.market + "Orders" + "Child" + "3"}
+                    className="bg-card hover:bg-card border-none"
+                  >
                     <TableCell colSpan={4}>
                       <div className="w-full flex justify-center space-x-3">
+                        <Button variant="secondary" className="flex space-x-2">
+                          <FaEdit />
+                          <p>Modify</p>
+                        </Button>
                         <Button
                           onClick={() => hideRow(x.market)}
-                          variant="secondary"
+                          variant="destructive"
                         >
-                          <CancelAll orders={orders} />
+                          <p>Cancel</p>
                         </Button>
-                        <Button variant="secondary">
-                          <Dialog>
-                            <DialogTrigger>
-                              <IoMdShare />
-                            </DialogTrigger>
-                            <PopupShare />
-                          </Dialog>
-                        </Button>
-                        <Drawer>
-                          <DrawerTrigger>
-                            <p>TP/SL</p>
-                          </DrawerTrigger>
-                          <SheetPlaceClose />
-                        </Drawer>
                       </div>
                     </TableCell>
                   </TableRow>
