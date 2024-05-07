@@ -139,7 +139,6 @@ export const useTradeStore = create<StoreState>((set) => ({
       const takeProfit = parseFloat(state.takeProfit);
       const stopLoss = parseFloat(state.stopLoss);
 
-      const amount = (parseFloat(amountUSD) / entryPrice).toString();
       const exitPnL =
         ((takeProfit - entryPrice) * parseFloat(amountUSD)) / entryPrice;
       const stopPnL =
@@ -147,7 +146,6 @@ export const useTradeStore = create<StoreState>((set) => ({
 
       return {
         amountUSD: amountUSD.toString(),
-        amount,
         exitPnL,
         stopPnL,
       };
