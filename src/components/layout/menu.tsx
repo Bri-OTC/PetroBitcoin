@@ -21,7 +21,6 @@ import {
   createWalletClient,
   custom,
   verifyMessage,
-  EIP1193Provider,
 } from "viem";
 
 export function Menu() {
@@ -33,9 +32,9 @@ export function Menu() {
   const setProvider = useAuthStore((state) => state.setProvider);
   const setEthersSigner = useAuthStore((state) => state.setEthersSigner);
   const setWallet = useAuthStore((state) => state.setWallet);
-
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
+  const provider = useAuthStore((state) => state.provider);
   const [payload, setPayload] = useState<{
     uuid: string;
     message: string;
@@ -49,7 +48,6 @@ export function Menu() {
     onComplete: async (user, isNewUser, wasAlreadyAuthenticated) => {
       console.log(user, isNewUser, wasAlreadyAuthenticated);
       await fetchPayload();
-      //await signMessage();
     },
     onError: (error) => {
       console.log(error);
@@ -62,6 +60,23 @@ export function Menu() {
       setToken(tokenFromCookie);
     }
   }, [authenticated]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (ready && authenticated && wallet) {
+        setWallet(wallet);
+        const provider = await wallet.getEthereumProvider();
+        setProvider(provider);
+        const walletClient = createWalletClient({
+          transport: custom(provider),
+          account: wallet.address as `0x${string}`,
+        });
+        setWalletClient(walletClient);
+      }
+    };
+
+    fetchData();
+  }, [wallet]);
 
   const fetchPayload = async () => {
     if (wallet && !token) {
@@ -98,9 +113,7 @@ export function Menu() {
           transport: custom(provider),
           account: wallet.address as `0x${string}`,
         });
-        setProvider(provider);
-        setWalletClient(walletClient);
-        setWallet(wallet);
+
         console.log("meny walletClient", walletClient);
 
         const signature = await walletClient.signMessage({
@@ -232,9 +245,8 @@ export function Menu() {
               <Link
                 href={x.link}
                 key={x.name}
-                className={`${
-                  pathname === x.link ? "text-primary" : "text-card-foreground"
-                } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
+                className={`${pathname === x.link ? "text-primary" : "text-card-foreground"
+                  } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
               >
                 <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
                 <p>{x.name}</p>
@@ -249,22 +261,7 @@ export function Menu() {
 
 export const useWalletAndProvider = () => {
   const { wallets } = useWallets();
-  const [provider, setProvider] = useState<EIP1193Provider | null>(null);
-
-  useEffect(() => {
-    const getProvider = async () => {
-      if (wallets.length > 0) {
-        const wallet = wallets[0];
-        const currentProvider = await wallet.getEthereumProvider();
-
-        setProvider(currentProvider as EIP1193Provider | null);
-      } else {
-        setProvider(null);
-      }
-    };
-
-    getProvider();
-  }, [wallets]);
+  const provider = useAuthStore((state) => state.provider);
 
   return { wallet: wallets[0], provider };
 };

@@ -35,13 +35,12 @@ const useAuthStore = create<AuthState>((set) => ({
       const decodedToken = jwt.decode(token) as JwtPayload;
       if (decodedToken && decodedToken.exp) {
         const expirationDate = new Date(decodedToken.exp * 1000);
-        console.log("TOKEN" + token);
         set({ token });
         Cookies.set("token", token, { expires: expirationDate });
       }
     } else {
       set({ token: null });
-      Cookies.remove("token"); // Remove token from cookie
+      Cookies.remove("token");
     }
   },
   setIsMarketOpen: (isOpen) => set({ isMarketOpen: isOpen }),

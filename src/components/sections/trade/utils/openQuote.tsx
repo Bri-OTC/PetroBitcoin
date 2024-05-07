@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import { networks } from "@pionerfriends/blockchain-client";
+import { contracts, getTypedDataDomain, networks } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { PionerV1Wrapper } from "@pionerfriends/blockchain-client";
@@ -12,7 +12,7 @@ import {
   web3Client,
 } from "./init";
 import { useWallets } from "@privy-io/react-auth";
-import { Address, bytesToHex, parseUnits, toBytes } from "viem";
+import { bytesToHex, parseUnits, toBytes } from "viem";
 import {
   sendSignedWrappedOpenQuote,
   SignedWrappedOpenQuoteRequest,
@@ -40,13 +40,12 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const amount: string = useTradeStore((state) => state.amount);
 
   const handleOpenQuote = async () => {
-    console.log(`handleOpenQuote : ${wallet}`);
     if (!wallet || !token || !walletClient || !wallet.address) {
       /*
-      console.error(`Wallet : ${!wallet} `);
-      console.error(`token : ${!token}`);
-      console.error(`walletClient ${!walletClient}`);
-      console.error(`wallet.address ${!wallet.address}`);
+        console.error(`Wallet : ${wallet} `);
+        console.error(`token : ${token}`);
+        console.error(`walletClient ${walletClient}`);
+        console.error(`wallet.address ${wallet.address}`);
       */
       console.error(" Missing wallet, token, walletClient or wallet.address");
 
@@ -95,12 +94,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       messageState: 0,
     };
 
-    const domainOpen = {
-      name: "PionerV1Open",
-      version: "1.0",
-      chainId: 64165,
-      verifyingContract: networks.sonic.contracts.pionerV1Open as `0x${string}`,
-    };
+    const domainOpen = getTypedDataDomain(contracts.PionerV1Open, networks.sonic.pionerChainId);
 
     const openQuoteSignType = {
       Quote: [
@@ -130,13 +124,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonce: quote.nonceOpenQuote,
     };
 
-    const domainWrapper = {
-      name: "PionerV1Warper",
-      version: "1.0",
-      chainId: 64165,
-      verifyingContract: networks.sonic.contracts
-        .pionerV1Warper as `0x${string}`,
-    };
+    const domainWrapper = getTypedDataDomain(contracts.PionerV1Wrapper, networks.sonic.pionerChainId);
 
     const bOracleSignType = {
       bOracleSign: [
