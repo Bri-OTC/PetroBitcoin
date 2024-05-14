@@ -1,11 +1,14 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { useTradeStore } from "@/store/tradeStore";
 import { FaStar } from "react-icons/fa";
 import useFavorites from "./useFavorites";
 import Link from "next/link";
+import { calculatePairPrices } from "@/components/triparty/pairPrice";
+import { useAuthStore } from "@/store/authStore";
+import { Button } from "@/components/ui/button";
 
 interface Market {
   name: string;
@@ -17,18 +20,26 @@ interface ResearchComponentProps {
   searchTerm: string;
   onMarketClick: (market: Market) => void;
   selectedMarket: Market | null;
+  activeTab: string;
+  sortByPrice: boolean;
+  handleTabClick: (tab: string) => void;
+  toggleSortByPrice: () => void;
 }
-
 function ResearchComponent({
   searchTerm,
   onMarketClick,
   selectedMarket,
 }: ResearchComponentProps) {
   const [markets, setMarkets] = useState<Market[]>([]);
+  const [displayedMarkets, setDisplayedMarkets] = useState<Market[]>([]);
   const [fuse, setFuse] = useState<Fuse<Market> | null>(null);
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
   const [activeTab, setActiveTab] = useState("all");
   const [sortByPrice, setSortByPrice] = useState(false);
+  const [pageSize, setPageSize] = useState(30);
+  const [currentPage, setCurrentPage] = useState(0);
+  const token = useAuthStore((state) => state.token);
+  const tableRef = useRef<HTMLTableElement>(null);
 
   const setSelectedMarket = useTradeStore((state) => state.setSymbol);
   const { favorites, toggleFavorite } = useFavorites(defaultSecondAsset);
@@ -65,19 +76,71 @@ function ResearchComponent({
   }, [activeTab]);
 
   useEffect(() => {
-    const updatePrices = () => {
-      const updatedMarkets = markets.map((market) => ({
-        ...market,
-        price: Math.random() * 10000,
-      }));
-      setMarkets(updatedMarkets);
+    const updatePrices = async () => {
+      const pairs = displayedMarkets.map((market) => market.name);
+      const pairPrices = await calculatePairPrices(pairs, token);
+
+      const updatedMarkets: Market[] = displayedMarkets.map((market) => {
+        const { bid, ask } = pairPrices[market.name] || { bid: 0, ask: 0 };
+        const averagePrice = (bid + ask) / 2;
+        return {
+          ...market,
+          price: averagePrice,
+        };
+      });
+
+      setDisplayedMarkets(updatedMarkets);
     };
 
     const interval = setInterval(updatePrices, 2000);
     return () => {
       clearInterval(interval);
     };
-  }, [markets]);
+  }, [displayedMarkets, token]);
+
+  useEffect(() => {
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    const displayedMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
+    setDisplayedMarkets(displayedMarkets);
+  }, [currentPage, pageSize, markets, searchTerm, sortByPrice, favorites]);
+
+  const loadMoreUp = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const loadMoreDown = () => {
+    const totalPages = Math.ceil(getDisplayedMarkets().length / pageSize);
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (tableRef.current) {
+        const { scrollTop, clientHeight, scrollHeight } = tableRef.current;
+
+        if (scrollTop === 0) {
+          loadMoreUp();
+        } else if (scrollTop + clientHeight === scrollHeight) {
+          loadMoreDown();
+        }
+      }
+    };
+
+    if (tableRef.current) {
+      tableRef.current.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (tableRef.current) {
+        tableRef.current.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [loadMoreUp, loadMoreDown]);
 
   const getDisplayedMarkets = (): Market[] => {
     let displayedMarkets: Market[] = [];
@@ -88,7 +151,7 @@ function ResearchComponent({
         return {
           name: fav,
           icon: "/$.svg",
-          price: Math.random() * 10000,
+          price: 0,
         };
       });
     } else {
@@ -98,7 +161,7 @@ function ResearchComponent({
         : defaultSecondAsset;
 
       if (searchTerm.trim() === "") {
-        displayedMarkets = markets.slice(0, 20).map((market) => ({
+        displayedMarkets = markets.map((market) => ({
           ...market,
           name: `${market.name}/${secondAssetToUse}`,
         }));
@@ -107,26 +170,26 @@ function ResearchComponent({
           fuse?.search(firstAsset).map((result) => result.item) || [];
 
         if (searchResults.length === 0) {
-          displayedMarkets = markets.slice(0, 20).map((market) => ({
+          displayedMarkets = markets.map((market) => ({
             ...market,
             name: `${market.name}/${secondAssetToUse}`,
           }));
         } else if (secondAsset === "") {
-          displayedMarkets = searchResults.slice(0, 1).flatMap((market) =>
-            markets.slice(0, 20).map((secondMarket) => ({
+          displayedMarkets = searchResults.flatMap((market) =>
+            markets.map((secondMarket) => ({
               ...market,
               name: `${market.name}/${secondMarket.name}`,
             }))
           );
         } else {
-          displayedMarkets = searchResults.slice(0, 1).flatMap((market) => {
+          displayedMarkets = searchResults.flatMap((market) => {
             const secondMarketSearchResults =
               fuse?.search(secondAssetToUse).map((result) => result.item) || [];
             const secondMarkets =
               secondMarketSearchResults.length > 0
                 ? secondMarketSearchResults
                 : markets;
-            return secondMarkets.slice(0, 20).map((secondMarket) => ({
+            return secondMarkets.map((secondMarket) => ({
               ...market,
               name: `${market.name}/${secondMarket.name}`,
             }));
@@ -139,13 +202,12 @@ function ResearchComponent({
       displayedMarkets.sort((a, b) => b.price - a.price);
     }
 
-    return displayedMarkets.slice(0, 20);
+    return displayedMarkets;
   };
-
-  const displayedMarkets = getDisplayedMarkets();
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab);
+    setCurrentPage(0);
   };
 
   const handleMarketClick = (market: Market) => {
@@ -154,84 +216,110 @@ function ResearchComponent({
 
   const toggleSortByPrice = () => {
     setSortByPrice(!sortByPrice);
+    setCurrentPage(0);
   };
-
   return (
     <div className="w-full">
-      <div className="flex space-x-4 mb-4">
-        <button
-          className={`tab ${activeTab === "all" ? "active" : ""}`}
+      <div className="border-b mt-2 sticky top-0 bg-background z-[99]">
+        <div className="px-5 flex space-x-4">
+          <div>
+            <button
+              className={`tab ${activeTab === "nasdaq" ? "active" : ""}`}
+              onClick={() => handleTabClick("nasdaq")}
+            >
+              <h2 className="font-medium">Nasdaq</h2>
+            </button>
+            <div className="w-[36px] mt-3 h-[3px] bg-white"></div>
+          </div>
+          <div>
+            <button
+              className={`tab ${activeTab === "nyse" ? "active" : ""}`}
+              onClick={() => handleTabClick("nyse")}
+            >
+              <h2 className="font-medium">NYSE</h2>
+            </button>
+            <div className="w-[36px] mt-3 h-[3px] bg-white"></div>
+          </div>
+          <div>
+            <button
+              className={`tab ${activeTab === "forex" ? "active" : ""}`}
+              onClick={() => handleTabClick("forex")}
+            >
+              <h2 className="font-medium">Forex</h2>
+            </button>
+            <div className="w-[36px] mt-3 h-[3px] bg-white"></div>
+          </div>
+        </div>
+      </div>
+      <div className="flex space-x-4 mb-4 px-5 border-b pb-3 mt-3">
+        <Button
+          className={`p-2 px-4 rounded-lg text-white border border-card bg-card transition-all hover:bg-card ${
+            activeTab === "all" ? "active" : ""
+          }`}
           onClick={() => handleTabClick("all")}
         >
-          All
-        </button>
-        <button
-          className={`tab ${activeTab === "forex" ? "active" : ""}`}
-          onClick={() => handleTabClick("forex")}
-        >
-          Forex
-        </button>
-        <button
-          className={`tab ${activeTab === "nasdaq" ? "active" : ""}`}
-          onClick={() => handleTabClick("nasdaq")}
-        >
-          Nasdaq
-        </button>
-        <button
-          className={`tab ${activeTab === "nyse" ? "active" : ""}`}
-          onClick={() => handleTabClick("nyse")}
-        >
-          NYSE
-        </button>
-        <button
-          className={`tab ${activeTab === "favorites" ? "active" : ""}`}
+          <h3>All</h3>
+        </Button>
+        <Button
+          className={`p-2 px-4 rounded-lg text-white border border-card bg-card transition-all hover:bg-card ${
+            activeTab === "favorites" ? "active" : ""
+          }`}
           onClick={() => handleTabClick("favorites")}
         >
-          Favorites
-        </button>
-        <button
-          className={`tab ${sortByPrice ? "active" : ""}`}
+          <h3>Favorites</h3>
+        </Button>
+        <Button
+          className={`p-2 px-4 rounded-lg text-white border border-card bg-card transition-all hover:bg-card ${
+            sortByPrice ? "active" : ""
+          }`}
           onClick={toggleSortByPrice}
         >
-          Sort by Price
-        </button>
+          <h3>By Price</h3>
+        </Button>
       </div>
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">Pair</th>
-            <th className="px-4 py-2">Price</th>
-          </tr>
-        </thead>
-        <tbody>
-          {displayedMarkets.map((market, index) => (
-            <tr key={`${market.name}-${index}`} className="border-none">
-              <td className="px-4 py-2">
-                <div className="flex items-center space-x-3">
-                  <FaStar
-                    className={`cursor-pointer ${
-                      favorites.includes(market.name)
-                        ? "text-yellow-500"
-                        : "text-gray-400"
-                    }`}
-                    onClick={() => toggleFavorite(market.name)}
-                  />
-                  <Image
-                    width={30}
-                    height={30}
-                    src={market.icon}
-                    alt={market.name}
-                  />
-                  <Link href="/trade" onClick={() => handleMarketClick(market)}>
-                    <span className="cursor-pointer">{market.name}</span>
-                  </Link>
-                </div>
-              </td>
-              <td className="px-4 py-2">{market.price.toFixed(2)}</td>
+      <div ref={tableRef} style={{ maxHeight: "600px", overflowY: "auto" }}>
+        <table className="w-full">
+          <thead className="sticky">
+            <tr>
+              <th className="px-4 py-2 text-left sticky">Pair</th>
+              <th className="px-4 py-2 text-right sticky">Price</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {displayedMarkets.map((market, index) => (
+              <tr key={`${market.name}-${index}`} className="border-none">
+                <td className="px-4 py-2">
+                  <div className="flex items-center space-x-3">
+                    <FaStar
+                      className={`cursor-pointer ${
+                        favorites.includes(market.name)
+                          ? "text-yellow-500"
+                          : "text-gray-400"
+                      }`}
+                      onClick={() => toggleFavorite(market.name)}
+                    />
+                    <Image
+                      width={30}
+                      height={30}
+                      src={market.icon}
+                      alt={market.name}
+                    />
+                    <Link
+                      href="/trade"
+                      onClick={() => handleMarketClick(market)}
+                    >
+                      <span className="cursor-pointer">{market.name}</span>
+                    </Link>
+                  </div>
+                </td>
+                <td className="px-4 py-2 text-right">
+                  {market.price.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

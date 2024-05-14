@@ -48,35 +48,18 @@ function SectionMarketsList() {
             />
           </div>
         </div>
-        <div className="border-b mt-5">
-          <div className="px-5">
-            <h2 className="font-medium">Forex</h2>
-            <div className="w-[36px] mt-3 h-[3px] bg-white"></div>
-          </div>
+        <div className="flex-grow overflow-y-auto mt-5">
+          <Table>
+            <TableHeader></TableHeader>
+            <TableBody>
+              <ResearchComponent
+                searchTerm={searchTerm}
+                onMarketClick={handleMarketClick}
+                selectedMarket={selectedMarket}
+              />
+            </TableBody>
+          </Table>
         </div>
-        <div className="border-b pb-3 mt-3">
-          <div className="flex items-center space-x-2 px-5">
-            <Button className="p-2 px-4 rounded-lg text-white border border-card bg-card transition-all hover:bg-card">
-              <h3>All</h3>
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className="flex-grow overflow-y-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            <ResearchComponent
-              searchTerm={searchTerm}
-              onMarketClick={handleMarketClick}
-              selectedMarket={selectedMarket}
-            />
-          </TableBody>
-        </Table>
       </div>
     </section>
   );
