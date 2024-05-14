@@ -3,10 +3,10 @@ import { ethers } from "ethers";
 export const convertToBytes32 = (str: string): string => {
   const maxLength = 32;
   const truncatedStr = str.slice(0, maxLength);
-  const bytes32 = ethers.utils.formatBytes32String(truncatedStr);
-  return bytes32;
+  const paddedStr = truncatedStr.padEnd(32, "\0");
+  const hex = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(paddedStr));
+  return hex;
 };
-
 export const convertFromBytes32 = (bytes32: string): string => {
   const str = ethers.utils.parseBytes32String(bytes32);
   return str;

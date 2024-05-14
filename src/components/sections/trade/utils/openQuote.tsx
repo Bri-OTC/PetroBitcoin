@@ -63,6 +63,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         ? parseFloat(rfqRequest.lImA) + parseFloat(rfqRequest.lDfA)
         : parseFloat(rfqRequest.sImB) + parseFloat(rfqRequest.sDfB);
 
+    console.log("requiredBalance", requiredBalance);
+    console.log("depositedBalance", depositedBalance);
+
     if (Number(depositedBalance) < requiredBalance) {
       setSufficientBalance(false);
       return;
@@ -78,7 +81,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       counterpartyAddress: "0x0000000000000000000000000000000000000000",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: "0x0000000000000000000000000000000000000000",
+      verifyingContract: networks["sonic"].contracts.PionerV1Open,
       x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
       parity: String(0),
       maxConfidence: parseDecimalValue("1"),
@@ -130,10 +133,29 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       messageState: 0,
     };
 
+    console.log("quote", quote);
+
+    console.log("x", quote.x);
+    console.log("parity", quote.parity);
+    console.log("maxConfidence", quote.maxConfidence);
+    console.log("assetHex", quote.assetHex);
+    console.log("precision", quote.precision);
+    console.log("imA", quote.imA);
+    console.log("imB", quote.imB);
+    console.log("dfA", quote.dfA);
+    console.log("dfB", quote.dfB);
+    console.log("expiryA", quote.expiryA);
+    console.log("expiryB", quote.expiryB);
+    console.log("timeLock", quote.timeLock);
+    console.log("signatureHashOpenQuote", quote.signatureOpenQuote);
+    console.log("nonce", quote.nonceBoracle);
+
     const domainOpen = getTypedDataDomain(
       contracts.PionerV1Open,
       networks.sonic.pionerChainId
     );
+
+    console.log("domainOpen", domainOpen);
 
     const openQuoteSignType = {
       Quote: [
@@ -150,6 +172,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       ],
     };
 
+    console.log("openQuoteSignType", openQuoteSignType);
+
     const openQuoteSignValue = {
       isLong: quote.isLong,
       bOracleId: 0,
@@ -163,10 +187,14 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonce: quote.nonceOpenQuote,
     };
 
+    console.log("openQuoteSignValue", openQuoteSignValue);
+
     const domainWrapper = getTypedDataDomain(
       contracts.PionerV1Wrapper,
       networks.sonic.pionerChainId
     );
+
+    console.log("domainWrapper", domainWrapper);
 
     const bOracleSignType = {
       bOracleSign: [
@@ -188,9 +216,11 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       ],
     };
 
+    console.log("bOracleSignType", bOracleSignType);
+
     const bOracleSignValue = {
       x: quote.x,
-      parity: parseInt(quote.parity),
+      parity: quote.parity,
       maxConfidence: quote.maxConfidence,
       assetHex: quote.assetHex,
       maxDelay: quote.maxDelay,
@@ -206,11 +236,14 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonce: quote.nonceBoracle,
     };
 
+    console.log("bOracleSignValue", bOracleSignValue);
+
     const signatureOpenQuote = await ethersSigner._signTypedData(
       domainOpen,
       openQuoteSignType,
       openQuoteSignValue
     );
+    console.log("signatureOpenQuote", signatureOpenQuote);
 
     bOracleSignValue.signatureHashOpenQuote = signatureOpenQuote;
 
@@ -219,8 +252,12 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       bOracleSignType,
       bOracleSignValue
     );
-    quote.signatureBoracle = signatureBoracle;
-    quote.signatureOpenQuote = signatureOpenQuote;
+    console.log("signatureBoracle", signatureBoracle);
+
+    quote.signatureBoracle = "signatureBoracle";
+    quote.signatureOpenQuote = "signatureOpenQuote";
+
+    console.log("Updated quote", quote);
 
     await sendSignedWrappedOpenQuote(quote, token);
     console.log("Open Quote sent");
