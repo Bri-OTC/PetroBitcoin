@@ -23,6 +23,7 @@ import {
   PionerV1,
 } from "@pionerfriends/blockchain-client";
 import { encodeFunctionData, Address, formatUnits } from "viem";
+import useBlurEffect from "@/components/hooks/blur";
 
 function GasBalance() {
   const { wallet, provider } = useWalletAndProvider();
@@ -286,6 +287,7 @@ export function USDCAllowance() {
   return usdcBalance;
 }
 function SectionWalletTable() {
+  const blur = useBlurEffect();
   const gasBalance = GasBalance();
   const depositedBalance = DepositedBalance();
   const usdcBalance = USDCBalance();
@@ -347,84 +349,89 @@ function SectionWalletTable() {
   };
 
   return (
-    <div className="mt-5 flex flex-col space-y-5">
-      <div className="flex items-center space-x-5">
-        <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5">
-          <FaSearch className="text-card-foreground" />
-          <Input className="bg-card border-none" placeholder="Search Market" />
+    <div className={`container ${blur ? "blur" : ""}`}>
+      <div className="mt-5 flex flex-col space-y-5">
+        <div className="flex items-center space-x-5">
+          <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5">
+            <FaSearch className="text-card-foreground" />
+            <Input
+              className="bg-card border-none"
+              placeholder="Search Market"
+            />
+          </div>
+          <Button size="icon" variant="ghost">
+            <HiOutlineCog6Tooth className="text-[1.1rem]" />
+          </Button>
+          <Button size="icon" variant="ghost">
+            <PiChartPieSlice className="text-[1.1rem]" />
+          </Button>
         </div>
-        <Button size="icon" variant="ghost">
-          <HiOutlineCog6Tooth className="text-[1.1rem]" />
-        </Button>
-        <Button size="icon" variant="ghost">
-          <PiChartPieSlice className="text-[1.1rem]" />
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow className="border-none">
-            <TableHead className="w-[40px]"></TableHead>
-            <TableHead>
-              <p>Market</p>
-            </TableHead>
-            <TableHead
-              onClick={() => handleSort("balance")}
-              className="cursor-pointer"
-            >
-              <div className="flex items-center">
-                <p>Balance</p>
-                {sortColumn === "balance" &&
-                  (sortOrder === "asc" ? (
-                    <FaSortUp className="ml-1" />
-                  ) : (
-                    <FaSortDown className="ml-1" />
-                  ))}
-                {sortColumn !== "balance" && <FaSort className="ml-1" />}
-              </div>
-            </TableHead>
-            <TableHead
-              onClick={() => handleSort("usdValue")}
-              className="text-right cursor-pointer"
-            >
-              <div className="flex items-center justify-end">
-                <p>USD Value</p>
-                {sortColumn === "usdValue" &&
-                  (sortOrder === "asc" ? (
-                    <FaSortUp className="ml-1" />
-                  ) : (
-                    <FaSortDown className="ml-1" />
-                  ))}
-                {sortColumn !== "usdValue" && <FaSort className="ml-1" />}
-              </div>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {sortedData.map((item) => (
-            <TableRow key={item.market} className="border-none">
-              <TableCell className="w-[50px] pr-0">
-                <div className="w-[30px]">
-                  <Image
-                    src={item.icon}
-                    alt={item.market}
-                    width={30}
-                    height={30}
-                  />
+        <Table>
+          <TableHeader>
+            <TableRow className="border-none">
+              <TableHead className="w-[40px]"></TableHead>
+              <TableHead>
+                <p>Market</p>
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("balance")}
+                className="cursor-pointer"
+              >
+                <div className="flex items-center">
+                  <p>Balance</p>
+                  {sortColumn === "balance" &&
+                    (sortOrder === "asc" ? (
+                      <FaSortUp className="ml-1" />
+                    ) : (
+                      <FaSortDown className="ml-1" />
+                    ))}
+                  {sortColumn !== "balance" && <FaSort className="ml-1" />}
                 </div>
-              </TableCell>
-              <TableCell>
-                <h2>{item.market}</h2>
-              </TableCell>
-              <TableCell>
-                <h2>{item.balance}</h2>
-              </TableCell>
-              <TableCell className="text-right">
-                <h2>{formatNumber(item.usdValue)}</h2>
-              </TableCell>
+              </TableHead>
+              <TableHead
+                onClick={() => handleSort("usdValue")}
+                className="text-right cursor-pointer"
+              >
+                <div className="flex items-center justify-end">
+                  <p>USD Value</p>
+                  {sortColumn === "usdValue" &&
+                    (sortOrder === "asc" ? (
+                      <FaSortUp className="ml-1" />
+                    ) : (
+                      <FaSortDown className="ml-1" />
+                    ))}
+                  {sortColumn !== "usdValue" && <FaSort className="ml-1" />}
+                </div>
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {sortedData.map((item) => (
+              <TableRow key={item.market} className="border-none">
+                <TableCell className="w-[50px] pr-0">
+                  <div className="w-[30px]">
+                    <Image
+                      src={item.icon}
+                      alt={item.market}
+                      width={30}
+                      height={30}
+                    />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <h2>{item.market}</h2>
+                </TableCell>
+                <TableCell>
+                  <h2>{item.balance}</h2>
+                </TableCell>
+                <TableCell className="text-right">
+                  <h2>{formatNumber(item.usdValue)}</h2>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

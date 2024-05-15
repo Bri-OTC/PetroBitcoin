@@ -21,12 +21,14 @@ import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import UpdateMarketStatus from "@/components/triparty/marketStatusUpdater";
 import QuoteWss from "@/components/triparty/quote";
+import useBlurEffect from "@/components/hooks/blur";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
   const [interval, setInterval] = useState("60");
   const symbol = useTradeStore((state) => state.symbol);
   const activePrice = useActivePrice();
+  const blur = useBlurEffect();
 
   useEffect(() => {
     activePrice();
@@ -37,40 +39,42 @@ function SectionTradeChart() {
   };
 
   return (
-    <div className="flex flex-col space-y-3 mt-2 px-5">
-      <RfqRequestUpdater />
-      <UpdateMarketStatus />
-      <QuoteWss />
+    <div className={`container ${blur ? "blur" : ""}`}>
+      <div className="flex flex-col space-y-3 mt-2 px-5">
+        <RfqRequestUpdater />
+        <UpdateMarketStatus />
+        <QuoteWss />
 
-      <div className="flex items-center justify-between">
-        <Select onValueChange={handleIntervalChange}>
-          <SelectTrigger className="w-fit flex items-center space-x-2">
-            <FaRegClock />
-            <SelectValue placeholder="1D" className="outline-none" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="D">1d</SelectItem>
-            <SelectItem value="W">1w</SelectItem>
-            <SelectItem value="M">1m</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => setShowChart(!showChart)}
-            size="icon"
-            variant="ghost"
-          >
-            {showChart ? <FaRegEye /> : <FaRegEyeSlash />}
-          </Button>
+        <div className="flex items-center justify-between">
+          <Select onValueChange={handleIntervalChange}>
+            <SelectTrigger className="w-fit flex items-center space-x-2">
+              <FaRegClock />
+              <SelectValue placeholder="1D" className="outline-none" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="D">1d</SelectItem>
+              <SelectItem value="W">1w</SelectItem>
+              <SelectItem value="M">1m</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => setShowChart(!showChart)}
+              size="icon"
+              variant="ghost"
+            >
+              {showChart ? <FaRegEye /> : <FaRegEyeSlash />}
+            </Button>
+          </div>
         </div>
-      </div>
-      <div
-        className={`${
-          showChart ? "h-full" : "max-h-0"
-        } overflow-hidden transition-all bg-card text-white`}
-      >
-        <div className="w-full h-full flex items-center justify-center">
-          <TradingViewAdvancedChart symbol={symbol} interval={interval} />
+        <div
+          className={`${
+            showChart ? "h-full" : "max-h-0"
+          } overflow-hidden transition-all bg-card text-white`}
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <TradingViewAdvancedChart symbol={symbol} interval={interval} />
+          </div>
         </div>
       </div>
     </div>

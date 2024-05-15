@@ -12,6 +12,7 @@ import { GiGiftOfKnowledge } from "react-icons/gi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { useTradeStore } from "../../../store/tradeStore";
 import { DepositedBalance } from "./table";
+import useBlurEffect from "@/components/hooks/blur";
 
 const menu = [
   {
@@ -32,6 +33,7 @@ const menu = [
 ];
 
 function SectionWalletHero() {
+  const blur = useBlurEffect();
   const depositedBalance = DepositedBalance();
 
   const [showBalance, setShowBalance] = useState(true);
@@ -59,70 +61,74 @@ function SectionWalletHero() {
     setShowFaucet(false);
   };
   return (
-    <section className="flex flex-col space-y-5">
-      <div className="flex items-center justify-between">
-        <h1>Wallet</h1>
-      </div>
-      <div className="flex flex-col">
+    <div className={`container ${blur ? "blur" : ""}`}>
+      <section className="flex flex-col space-y-5">
         <div className="flex items-center justify-between">
+          <h1>Wallet</h1>
+        </div>
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between">
+            <div
+              onClick={() => setShowBalance(!showBalance)}
+              className="flex items-center space-x-2 hover:brightness-[0.8] transition-all cursor-pointer"
+            >
+              <p className="text-card-foreground">Total Net USD Value</p>
+              <div className="cursor-pointer">
+                {showBalance ? <FaEye /> : <FaEyeSlash />}
+              </div>
+            </div>
+          </div>
           <div
-            onClick={() => setShowBalance(!showBalance)}
-            className="flex items-center space-x-2 hover:brightness-[0.8] transition-all cursor-pointer"
+            className={`${
+              showBalance ? "max-h-[10rem]" : "max-h-0"
+            } overflow-hidden transition-all`}
           >
-            <p className="text-card-foreground">Total Net USD Value</p>
-            <div className="cursor-pointer">
-              {showBalance ? <FaEye /> : <FaEyeSlash />}
+            <div className="flex items-center justify-between mt-5">
+              <div className="flex items-center space-x-1">
+                <span className="text-card-foreground">≈</span>
+                <h1>USD${depositedBalance}</h1>
+              </div>
+              <p className="text-card-foreground text-right">
+                View All Account Balance
+              </p>
             </div>
           </div>
-        </div>
-        <div
-          className={`${
-            showBalance ? "max-h-[10rem]" : "max-h-0"
-          } overflow-hidden transition-all`}
-        >
-          <div className="flex items-center justify-between mt-5">
-            <div className="flex items-center space-x-1">
-              <span className="text-card-foreground">≈</span>
-              <h1>USD${depositedBalance}</h1>
-            </div>
-            <p className="text-card-foreground text-right">
-              View All Account Balance
-            </p>
+          <div className="grid grid-cols-3 gap-5 mt-5">
+            {menu.map((x) => {
+              return (
+                <Button
+                  key={x.name}
+                  variant="ghost"
+                  className="flex items-center space-x-3 hover:text-primary"
+                  onClick={() => {
+                    if (x.link === "/deposit") {
+                      handleDepositClick();
+                    } else if (x.link === "/withdraw") {
+                      handleWithdrawClick();
+                    } else if (x.link === "/get-gaz") {
+                      handleFaucetClick();
+                    }
+                  }}
+                >
+                  <div className="text-[1.25rem]">{x.icon}</div>
+                  <p>{x.name}</p>
+                </Button>
+              );
+            })}
           </div>
-        </div>
-        <div className="grid grid-cols-3 gap-5 mt-5">
-          {menu.map((x) => {
-            return (
-              <Button
-                key={x.name}
-                variant="ghost"
-                className="flex items-center space-x-3 hover:text-primary"
-                onClick={() => {
-                  if (x.link === "/deposit") {
-                    handleDepositClick();
-                  } else if (x.link === "/withdraw") {
-                    handleWithdrawClick();
-                  } else if (x.link === "/get-gaz") {
-                    handleFaucetClick();
-                  }
-                }}
-              >
-                <div className="text-[1.25rem]">{x.icon}</div>
-                <p>{x.name}</p>
-              </Button>
-            );
-          })}
-        </div>
 
-        {showDeposit && (
-          <Deposit open={showDeposit} onClose={handleClosePopup} />
-        )}
-        {showWithdraw && (
-          <Withdraw open={showWithdraw} onClose={handleClosePopup} />
-        )}
-        {showFaucet && <Faucet open={showFaucet} onClose={handleClosePopup} />}
-      </div>
-    </section>
+          {showDeposit && (
+            <Deposit open={showDeposit} onClose={handleClosePopup} />
+          )}
+          {showWithdraw && (
+            <Withdraw open={showWithdraw} onClose={handleClosePopup} />
+          )}
+          {showFaucet && (
+            <Faucet open={showFaucet} onClose={handleClosePopup} />
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
 
