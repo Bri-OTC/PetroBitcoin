@@ -41,8 +41,6 @@ async function calculatePairPrices(
     // Retrieve prices for all unique asset IDs
     const prices = await getPrices(Array.from(assetIds), token);
 
-    console.log(prices);
-
     // Check if prices is defined
     if (prices && prices.data) {
       // Calculate bid and ask prices for each pair

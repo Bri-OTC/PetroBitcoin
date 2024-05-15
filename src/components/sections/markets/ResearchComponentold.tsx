@@ -39,8 +39,11 @@ function ResearchComponent({
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
   const [activeTab, setActiveTab] = useState("all");
   const [sortByPrice, setSortByPrice] = useState(false);
-  const [pageSize, setPageSize] = useState(30);
+  const [pageSize, setPageSize] = useState(100);
   const [currentPage, setCurrentPage] = useState(0);
+
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const token = useAuthStore((state) => state.token);
   const tableRef = useRef<HTMLTableElement>(null);
 
@@ -62,7 +65,6 @@ function ResearchComponent({
           price: 0,
         }));
         setMarkets(fetchedMarkets);
-        console.log("Fetched markets:", fetchedMarkets);
 
         const fuseInstance = new Fuse(fetchedMarkets, {
           keys: ["name"],
@@ -123,10 +125,8 @@ function ResearchComponent({
         return { originalPair: market.name, prefixedPair: pair };
       });
 
-      console.log("Updating prices for pairs:", pairs);
       const prefixedPairs = pairs.map((pair) => pair.prefixedPair);
       const pairPrices = await calculatePairPrices(prefixedPairs, token);
-      console.log("Pair prices:", pairPrices);
 
       const updatedMarkets: Market[] = displayedMarkets.map((market) => {
         const pair = pairs.find((pair) => pair.originalPair === market.name);
@@ -155,43 +155,28 @@ function ResearchComponent({
     const endIndex = startIndex + pageSize;
     const displayedMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
     setDisplayedMarkets(displayedMarkets);
-  }, [currentPage, pageSize, markets, searchTerm, sortByPrice, favorites]);
-
-  const loadMoreUp = () => {
-    if (currentPage > 0) {
-      setCurrentPage((prevPage) => prevPage - 1);
-    }
-  };
-
-  const loadMoreDown = () => {
-    const totalPages = Math.ceil(getDisplayedMarkets().length / pageSize);
-    if (currentPage < totalPages - 1) {
-      setCurrentPage((prevPage) => prevPage + 1);
-    }
-  };
-  useEffect(() => {
-    const handleScroll = () => {
-      if (tableRef.current) {
-        const { scrollTop, clientHeight, scrollHeight } = tableRef.current;
-
-        if (scrollTop === 0) {
-          loadMoreUp();
-        } else if (scrollTop + clientHeight === scrollHeight) {
-          loadMoreDown();
-        }
-      }
-    };
 
     if (tableRef.current) {
-      tableRef.current.addEventListener("scroll", handleScroll);
+      tableRef.current.scrollTop = 0;
     }
+  }, [currentPage, pageSize, markets, searchTerm, sortByPrice, favorites]);
 
-    return () => {
-      if (tableRef.current) {
-        tableRef.current.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [loadMoreUp, loadMoreDown]);
+  const fetchMoreData = () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      const startIndex = (currentPage + 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const newMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
+
+      setDisplayedMarkets((prevMarkets) => [...prevMarkets, ...newMarkets]);
+      setCurrentPage((prevPage) => prevPage + 1);
+      setHasMore(endIndex < getDisplayedMarkets().length);
+      setIsLoading(false);
+    }, 1000);
+  };
 
   const getDisplayedMarkets = (): Market[] => {
     let displayedMarkets: Market[] = [];
@@ -269,6 +254,21 @@ function ResearchComponent({
     setSortByPrice(!sortByPrice);
     setCurrentPage(0);
   };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage((prevPage) => prevPage - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    const totalPages = Math.ceil(getDisplayedMarkets().length / pageSize);
+    if (currentPage < totalPages - 1) {
+      setCurrentPage((prevPage) => prevPage + 1);
+    }
+  };
+  const totalPages = Math.ceil(getDisplayedMarkets().length / pageSize);
+
   return (
     <div className="w-full">
       <div className="border-b mt-2 sticky top-0 bg-background z-[99]">
@@ -364,12 +364,31 @@ function ResearchComponent({
                   </div>
                 </td>
                 <td className="px-4 py-2 text-right">
-                  {market.price.toFixed(2)}
+                  <span className="fade-effect">{market.price.toFixed(4)}</span>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-between mt-4">
+        <Button
+          className="p-2 px-4 rounded-lg text-white border border-card bg-card transition-all hover:bg-card"
+          onClick={goToPreviousPage}
+          disabled={currentPage === 0}
+        >
+          Previous
+        </Button>
+        <span>
+          Page {currentPage + 1} of {totalPages}
+        </span>
+        <Button
+          className="p-2 px-4 rounded-lg text-white border border-card bg-card transition-all hover:bg-card"
+          onClick={goToNextPage}
+          disabled={currentPage === totalPages - 1}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );

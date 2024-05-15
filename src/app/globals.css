@@ -93,3 +93,19 @@
   mask-repeat: no-repeat;
   mask-position: center;
 }
+
+.fade-effect {
+  animation: fadeInOut 1s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
