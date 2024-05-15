@@ -1,17 +1,36 @@
 import { getPrices } from "@pionerfriends/api-client";
 import { getProxyTicker } from "./configReader";
-export async function calculatePairPrices(
+
+async function calculatePairPrices(
   pairs: string[],
   token: string | null
 ): Promise<{ [pair: string]: { bid: number; ask: number } } | undefined> {
   const assetIds = new Set<string>();
   const pairPrices: { [pair: string]: { bid: number; ask: number } } = {};
+
   try {
     // Collect unique asset IDs from the pairs
     for (const pair of pairs) {
-      const [assetAId, assetBId] = pair.split("/");
-      assetIds.add(assetAId);
-      assetIds.add(assetBId);
+      let [assetAId, assetBId] = pair.split("/");
+      let proxyAId = assetAId;
+      let proxyBId = assetBId;
+
+      if (assetAId !== undefined) {
+        const tempProxyAId = await getProxyTicker(assetAId);
+        if (tempProxyAId) {
+          proxyAId = tempProxyAId;
+        }
+      }
+
+      if (assetBId !== undefined) {
+        const tempProxyBId = await getProxyTicker(assetBId);
+        if (tempProxyBId) {
+          proxyBId = tempProxyBId;
+        }
+      }
+
+      assetIds.add(proxyAId);
+      assetIds.add(proxyBId);
     }
 
     // Check if token is null
@@ -21,29 +40,27 @@ export async function calculatePairPrices(
 
     // Retrieve prices for all unique asset IDs
     const prices = await getPrices(Array.from(assetIds), token);
+
     console.log(prices);
 
     // Check if prices is defined
     if (prices && prices.data) {
-      // Create a map of asset IDs to their prices
-      const priceMap: {
-        [assetId: string]: { bidPrice: string; askPrice: string };
-      } = {};
-      for (const assetId in prices.data) {
-        priceMap[assetId] = {
-          bidPrice: prices.data[assetId].bidPrice,
-          askPrice: prices.data[assetId].askPrice,
-        };
-      }
-
       // Calculate bid and ask prices for each pair
       for (const pair of pairs) {
         const [assetAId, assetBId] = pair.split("/");
-        if (priceMap[assetAId] && priceMap[assetBId]) {
-          const bidA = Number(priceMap[assetAId].bidPrice || 0);
-          const bidB = Number(priceMap[assetBId].bidPrice || 0);
-          const askA = Number(priceMap[assetAId].askPrice || 0);
-          const askB = Number(priceMap[assetBId].askPrice || 0);
+        const proxyAId = await getProxyTicker(assetAId);
+        const proxyBId = await getProxyTicker(assetBId);
+
+        if (
+          proxyAId &&
+          proxyBId &&
+          prices.data[proxyAId] &&
+          prices.data[proxyBId]
+        ) {
+          const bidA = Number(prices.data[proxyAId]["bidPrice"] || 0);
+          const bidB = Number(prices.data[proxyBId]["bidPrice"] || 0);
+          const askA = Number(prices.data[proxyAId]["askPrice"] || 0);
+          const askB = Number(prices.data[proxyBId]["askPrice"] || 0);
           const bid = bidB !== 0 ? bidA / bidB : 0;
           const ask = askB !== 0 ? askA / askB : 0;
           pairPrices[pair] = { bid, ask };
@@ -58,5 +75,8 @@ export async function calculatePairPrices(
     console.error(error);
     return undefined;
   }
+
   return pairPrices;
 }
+
+export { calculatePairPrices };

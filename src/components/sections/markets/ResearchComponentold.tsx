@@ -32,6 +32,9 @@ function ResearchComponent({
 }: ResearchComponentProps) {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [displayedMarkets, setDisplayedMarkets] = useState<Market[]>([]);
+  const [nasdaqData, setNasdaqData] = useState<any>({});
+  const [nyseData, setNyseData] = useState<any>({});
+  const [forexData, setForexData] = useState<any>({});
   const [fuse, setFuse] = useState<Fuse<Market> | null>(null);
   const [defaultSecondAsset, setDefaultSecondAsset] = useState("EURUSD");
   const [activeTab, setActiveTab] = useState("all");
@@ -76,17 +79,66 @@ function ResearchComponent({
   }, [activeTab]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      const nasdaqResponse = await fetch("/nasdaq.json");
+      const nasdaqJsonData = await nasdaqResponse.json();
+      setNasdaqData(nasdaqJsonData);
+
+      const nyseResponse = await fetch("/nyse.json");
+      const nyseJsonData = await nyseResponse.json();
+      setNyseData(nyseJsonData);
+
+      const forexResponse = await fetch("/forex.json");
+      const forexJsonData = await forexResponse.json();
+      setForexData(forexJsonData);
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
     const updatePrices = async () => {
-      const pairs = displayedMarkets.map((market) => market.name);
-      const pairPrices = await calculatePairPrices(pairs, token);
+      const pairs = displayedMarkets.map((market) => {
+        const [firstAsset, secondAsset] = market.name.split("/");
+        let prefixedFirstAsset = firstAsset;
+        let prefixedSecondAsset = secondAsset;
+
+        if (nasdaqData.hasOwnProperty(firstAsset)) {
+          prefixedFirstAsset = `stock.nasdaq.${firstAsset}`;
+        } else if (nyseData.hasOwnProperty(firstAsset)) {
+          prefixedFirstAsset = `stock.nyse.${firstAsset}`;
+        } else if (forexData.hasOwnProperty(firstAsset)) {
+          prefixedFirstAsset = `forex.${firstAsset}`;
+        }
+
+        if (nasdaqData.hasOwnProperty(secondAsset)) {
+          prefixedSecondAsset = `stock.nasdaq.${secondAsset}`;
+        } else if (nyseData.hasOwnProperty(secondAsset)) {
+          prefixedSecondAsset = `stock.nyse.${secondAsset}`;
+        } else if (forexData.hasOwnProperty(secondAsset)) {
+          prefixedSecondAsset = `forex.${secondAsset}`;
+        }
+
+        const pair = `${prefixedFirstAsset}/${prefixedSecondAsset}`;
+        return { originalPair: market.name, prefixedPair: pair };
+      });
+
+      console.log("Updating prices for pairs:", pairs);
+      const prefixedPairs = pairs.map((pair) => pair.prefixedPair);
+      const pairPrices = await calculatePairPrices(prefixedPairs, token);
+      console.log("Pair prices:", pairPrices);
 
       const updatedMarkets: Market[] = displayedMarkets.map((market) => {
-        const { bid, ask } = pairPrices[market.name] || { bid: 0, ask: 0 };
-        const averagePrice = (bid + ask) / 2;
-        return {
-          ...market,
-          price: averagePrice,
-        };
+        const pair = pairs.find((pair) => pair.originalPair === market.name);
+        if (pair) {
+          const { bid, ask } = pairPrices[pair.prefixedPair] || {
+            bid: 0,
+            ask: 0,
+          };
+          const averagePrice = (bid + ask) / 2;
+          return { ...market, price: averagePrice };
+        }
+        return market;
       });
 
       setDisplayedMarkets(updatedMarkets);
@@ -96,7 +148,7 @@ function ResearchComponent({
     return () => {
       clearInterval(interval);
     };
-  }, [displayedMarkets, token]);
+  }, [displayedMarkets, token, nasdaqData, nyseData, forexData]);
 
   useEffect(() => {
     const startIndex = currentPage * pageSize;
@@ -107,17 +159,16 @@ function ResearchComponent({
 
   const loadMoreUp = () => {
     if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
+      setCurrentPage((prevPage) => prevPage - 1);
     }
   };
 
   const loadMoreDown = () => {
     const totalPages = Math.ceil(getDisplayedMarkets().length / pageSize);
     if (currentPage < totalPages - 1) {
-      setCurrentPage(currentPage + 1);
+      setCurrentPage((prevPage) => prevPage + 1);
     }
   };
-
   useEffect(() => {
     const handleScroll = () => {
       if (tableRef.current) {

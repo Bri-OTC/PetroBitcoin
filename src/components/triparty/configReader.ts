@@ -38,6 +38,17 @@ function getFieldFromAsset(
   return undefined;
 }
 
+export function getProxyTicker(mt5Ticker: string) {
+  if (!Array.isArray(symbolList) || symbolList.length === 0) {
+    initializeSymbolList();
+  }
+  const asset = symbolList.find((a) => a.mt5Ticker === mt5Ticker);
+  if (asset) {
+    return asset.proxyTicker;
+  }
+  return undefined;
+}
+
 function findAssetByProxyTicker(proxyTicker: string): Asset | undefined {
   return symbolList.find((a) => a.proxyTicker === proxyTicker);
 }
