@@ -3,9 +3,11 @@ import {
   FakeUSD,
   PionerV1Compliance,
   networks,
+  NetworkKey,
 } from "@pionerfriends/blockchain-client";
 import { Address, encodeFunctionData, parseUnits } from "viem";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 interface ApproveStepProps {
   amount: string;
@@ -29,6 +31,8 @@ function ApproveStep({
   onApprove,
 }: ApproveStepProps) {
   async function handleApprove() {
+    const chainId = useAuthStore((state) => state.chainId);
+
     setLoading(true);
     setError(null);
 
@@ -42,7 +46,8 @@ function ApproveStep({
         abi: fakeUSDABI,
         functionName: "approve",
         args: [
-          networks.sonic.contracts.PionerV1Compliance as Address,
+          networks[chainId as NetworkKey].contracts
+            .PionerV1Compliance as Address,
           parseUnits(amount, 18),
         ],
       });
@@ -55,26 +60,19 @@ function ApproveStep({
           params: [
             {
               from: wallet?.address,
-              to: networks.sonic.contracts.FakeUSD as Address,
+              to: networks[chainId as NetworkKey].contracts.FakeUSD as Address,
               data: dataApprove,
             },
           ],
         });
 
         toast.success(
-          `Tokens approved successfully. Transaction hash: ${transaction}`,
-          {
-            id: toastId,
-            duration: 10000,
-          }
+          `Tokens approved successfully. Transaction hash: ${transaction}`
         );
         onApprove(parseFloat(amount));
       } catch (error) {
         console.error("Approval error:", error);
-        toast.error("Approval failed", {
-          id: toastId,
-          duration: 10000,
-        });
+        toast.error("Approval failed");
         setError("Approval failed");
       }
     } catch (error) {

@@ -21,15 +21,18 @@ import {
   FakeUSD,
   PionerV1Compliance,
   PionerV1,
+  NetworkKey,
 } from "@pionerfriends/blockchain-client";
 import { encodeFunctionData, Address, formatUnits } from "viem";
 import useBlurEffect from "@/components/hooks/blur";
 import ResearchComponent from "../markets/ResearchComponentold";
 import Link from "next/link";
+import { useAuthStore } from "@/store/authStore";
 
 function GasBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [gasBalance, setGasBalance] = useState("0");
+  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchGasBalance = async () => {
@@ -64,6 +67,7 @@ function GasBalance() {
 export function DepositedBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
+  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchDepositedBalance = async () => {
@@ -79,7 +83,8 @@ export function DepositedBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks.sonic.contracts.PionerV1 as Address,
+                to: networks[chainId as NetworkKey].contracts
+                  .PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest" as const,
@@ -110,6 +115,7 @@ export function DepositedBalance() {
 export function ClaimableBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
+  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchDepositedBalance = async () => {
@@ -125,7 +131,8 @@ export function ClaimableBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks.sonic.contracts.PionerV1 as Address,
+                to: networks[chainId as NetworkKey].contracts
+                  .PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest",
@@ -156,6 +163,7 @@ export function ClaimableBalance() {
 export function TimeToClaim() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
+  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchDepositedBalance = async () => {
@@ -171,7 +179,8 @@ export function TimeToClaim() {
             method: "eth_call",
             params: [
               {
-                to: networks.sonic.contracts.PionerV1 as Address,
+                to: networks[chainId as NetworkKey].contracts
+                  .PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest",
@@ -202,6 +211,7 @@ export function TimeToClaim() {
 export function USDCBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [usdcBalance, setUsdcBalance] = useState("0");
+  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchUSDCBalance = async () => {
@@ -216,7 +226,8 @@ export function USDCBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks.sonic.contracts.FakeUSD as Address,
+                to: networks[chainId as NetworkKey].contracts
+                  .FakeUSD as Address,
                 data: dataUSDC,
               },
               "latest",
@@ -247,6 +258,7 @@ export function USDCBalance() {
 export function USDCAllowance() {
   const { wallet, provider } = useWalletAndProvider();
   const [usdcBalance, setUsdcBalance] = useState("0");
+  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchUSDCBalance = async () => {
@@ -255,13 +267,17 @@ export function USDCAllowance() {
           const dataUSDC = encodeFunctionData({
             abi: FakeUSD.abi,
             functionName: "allowance",
-            args: [wallet.address, networks.sonic.contracts.PionerV1Compliance],
+            args: [
+              wallet.address,
+              networks[chainId as NetworkKey].contracts.PionerV1Compliance,
+            ],
           });
           const usdcBalanceResponse = await provider.request({
             method: "eth_call",
             params: [
               {
-                to: networks.sonic.contracts.FakeUSD as Address,
+                to: networks[chainId as NetworkKey].contracts
+                  .FakeUSD as Address,
                 data: dataUSDC,
               },
               "latest",

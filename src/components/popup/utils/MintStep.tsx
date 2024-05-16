@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { FakeUSD, networks } from "@pionerfriends/blockchain-client";
+import {
+  FakeUSD,
+  networks,
+  NetworkKey,
+} from "@pionerfriends/blockchain-client";
 import {
   Address,
   encodeFunctionData,
@@ -8,6 +12,7 @@ import {
   decodeFunctionResult,
 } from "viem";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 interface MintStepProps {
   amount: string;
@@ -30,6 +35,8 @@ function MintStep({
   wallet,
   onMint,
 }: MintStepProps) {
+  const chainId = useAuthStore((state) => state.chainId);
+
   const [mintedAmount, setMintedAmount] = useState(0);
 
   useEffect(() => {
@@ -49,7 +56,7 @@ function MintStep({
           method: "eth_call",
           params: [
             {
-              to: networks.sonic.contracts.FakeUSD as Address,
+              to: networks[chainId as NetworkKey].contracts.FakeUSD as Address,
               data,
             },
             "latest",
@@ -74,6 +81,8 @@ function MintStep({
   }, [provider, wallet]);
 
   async function handleMint() {
+    const chainId = useAuthStore((state) => state.chainId);
+
     setLoading(true);
     setError(null);
 
@@ -102,28 +111,21 @@ function MintStep({
           params: [
             {
               from: wallet?.address,
-              to: networks.sonic.contracts.FakeUSD as Address,
+              to: networks[chainId as NetworkKey].contracts.FakeUSD as Address,
               data: dataMint,
             },
           ],
         });
 
         toast.success(
-          `Tokens minted successfully. Transaction hash: ${transaction}`,
-          {
-            id: toastId,
-            duration: 10000,
-          }
+          `Tokens minted successfully. Transaction hash: ${transaction}`
         );
 
         setMintedAmount((prevAmount) => prevAmount + parseFloat(amount));
         onMint(parseFloat(amount));
       } catch (error) {
         console.error("Minting error:", error);
-        toast.error("Minting failed", {
-          id: toastId,
-          duration: 10000,
-        });
+        toast.error("Minting failed");
         setError("Minting failed");
       }
     } catch (error) {

@@ -14,7 +14,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/components/hooks/blur";
 import { formatUnits } from "viem/utils";
-import { convertFromBytes32 } from "@/components/triparty/utils";
+import { convertFromBytes32 } from "@/components/web3/utils";
 
 const getPositions = () => {
   const positions = [
@@ -42,12 +42,13 @@ const getOrders = async (
 ): Promise<Order[]> => {
   try {
     const response = await getSignedWrappedOpenQuotes("1.0", 64165, token, {
-      onlyActive: false,
+      onlyActive: true,
+      issuerAddress: issuerAddress,
     });
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
-          const size = Number(parseFloat(quote.amount) / 1e18);
+          const size = parseFloat(quote.amount) / 1e18;
           const trigger = parseFloat(quote.price) / 1e18;
           const amount = size * trigger;
           const filled = 0;

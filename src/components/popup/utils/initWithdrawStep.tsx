@@ -1,7 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { PionerV1Compliance, networks } from "@pionerfriends/blockchain-client";
+import {
+  NetworkKey,
+  PionerV1Compliance,
+  networks,
+} from "@pionerfriends/blockchain-client";
 import { Address, encodeFunctionData, parseUnits } from "viem";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 interface DepositStepProps {
   amount: string;
@@ -24,6 +29,8 @@ function InitWithdraw({
   wallet,
   onEvent,
 }: DepositStepProps) {
+  const chainId = useAuthStore((state) => state.chainId);
+
   async function handleDeposit() {
     setLoading(true);
     setError(null);
@@ -45,7 +52,8 @@ function InitWithdraw({
         params: [
           {
             from: wallet?.address,
-            to: networks.sonic.contracts.PionerV1Compliance as Address,
+            to: networks[chainId as NetworkKey].contracts
+              .PionerV1Compliance as Address,
             data: dataDeposit,
           },
         ],
@@ -59,10 +67,10 @@ function InitWithdraw({
           params: [txDeposit],
         });
 
-        toast.success("Withdraw initiated successfully", { id: toastId });
+        toast.success("Withdraw initiated successfully");
         onEvent(parseFloat(amount));
       } catch (error) {
-        toast.error("Deposit failed", { id: toastId });
+        toast.error("Deposit failed");
         setError("Deposit failed");
       }
     } catch (error) {

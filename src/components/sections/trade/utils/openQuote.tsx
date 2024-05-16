@@ -9,10 +9,7 @@ import {
   SignedWrappedOpenQuoteRequest,
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
-import {
-  convertToBytes32,
-  parseDecimalValue,
-} from "@/components/triparty/utils";
+import { convertToBytes32, parseDecimalValue } from "@/components/web3/utils";
 import { DepositedBalance } from "@/components/sections/wallet/table";
 import { useBalance } from "@/components/hooks/useBalance";
 
@@ -107,7 +104,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonceOpenQuote: 0,
       signatureOpenQuote: "",
       emitTime: String(Date.now()),
-      messageState: 0,
+      messageState: 1,
     };
 
     console.log("quote", quote);
