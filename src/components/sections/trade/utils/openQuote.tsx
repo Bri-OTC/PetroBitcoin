@@ -4,6 +4,7 @@ import {
   contracts,
   getTypedDataDomain,
   networks,
+  NetworkKey,
 } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
@@ -36,6 +37,7 @@ interface OpenQuoteButtonProps {
 
 const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const depositedBalance = DepositedBalance();
+  const chainId = String(64165);
 
   const [loading, setLoading] = useState(false);
   const [sufficientBalance, setSufficientBalance] = useState(true);
@@ -81,7 +83,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       counterpartyAddress: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: networks["sonic"].contracts.PionerV1Open,
+      verifyingContract: networks[chainId as NetworkKey].contracts.PionerV1Open,
       x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
       parity: String(0),
       maxConfidence: parseDecimalValue("1"),
@@ -134,7 +136,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     };
 
     console.log("quote", quote);
-
     console.log("x", quote.x);
     console.log("parity", quote.parity);
     console.log("maxConfidence", quote.maxConfidence);
@@ -150,12 +151,12 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     console.log("signatureHashOpenQuote", quote.signatureOpenQuote);
     console.log("nonce", quote.nonceBoracle);
 
-    const domainOpen = getTypedDataDomain(
-      contracts.PionerV1Open,
-      networks.sonic.pionerChainId
-    );
-
-    console.log("domainOpen", domainOpen);
+    const domainOpen = {
+      name: "PionerV1Open",
+      version: "1.0",
+      chainId: 64165,
+      verifyingContract: networks[chainId as NetworkKey].contracts.PionerV1Open,
+    };
 
     const openQuoteSignType = {
       Quote: [
@@ -189,10 +190,13 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
     console.log("openQuoteSignValue", openQuoteSignValue);
 
-    const domainWrapper = getTypedDataDomain(
-      contracts.PionerV1Wrapper,
-      networks.sonic.pionerChainId
-    );
+    const domainWrapper = {
+      name: "PionerV1Wrapper",
+      version: "1.0",
+      chainId: 64165,
+      verifyingContract:
+        networks[chainId as NetworkKey].contracts.PionerV1Wrapper,
+    };
 
     console.log("domainWrapper", domainWrapper);
 
@@ -254,8 +258,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     );
     console.log("signatureBoracle", signatureBoracle);
 
-    quote.signatureBoracle = "signatureBoracle";
-    quote.signatureOpenQuote = "signatureOpenQuote";
+    quote.signatureBoracle = signatureBoracle;
+    quote.signatureOpenQuote = signatureOpenQuote;
 
     console.log("Updated quote", quote);
 

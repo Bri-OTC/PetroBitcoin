@@ -10,8 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@pionerfriends/api-client": "^1.0.29",
-    "@pionerfriends/blockchain-client": "^1.0.29",
+    "@pionerfriends/api-client": "^1.0.30",
+    "@pionerfriends/blockchain-client": "^1.0.30",
     "@privy-io/react-auth": "^1.64.0",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-avatar": "^1.0.4",

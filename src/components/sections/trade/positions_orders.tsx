@@ -47,7 +47,7 @@ const getOrders = async (
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
-          const size = parseFloat(quote.amount) / 1e18;
+          const size = Number(parseFloat(quote.amount) / 1e18);
           const trigger = parseFloat(quote.price) / 1e18;
           const amount = size * trigger;
           const filled = 0;
@@ -77,7 +77,6 @@ const getOrders = async (
             .getSeconds()
             .toString()
             .padStart(2, "0")}`;
-
           return {
             id: quote.nonceOpenQuote,
             size: size.toFixed(4),
@@ -93,6 +92,8 @@ const getOrders = async (
             reduceOnly,
             fillAmount,
             entryTime,
+            targetHash: quote.signatureOpenQuote,
+            counterpartyAddress: quote.counterpartyAddress,
           };
         }
       );
@@ -240,9 +241,6 @@ function SectionTradePositionsOrders() {
                   toggleActiveRow={toggleActiveRow}
                   hideRow={hideRow}
                 />
-                <Button variant="ghost" className="text-primary w-full mt-5">
-                  <p>Cancel All</p>
-                </Button>
               </motion.div>
             )}
             {/* Orders Tab End */}

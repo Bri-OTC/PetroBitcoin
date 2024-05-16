@@ -6,11 +6,11 @@ settings:
 
 dependencies:
   '@pionerfriends/api-client':
-    specifier: ^1.0.29
-    version: 1.0.29(@types/node@20.12.11)(typescript@5.4.5)
+    specifier: ^1.0.30
+    version: 1.0.30(@types/node@20.12.11)(typescript@5.4.5)
   '@pionerfriends/blockchain-client':
-    specifier: ^1.0.29
-    version: 1.0.29(@types/node@20.12.11)
+    specifier: ^1.0.30
+    version: 1.0.30(@types/node@20.12.11)
   '@privy-io/react-auth':
     specifier: ^1.64.0
     version: 1.64.0(@babel/core@7.24.5)(@types/react@18.3.1)(react-dom@18.3.1)(react-is@18.3.1)(react@18.3.1)(typescript@5.4.5)
@@ -1381,8 +1381,8 @@ packages:
       '@parcel/watcher-win32-x64': 2.4.1
     dev: false
 
-  /@pionerfriends/api-client@1.0.29(@types/node@20.12.11)(typescript@5.4.5):
-    resolution: {integrity: sha512-NJfek/9lB53zHBoqL0y2WkHAnqi0l/zBz+1vzRJiOPl9Kn8bDCX8wT7vZX+MO6HCNGNmhBc6B2ICY7xwtYqsQg==}
+  /@pionerfriends/api-client@1.0.30(@types/node@20.12.11)(typescript@5.4.5):
+    resolution: {integrity: sha512-wqgRN5jsnHUw6BbUi3N6e72NgT2XCA+wqw6wq7rPOZZfYPtJ2++t7ZWkJMBlMpX7DboK/mI1xphEC7/qEFr6jA==}
     peerDependencies:
       '@types/node': ^20.11.25
     dependencies:
@@ -1398,8 +1398,8 @@ packages:
       - zod
     dev: false
 
-  /@pionerfriends/blockchain-client@1.0.29(@types/node@20.12.11):
-    resolution: {integrity: sha512-RW5yR3fgwXT0YRBeecrHjowfjztnhbm9eadaVSjT2EI4nMlEd6wJ1HF9Yf7WqpxGALivQgkOayKY7PzZ2U19Bg==}
+  /@pionerfriends/blockchain-client@1.0.30(@types/node@20.12.11):
+    resolution: {integrity: sha512-U3z9mHmDKJyZGmVkK4As2g+nHgw9/elN9Go+wscEAg0S5EJTGJwNenl16hv3nzJGPWP58WU0djncst2BhpLkiA==}
     peerDependencies:
       '@types/node': ^20.11.25
     dependencies:
