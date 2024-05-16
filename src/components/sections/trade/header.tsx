@@ -6,7 +6,6 @@ import { MdMenu } from "react-icons/md";
 import { useTradeStore } from "@/store/tradeStore";
 import Link from "next/link";
 import useFavorites from "@/components/sections/markets/useFavorites";
-import styles from "./Header.module.css";
 import useBlurEffect from "@/components/hooks/blur";
 
 function SectionTradeHeader() {
@@ -72,10 +71,10 @@ function SectionTradeHeader() {
             {isFavorite ? <FaStar className="text-primary" /> : <FaRegStar />}
           </div>
           <div className="text-right">
-            <h2 className={`${bidFade ? styles.bidFade : ""}`}>
+            <h2 className={`${bidFade ? bidFade : ""}`}>
               {bidPrice?.toPrecision(5)}
             </h2>
-            <h2 className={`text-green-400 ${askFade ? styles.askFade : ""}`}>
+            <h2 className={`text-green-400 ${askFade ? askFade : ""}`}>
               {askPrice?.toPrecision(5)}
             </h2>
           </div>

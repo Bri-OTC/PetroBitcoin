@@ -9,12 +9,10 @@ const getPositions = async (
   timeout: number = 3000
 ): Promise<Order[]> => {
   try {
-    const response = await getSignedWrappedOpenQuotes(
-      "1.0",
-      64165,
-      token,
-      timeout
-    );
+    console.log("Token", token);
+    const response = await getSignedWrappedOpenQuotes("1.0", 64165, token, {
+      onlyActive: true,
+    });
 
     if (response && response.data) {
       const orders: Order[] = response.data.map(
@@ -22,13 +20,13 @@ const getPositions = async (
           const size = parseFloat(quote.amount);
           const trigger = parseFloat(quote.price);
           const amount = size * trigger;
-          const filled = 0; // Assuming no filled amount initially
+          const filled = 0;
           const remainingSize = size;
-          const breakEvenPrice = trigger; // Assuming break-even price is the same as the quote price
+          const breakEvenPrice = trigger;
           const limitPrice = quote.price;
           const status = quote.messageState === 0 ? "Open" : "Closed";
-          const reduceOnly = "No"; // Assuming not reduce-only by default
-          const fillAmount = "No"; // Assuming not filled by default
+          const reduceOnly = "No";
+          const fillAmount = "No";
           const entryTime = new Date(
             parseInt(quote.emitTime, 10)
           ).toISOString();

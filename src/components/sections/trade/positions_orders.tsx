@@ -13,7 +13,8 @@ import {
 import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/components/hooks/blur";
-const menu = ["Positions", "Orders"];
+import { formatUnits } from "viem/utils";
+import { convertFromBytes32 } from "@/components/triparty/utils";
 
 const getPositions = () => {
   const positions = [
@@ -35,57 +36,59 @@ const getPositions = () => {
 };
 
 const getOrders = async (
-  version: string,
   chainId: number,
-  onlyActive: boolean | undefined = undefined,
-  start: number | undefined = undefined,
-  end: number | undefined = undefined,
   issuerAddress: string | undefined = undefined,
-  targetAddress: string | undefined = undefined,
-  token: string,
-  timeout: number = 3000
+  token: string
 ): Promise<Order[]> => {
   try {
-    const response = await getSignedWrappedOpenQuotes(
-      version,
-      chainId,
-      onlyActive,
-      start,
-      end,
-      issuerAddress,
-      targetAddress,
-      token,
-      timeout
-    );
-
+    const response = await getSignedWrappedOpenQuotes("1.0", 64165, token, {
+      onlyActive: false,
+    });
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
-          const size = parseFloat(quote.amount);
-          const trigger = parseFloat(quote.price);
+          const size = parseFloat(quote.amount) / 1e18;
+          const trigger = parseFloat(quote.price) / 1e18;
           const amount = size * trigger;
-          const filled = 0; // Assuming no filled amount initially
+          const filled = 0;
           const remainingSize = size;
-          const breakEvenPrice = trigger; // Assuming break-even price is the same as the quote price
-          const limitPrice = quote.price;
+          const breakEvenPrice = trigger;
+          const limitPrice = parseFloat(quote.price) / 1e18;
           const status = quote.messageState === 0 ? "Open" : "Closed";
-          const reduceOnly = "No"; // Assuming not reduce-only by default
-          const fillAmount = "No"; // Assuming not filled by default
-          const entryTime = new Date(
-            parseInt(quote.emitTime, 10)
-          ).toISOString();
+          const reduceOnly = "No";
+          const fillAmount = "No";
+          const asset = convertFromBytes32(quote.assetHex);
+
+          const emitTime = new Date(parseInt(quote.emitTime, 10));
+          const entryTime = `${emitTime.getFullYear()}/${(
+            emitTime.getMonth() + 1
+          )
+            .toString()
+            .padStart(2, "0")}/${emitTime
+            .getDate()
+            .toString()
+            .padStart(2, "0")} ${emitTime
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${emitTime
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}:${emitTime
+            .getSeconds()
+            .toString()
+            .padStart(2, "0")}`;
 
           return {
             id: quote.nonceOpenQuote,
-            size,
-            market: quote.assetHex,
-            icon: "/$.svg", // Placeholder icon path
-            trigger,
-            amount,
-            filled,
-            remainingSize,
-            breakEvenPrice,
-            limitPrice,
+            size: size.toFixed(4),
+            market: asset,
+            icon: "/$.svg",
+            trigger: trigger.toFixed(4),
+            amount: amount.toFixed(4),
+            filled: filled.toFixed(4),
+            remainingSize: remainingSize.toFixed(4),
+            breakEvenPrice: breakEvenPrice.toFixed(4),
+            limitPrice: limitPrice.toFixed(4),
             status,
             reduceOnly,
             fillAmount,
@@ -111,6 +114,7 @@ function SectionTradePositionsOrders() {
   const wallet = useAuthStore((state) => state.wallet);
   const token = useAuthStore((state) => state.token);
 
+  const menu = ["Positions", "Orders"];
   const [currentTab, setCurrentTab] = useState(menu[0]);
   const blur = useBlurEffect();
 
@@ -119,22 +123,12 @@ function SectionTradePositionsOrders() {
   const [currentActiveRowOrders, setCurrentActiveRowOrders] =
     useState<activeMenu>({});
 
-  const positions = getPositions();
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
-      const fetchedOrders = await getOrders(
-        "1.0",
-        64165,
-        true,
-        1714897507 * 1000,
-        Date.now() + 1000 * 60,
-        undefined,
-        wallet?.address,
-        "your-token",
-        5000
-      );
+      if (!wallet || !token) return;
+      const fetchedOrders = await getOrders(64165, wallet.address, token);
       setOrders(fetchedOrders);
     };
 
@@ -147,7 +141,11 @@ function SectionTradePositionsOrders() {
     return () => {
       clearInterval(intervalId);
     };
-  }, []);
+  }, [wallet, token]);
+
+  if (!wallet || !token) return null;
+
+  const positions = getPositions();
 
   const toggleActiveRow = (label: string) => {
     if (currentTab === "Positions") {

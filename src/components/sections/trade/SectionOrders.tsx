@@ -149,10 +149,6 @@ function SectionOrders({
                   >
                     <TableCell colSpan={4}>
                       <div className="w-full flex justify-center space-x-3">
-                        <Button variant="secondary" className="flex space-x-2">
-                          <FaEdit />
-                          <p>Modify</p>
-                        </Button>
                         <Button
                           onClick={() => hideRow(x.market)}
                           variant="destructive"

@@ -109,3 +109,109 @@
     opacity: 0;
   }
 }
+.bidFade {
+  animation: fade 0.5s;
+}
+
+.askFade {
+  animation: fade 0.5s;
+}
+
+@keyframes fade {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.order-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.order-book {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.order-book thead {
+  flex-shrink: 0;
+}
+
+.order-book tbody {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.order-book tr {
+  display: flex;
+}
+
+.order-book th,
+.order-book td {
+  flex: 1;
+  padding: 4px;
+  text-align: left;
+}
+
+.order-book .amount {
+  text-align: right;
+}
+
+.order-book .price {
+  text-align: right;
+}
+
+.flash-green {
+  animation: flashGreen 0.5s ease-in-out;
+}
+
+.flash-red {
+  animation: flashRed 0.5s ease-in-out;
+}
+
+@keyframes flashGreen {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: #089981;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes flashRed {
+  0% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: #f23645;
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.best-prices {
+  font-weight: bold;
+}
+
+.best-prices td {
+  text-align: center;
+}

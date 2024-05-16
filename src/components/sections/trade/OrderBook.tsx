@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo } from "react";
-import "./OrderBook.css";
 import { useTradeStore } from "@/store/tradeStore";
 import { useQuoteStore } from "@/store/quoteStore";
 
