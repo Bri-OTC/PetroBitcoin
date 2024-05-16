@@ -13,16 +13,13 @@ import OpenQuoteButton from "@/components/sections/trade/utils/openQuote";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
 import { useEffect } from "react";
+import React, { useState } from "react";
+import { useBalance } from "@/components/hooks/useBalance";
+import Link from "next/link";
 
 function SheetPlaceOrder() {
   const token = useAuthStore().token;
   const { wallet, provider } = useWalletAndProvider();
-
-  const handleOpenQuote = async () => {
-    if (!wallet || !provider || !token) {
-      return;
-    }
-  };
 
   const currentMethod = useTradeStore((state) => state.currentMethod);
   const entryPrice = useTradeStore((state) => state.entryPrice);
@@ -39,6 +36,8 @@ function SheetPlaceOrder() {
   const isReduceSL = useTradeStore((state) => state.isReduceSL);
   const bidPrice = useTradeStore((state) => state.bidPrice);
   const askPrice = useTradeStore((state) => state.askPrice);
+  const [prevBidPrice, setPrevBidPrice] = useState(bidPrice);
+  const [prevAskPrice, setPrevAskPrice] = useState(askPrice);
   const symbol = useTradeStore((state) => state.symbol);
   const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
 
@@ -67,6 +66,10 @@ function SheetPlaceOrder() {
   const exitPnL = useTradeStore((state) => state.exitPnL);
   const stopPnL = useTradeStore((state) => state.stopPnL);
   const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
+  const { sufficientBalance, maxAmountAllowed, isBalanceZero } = useBalance(
+    amount,
+    entryPrice
+  );
 
   useEffect(() => {
     if (currentMethod === "Buy") {
@@ -89,11 +92,11 @@ function SheetPlaceOrder() {
       if (currentMethod === "Buy") {
         try {
           setEntryPrice(askPrice.toString());
-        } catch (error) { }
+        } catch (error) {}
       } else if (currentMethod === "Sell") {
         try {
           setEntryPrice(bidPrice.toString());
-        } catch (error) { }
+        } catch (error) {}
       }
     }
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);
@@ -102,36 +105,19 @@ function SheetPlaceOrder() {
     setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toString());
   }, [entryPrice]);
 
-  const handleTakeProfitChange = (value: string) => {
-    setTakeProfit(value);
-    if (!isReduceTP) {
-      setTakeProfitPercentage("10");
-    }
-  };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPrevBidPrice(bidPrice);
+      setPrevAskPrice(askPrice);
+    }, 1000);
 
-  const handleStopLossChange = (value: string) => {
-    setStopLoss(value);
-    if (!isReduceSL) {
-      setStopLossPercentage("10");
-    }
-  };
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [bidPrice, askPrice]);
 
-  const handleTPCheckboxChange = (checked: boolean) => {
-    setIsReduceTP(checked);
-    if (checked) {
-      setTakeProfitPercentage("10");
-    } else {
-      setTakeProfitPercentage("");
-    }
-  };
-
-  const handleSLCheckboxChange = (checked: boolean) => {
-    setIsReduceSL(checked);
-    if (checked) {
-      setStopLossPercentage("10");
-    } else {
-      setStopLossPercentage("");
-    }
+  const toggleTabIndex = () => {
+    setCurrentTabIndex(currentTabIndex === "Market" ? "Limit" : "Market");
   };
 
   const handleAmountChange = (value: string) => {
@@ -154,13 +140,15 @@ function SheetPlaceOrder() {
               <h2
                 key={x + "drawer"}
                 onClick={() => setCurrentMethod(x)}
-                className={`w-full text-center pb-3 border-b-[3px] ${currentMethod === x
-                  ? `${currentMethod === "Sell"
-                    ? "border-[#F23645] text-[#F23645]"
-                    : "border-[#089981] text-[#089981]"
-                  }`
-                  : "border-transparent"
-                  } font-medium transition-all cursor-pointer`}
+                className={`w-full text-center pb-3 border-b-[3px] ${
+                  currentMethod === x
+                    ? `${
+                        currentMethod === "Sell"
+                          ? "border-[#F23645] text-[#F23645]"
+                          : "border-[#089981] text-[#089981]"
+                      }`
+                    : "border-transparent"
+                } font-medium transition-all cursor-pointer`}
               >
                 {x}
               </h2>
@@ -169,10 +157,22 @@ function SheetPlaceOrder() {
         </div>
         <div className="flex items-center justify-center mt-5 space-x-5">
           <Card className="py-4">
-            <p className="text-white">Bid price : {bidPrice}</p>
+            <p
+              className={`text-white ${
+                bidPrice !== prevBidPrice ? "fade-effect" : ""
+              }`}
+            >
+              Bid price : {bidPrice.toFixed(5)}
+            </p>
           </Card>
           <Card className="py-4">
-            <p className="text-white">Ask price : {askPrice}</p>
+            <p
+              className={`text-white ${
+                askPrice !== prevAskPrice ? "fade-effect" : ""
+              }`}
+            >
+              Ask price : {askPrice.toFixed(5)}
+            </p>
           </Card>
         </div>
 
@@ -189,14 +189,16 @@ function SheetPlaceOrder() {
               <p>USD</p>
             </div>
           </div>
-          <Dialog>
-            <DialogTrigger className="w-full bg-card">Limit</DialogTrigger>
-            <PopupModify />
-          </Dialog>
+          <Button
+            onClick={toggleTabIndex}
+            className="w-full bg-card text-card-foreground hover:bg-primary hover:text-primary-foreground"
+          >
+            {currentTabIndex}
+          </Button>
         </div>
         <div className="flex space-x-5 justify-between items-end"></div>
 
-        <div className="flex space-x-5 justify-between items-end">
+        <div className="flex space-x-5 justify-between items-center">
           <div className="flex flex-col space-y-2 w-full">
             <h3 className="text-left text-card-foreground">Amount</h3>
             <div className="flex items-center space-x-5 border-b">
@@ -206,8 +208,7 @@ function SheetPlaceOrder() {
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
               />
-
-              <p>BTC</p>
+              <p>Contracts</p>
             </div>
           </div>
           <FaEquals />
@@ -216,7 +217,7 @@ function SheetPlaceOrder() {
             <div className="flex items-center space-x-5 border-b">
               <Input
                 className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Contracts Ammount"
+                placeholder="Contracts Amount"
                 value={amountUSD}
                 onChange={(e) => handleAmountUSDChange(e.target.value)}
               />
@@ -224,6 +225,19 @@ function SheetPlaceOrder() {
             </div>
           </div>
         </div>
+        {isBalanceZero ? (
+          <p className="text-red-500 text-sm mt-1">
+            Your balance is zero. Please{" "}
+            <Link href="/wallet" className="text-blue-500 underline">
+              deposit funds
+            </Link>{" "}
+            to continue trading.
+          </p>
+        ) : !sufficientBalance ? (
+          <p className="text-red-500 text-sm mt-1">
+            Max amount allowed at this price: {maxAmountAllowed.toFixed(8)}
+          </p>
+        ) : null}
         <div className="py-3">
           <Slider
             min={1}

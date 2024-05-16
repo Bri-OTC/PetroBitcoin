@@ -5,7 +5,7 @@ import {
   networks,
 } from "@pionerfriends/blockchain-client";
 import { Address, encodeFunctionData, parseUnits } from "viem";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface ApproveStepProps {
   amount: string;

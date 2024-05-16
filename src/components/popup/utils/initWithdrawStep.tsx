@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PionerV1Compliance, networks } from "@pionerfriends/blockchain-client";
 import { Address, encodeFunctionData, parseUnits } from "viem";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 interface DepositStepProps {
   amount: string;

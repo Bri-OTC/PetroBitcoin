@@ -1,28 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
-import {
-  contracts,
-  getTypedDataDomain,
-  networks,
-  NetworkKey,
-} from "@pionerfriends/blockchain-client";
+import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
-import { PionerV1Wrapper } from "@pionerfriends/blockchain-client";
-import {
-  accounts,
-  pionerV1OpenContract,
-  pionerV1WrapperContract,
-  wallets,
-  web3Client,
-} from "./init";
-import { useWallets } from "@privy-io/react-auth";
-import { bytesToHex, parseUnits, toBytes } from "viem";
+
 import {
   sendSignedWrappedOpenQuote,
   SignedWrappedOpenQuoteRequest,
-  sendSignedCloseQuote,
-  SignedCloseQuoteRequest,
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +14,7 @@ import {
   parseDecimalValue,
 } from "@/components/triparty/utils";
 import { DepositedBalance } from "@/components/sections/wallet/table";
+import { useBalance } from "@/components/hooks/useBalance";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
@@ -40,7 +25,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const chainId = String(64165);
 
   const [loading, setLoading] = useState(false);
-  const [sufficientBalance, setSufficientBalance] = useState(true);
   const walletClient = useAuthStore((state) => state.walletClient);
   const wallet = useAuthStore((state) => state.wallet);
   const token = useAuthStore((state) => state.token);
@@ -54,22 +38,13 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const entryPrice: string = useTradeStore((state) => state.entryPrice);
   const amount: string = useTradeStore((state) => state.amount);
 
+  const { sufficientBalance, maxAmountAllowed, isBalanceZero } = useBalance(
+    amount,
+    entryPrice
+  );
   const handleOpenQuote = async () => {
     if (!wallet || !token || !walletClient || !wallet.address) {
       console.error(" Missing wallet, token, walletClient or wallet.address");
-      return;
-    }
-
-    const requiredBalance =
-      currentMethod === "Buy"
-        ? parseFloat(rfqRequest.lImA) + parseFloat(rfqRequest.lDfA)
-        : parseFloat(rfqRequest.sImB) + parseFloat(rfqRequest.sDfB);
-
-    console.log("requiredBalance", requiredBalance);
-    console.log("depositedBalance", depositedBalance);
-
-    if (Number(depositedBalance) < requiredBalance) {
-      setSufficientBalance(false);
       return;
     }
 
@@ -270,7 +245,11 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   };
 
   return (
-    <Button className="w-full" onClick={handleOpenQuote} disabled={loading}>
+    <Button
+      className="w-full py-6 border-none"
+      onClick={handleOpenQuote}
+      disabled={loading || !sufficientBalance}
+    >
       {loading ? "Loading..." : "Open Quote"}
     </Button>
   );

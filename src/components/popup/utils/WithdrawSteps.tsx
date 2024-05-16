@@ -8,7 +8,7 @@ import {
   networks,
 } from "@pionerfriends/blockchain-client";
 import { Address, parseUnits, encodeFunctionData } from "viem";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useWalletAndProvider } from "@/components/layout/menu";
 import ClaimWithdraw from "./claimWithdrawStep";
 import InitWithdraw from "./initWithdrawStep";

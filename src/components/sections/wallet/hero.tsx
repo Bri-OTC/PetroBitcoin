@@ -88,9 +88,6 @@ function SectionWalletHero() {
                 <span className="text-card-foreground">≈</span>
                 <h1>USD${depositedBalance}</h1>
               </div>
-              <p className="text-card-foreground text-right">
-                View All Account Balance
-              </p>
             </div>
           </div>
           <div className="grid grid-cols-3 gap-5 mt-5">

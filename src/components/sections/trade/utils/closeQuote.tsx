@@ -5,13 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { PionerV1Wrapper } from "@pionerfriends/blockchain-client";
-import {
-  accounts,
-  pionerV1OpenContract,
-  pionerV1WrapperContract,
-  wallets,
-  web3Client,
-} from "./init";
+
 import { useWallets } from "@privy-io/react-auth";
 import { Address, bytesToHex, parseUnits, toBytes } from "viem";
 import {
