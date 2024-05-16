@@ -14,21 +14,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import TradingViewAdvancedChart from "../../tradingview/TradingViewAdvancedChart";
 import { useTradeStore } from "@/store/tradeStore";
 import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
-import UpdateMarketStatus from "@/components/triparty/marketStatusUpdater";
+import { useAuthStore } from "@/store/authStore";
+import useUpdateMarketStatus from "@/components/triparty/marketStatusUpdater";
 import QuoteWss from "@/components/triparty/quote";
 import useBlurEffect from "@/components/hooks/blur";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
   const [interval, setInterval] = useState("60");
-  const symbol = useTradeStore((state) => state.symbol);
   const activePrice = useActivePrice();
   const blur = useBlurEffect();
+  const symbol = useTradeStore((state) => state.symbol);
+  const token = useAuthStore((state) => state.token);
+  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
+
+  useUpdateMarketStatus(token, symbol, setIsMarketOpen);
 
   useEffect(() => {
     activePrice();
@@ -42,7 +46,6 @@ function SectionTradeChart() {
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="flex flex-col space-y-3 mt-2 px-5">
         <RfqRequestUpdater />
-        <UpdateMarketStatus />
         <QuoteWss />
 
         <div className="flex items-center justify-between">

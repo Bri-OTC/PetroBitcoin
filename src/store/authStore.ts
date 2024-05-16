@@ -4,30 +4,27 @@ import Cookies from "js-cookie";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { createWalletClient, custom, JsonRpcAccount } from "viem";
 import { EIP1193Provider } from "@privy-io/react-auth";
-import { Wallet, JsonRpcSigner } from "ethers";
+import { Wallet } from "ethers";
 
 interface AuthState {
   token: string | null;
   isMarketOpen: boolean;
   provider: EIP1193Provider | null;
-  ethersSigner: JsonRpcSigner | null;
   walletClient: ReturnType<typeof createWalletClient> | null;
-  wallet: any | null; // Replace 'any' with the appropriate wallet type
+  wallet: Wallet | null;
   setToken: (token: string | null) => void;
   setIsMarketOpen: (isOpen: boolean) => void;
   setProvider: (provider: EIP1193Provider | null) => void;
-  setEthersSigner: (ethersSigner: JsonRpcSigner | null) => void;
   setWalletClient: (
     walletClient: ReturnType<typeof createWalletClient> | null
   ) => void;
-  setWallet: (wallet: any | null) => void; // Replace 'any' with the appropriate wallet type
+  setWallet: (wallet: Wallet | null) => void;
 }
 
 const useAuthStore = create<AuthState>((set) => ({
   token: null,
   isMarketOpen: true,
   provider: null,
-  ethersSigner: null,
   walletClient: null,
   wallet: null,
   setToken: (token) => {
@@ -44,10 +41,24 @@ const useAuthStore = create<AuthState>((set) => ({
     }
   },
   setIsMarketOpen: (isOpen) => set({ isMarketOpen: isOpen }),
-  setProvider: (provider) => set({ provider }),
-  setEthersSigner: (ethersSigner) => set({ ethersSigner }),
-  setWalletClient: (walletClient) => set({ walletClient }),
-  setWallet: (wallet) => set({ wallet }),
+  setProvider: (provider) => {
+    if (provider !== useAuthStore.getState().provider) {
+      set({ provider, token: null });
+      Cookies.remove("token");
+    }
+  },
+  setWalletClient: (walletClient) => {
+    if (walletClient !== useAuthStore.getState().walletClient) {
+      set({ walletClient, token: null });
+      Cookies.remove("token");
+    }
+  },
+  setWallet: (wallet) => {
+    if (wallet !== useAuthStore.getState().wallet) {
+      set({ wallet, token: null });
+      Cookies.remove("token");
+    }
+  },
 }));
 
 export { useAuthStore };

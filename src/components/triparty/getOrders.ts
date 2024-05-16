@@ -4,26 +4,14 @@ import {
 } from "@pionerfriends/api-client";
 import { Order } from "@/components/sections/trade/SectionOrders";
 
-const getOrders = async (
-  version: string,
-  chainId: number,
-  onlyActive: boolean | undefined = undefined,
-  start: number | undefined = undefined,
-  end: number | undefined = undefined,
-  issuerAddress: string | undefined = undefined,
-  targetAddress: string | undefined = undefined,
+const getPositions = async (
   token: string,
   timeout: number = 3000
 ): Promise<Order[]> => {
   try {
     const response = await getSignedWrappedOpenQuotes(
-      version,
-      chainId,
-      onlyActive,
-      start,
-      end,
-      issuerAddress,
-      targetAddress,
+      "1.0",
+      64165,
       token,
       timeout
     );
@@ -67,10 +55,10 @@ const getOrders = async (
       return orders;
     }
   } catch (error) {
-    console.error("Error fetching orders:", error);
+    console.error("Error fetching positions:", error);
   }
 
   return [];
 };
 
-export default getOrders;
+export default getPositions;

@@ -1,8 +1,6 @@
 // marketStatusUpdater.ts
 import { useEffect } from "react";
 import { formatSymbols } from "@/components/triparty/priceUpdater";
-import { useAuthStore } from "@/store/authStore";
-import { useTradeStore } from "@/store/tradeStore";
 
 interface MarketStatusResponse {
   isTheStockMarketOpen: boolean;
@@ -11,11 +9,14 @@ interface MarketStatusResponse {
   isTheCryptoMarketOpen: boolean;
 }
 
-const UpdateMarketStatus: React.FC = () => {
-  const symbol = useTradeStore((state) => state.symbol);
-  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
-
+const useUpdateMarketStatus = (
+  token: string | null,
+  symbol: string,
+  setIsMarketOpen: (isOpen: boolean) => void
+) => {
   useEffect(() => {
+    if (!token) return; // Exit early if there's no token
+
     const updateMarketStatus = async () => {
       try {
         const response = await fetch(
@@ -23,8 +24,7 @@ const UpdateMarketStatus: React.FC = () => {
           {
             method: "GET",
             headers: {
-              Authorization:
-                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MTQ4NTU0MDMsImRhdGEiOnsibm9uY2UiOiJkYzFjZTFmNTg2ODNjYzQxNzBkNGM2YzU0OGVmMzY1MTczOWMxODE1MjI2MjhmOWU1ZTRiZTllMTJiNjdiNGU5IiwiYWRkcmVzcyI6IjB4ZDBkZGY5MTU2OTNmMTNjZjliM2I2OWRmZjQ0ZWU3N2M5MDE4ODJmOCJ9LCJpYXQiOjE3MTQyNTA2MDN9.zvsezZxuNDd-lc23niGYsfeSTPr9Fm78i88v3rwPbhQ",
+              Authorization: token,
             },
           }
         );
@@ -55,9 +55,7 @@ const UpdateMarketStatus: React.FC = () => {
     const interval = setInterval(updateMarketStatus, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [symbol, setIsMarketOpen]);
-
-  return null;
+  }, [symbol, setIsMarketOpen, token]);
 };
 
-export default UpdateMarketStatus;
+export default useUpdateMarketStatus;

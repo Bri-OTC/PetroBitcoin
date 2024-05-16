@@ -78,7 +78,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
     const quote: SignedWrappedOpenQuoteRequest = {
       issuerAddress: wallet.address,
-      counterpartyAddress: "0x0000000000000000000000000000000000000000",
+      counterpartyAddress: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       version: "1.0",
       chainId: 64165,
       verifyingContract: networks["sonic"].contracts.PionerV1Open,
