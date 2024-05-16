@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useRef, useEffect, ChangeEvent } from "react";
 import {
   Table,
   TableBody,
@@ -24,6 +24,8 @@ import {
 } from "@pionerfriends/blockchain-client";
 import { encodeFunctionData, Address, formatUnits } from "viem";
 import useBlurEffect from "@/components/hooks/blur";
+import ResearchComponent from "../markets/ResearchComponentold";
+import Link from "next/link";
 
 function GasBalance() {
   const { wallet, provider } = useWalletAndProvider();
@@ -351,21 +353,13 @@ function SectionWalletTable() {
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="mt-5 flex flex-col space-y-5">
-        <div className="flex items-center space-x-5">
-          <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5">
+        <Link href="/markets">
+          <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5 py-3 transition-colors duration-200 ease-in-out ">
             <FaSearch className="text-card-foreground" />
-            <Input
-              className="bg-card border-none"
-              placeholder="Search Market"
-            />
+            <span className="text-card-foreground">Search Something...</span>
           </div>
-          <Button size="icon" variant="ghost">
-            <HiOutlineCog6Tooth className="text-[1.1rem]" />
-          </Button>
-          <Button size="icon" variant="ghost">
-            <PiChartPieSlice className="text-[1.1rem]" />
-          </Button>
-        </div>
+        </Link>
+
         <Table>
           <TableHeader>
             <TableRow className="border-none">

@@ -56,7 +56,6 @@ function SectionMarketsList() {
                 <ResearchComponent
                   searchTerm={searchTerm}
                   onMarketClick={handleMarketClick}
-                  selectedMarket={selectedMarket}
                 />
               </TableBody>
             </Table>

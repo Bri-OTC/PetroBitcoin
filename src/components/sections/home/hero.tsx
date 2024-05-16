@@ -1,9 +1,7 @@
 "use client";
-
 import { useState } from "react";
 import Carousel from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { addCommas } from "@/lib/utils";
 import { FaSearch } from "react-icons/fa";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
@@ -17,27 +15,14 @@ import { RiExchangeLine } from "react-icons/ri";
 import Deposit from "../../../components/popup/Deposit";
 import Withdraw from "../../../components/popup/Withdraw";
 import Faucet from "../../../components/popup/Faucet";
-import ResearchComponent from "../markets/ResearchComponentold";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { ChangeEvent } from "react";
 import useBlurEffect from "@/components/hooks/blur";
+import Link from "next/link";
 
-interface Market {
-  name: string;
-  price: number;
-  icon: string;
-}
 function SectionHomeHero() {
   const blur = useBlurEffect();
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showFaucet, setShowFaucet] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMarket, setSelectedMarket] = useState<Market | null>(null);
 
   const handleDepositClick = () => {
     setShowDeposit(true);
@@ -57,40 +42,19 @@ function SectionHomeHero() {
     setShowFaucet(false);
   };
 
-  const searchHandler = (e: ChangeEvent<HTMLInputElement>) => {
-    const searchTerm = e.target.value.toLowerCase();
-    setSearchTerm(searchTerm);
-  };
-
-  const handleMarketClick = (market: Market) => {
-    setSelectedMarket(market);
-  };
-
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <section className="flex flex-col space-y-5 w-full">
-        <Popover>
-          <PopoverTrigger>
-            <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5">
-              <FaSearch className="text-card-foreground" />
-              <Input
-                onChange={searchHandler}
-                className="bg-card border-none"
-                placeholder="Search Something..."
-              />
-            </div>
-          </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
-            <ResearchComponent
-              searchTerm={searchTerm}
-              onMarketClick={handleMarketClick}
-              selectedMarket={selectedMarket}
-            />
-          </PopoverContent>
-        </Popover>
+        <Link href="/markets">
+          <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5 py-3 transition-colors duration-200 ease-in-out hover:bg-card-foreground hover:text-card">
+            <FaSearch className="text-card-foreground" />
+            <span className="text-card-foreground">Search Something...</span>
+          </div>
+        </Link>
 
-        <Carousel images={["/home/banner.jpeg", "/home/banner.jpeg"]} />
-
+        <div style={{ zIndex: 1 }}>
+          <Carousel images={["/home/banner.jpeg", "/home/banner.jpeg"]} />
+        </div>
         <Card>
           <div className="grid grid-cols-4 gap-5 md:gap-8">
             {navigations.map((x, index) => {
