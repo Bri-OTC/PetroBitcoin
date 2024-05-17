@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Carousel from "@/components/ui/carousel";
 import { Card } from "@/components/ui/card";
 import { addCommas } from "@/lib/utils";
@@ -17,12 +17,43 @@ import Withdraw from "../../../components/popup/Withdraw";
 import Faucet from "../../../components/popup/Faucet";
 import useBlurEffect from "@/components/hooks/blur";
 import Link from "next/link";
+import { getPrices, PricesResponse } from "@pionerfriends/api-client";
+import { useAuthStore } from "@/store/authStore";
 
 function SectionHomeHero() {
   const blur = useBlurEffect();
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [showFaucet, setShowFaucet] = useState(false);
+  const [prices, setPrices] = useState<PricesResponse | null>(null);
+
+  const token = useAuthStore((state) => state.token);
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const token = useAuthStore.getState().token; // Accessing the token directly from the store
+        if (token) {
+          const pricesData = await getPrices(
+            [
+              "stock.nasdaq.AAPL",
+              "stock.nasdaq.MSFT",
+              "stock.nasdaq.NVDA",
+              "forex.USDJPY",
+            ],
+            token
+          );
+          setPrices(pricesData?.data || null);
+        }
+      } catch (error) {
+        console.error("Error fetching prices:", error);
+      }
+    };
+
+    if (token) {
+      fetchPrices();
+    }
+  }, [token]);
 
   const handleDepositClick = () => {
     setShowDeposit(true);
@@ -42,6 +73,8 @@ function SectionHomeHero() {
     setShowFaucet(false);
   };
 
+  if (!token) return null; // Ensure the return here after all hooks
+
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <section className="flex flex-col space-y-5 w-full">
@@ -51,7 +84,6 @@ function SectionHomeHero() {
             <span className="text-card-foreground">Search Something...</span>
           </div>
         </Link>
-
         <div style={{ zIndex: 1 }}>
           <Carousel images={["/home/banner.jpeg", "/home/banner.jpeg"]} />
         </div>
@@ -79,24 +111,25 @@ function SectionHomeHero() {
             })}
           </div>
         </Card>
-
         <Card>
           <div className="flex flex-wrap items-center justify-between md:justify-around gap-x-5 gap-y-8 max-w-[92.5%] mx-auto">
-            {highlights.map((x, index) => {
+            {getHighlights(prices).map((x, index) => {
               return (
                 <div key={x.label + index} className="flex flex-col space-y-2">
-                  <p>
-                    {x.label}{" "}
-                    <span className="text-green-400">{x.change}%</span>
-                  </p>
-                  <h1 className="text-white font-medium">{x.price}</h1>
-                  <p>US${addCommas(x.value)}</p>
+                  <p>{x.label}</p>
+                  <div>
+                    <p className="text-white font-medium">
+                      Bid: {x.bid?.toFixed(4) ?? "N/A"}
+                    </p>
+                    <p className="text-white font-medium">
+                      Ask: {x.ask?.toFixed(4) ?? "N/A"}
+                    </p>
+                  </div>
                 </div>
               );
             })}
           </div>
         </Card>
-
         {showDeposit && (
           <Deposit open={showDeposit} onClose={handleClosePopup} />
         )}
@@ -148,26 +181,38 @@ const navigations = [
     icon: <RiExchangeLine />,
   },
 ];
+const getHighlights = (prices: PricesResponse | null) => {
+  if (!prices) return [];
 
-const highlights = [
-  {
-    label: "PIO/USD",
-    change: 1.24,
-    price: 41.81,
-    value: 562234211,
-  },
-  {
-    label: "PIO/USD",
-    change: 1.24,
-    price: 41.81,
-    value: 562234211,
-  },
-  {
-    label: "PIO/USD",
-    change: 1.24,
-    price: 41.81,
-    value: 562234211,
-  },
-];
+  return [
+    {
+      label: "AAPL/USDJPY",
+      bid:
+        Number(prices["stock.nasdaq.AAPL"]?.bidPrice) /
+        Number(prices["forex.USDJPY"]?.bidPrice),
+      ask:
+        Number(prices["stock.nasdaq.AAPL"]?.askPrice) /
+        Number(prices["forex.USDJPY"]?.askPrice),
+    },
+    {
+      label: "MSFT/USDJPY",
+      bid:
+        Number(prices["stock.nasdaq.MSFT"]?.bidPrice) /
+        Number(prices["forex.USDJPY"]?.bidPrice),
+      ask:
+        Number(prices["stock.nasdaq.MSFT"]?.askPrice) /
+        Number(prices["forex.USDJPY"]?.askPrice),
+    },
+    {
+      label: "NVDA/USDJPY",
+      bid:
+        Number(prices["stock.nasdaq.NVDA"]?.bidPrice) /
+        Number(prices["forex.USDJPY"]?.bidPrice),
+      ask:
+        Number(prices["stock.nasdaq.NVDA"]?.askPrice) /
+        Number(prices["forex.USDJPY"]?.askPrice),
+    },
+  ];
+};
 
 export default SectionHomeHero;

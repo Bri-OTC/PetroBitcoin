@@ -14,14 +14,9 @@ import { useWallets } from "@privy-io/react-auth";
 import { usePrivy, useLogin } from "@privy-io/react-auth";
 import { FaTimes } from "react-icons/fa";
 import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
-
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
-import {
-  createWalletClient,
-  custom,
-  verifyMessage,
-} from "viem";
+import { createWalletClient, custom, verifyMessage } from "viem";
 
 export function Menu() {
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
@@ -231,7 +226,7 @@ export function Menu() {
               }}
               className="text-center text-white p-3"
             >
-              Log in
+              Connect Wallet
             </button>
           )
         ) : (
@@ -245,8 +240,9 @@ export function Menu() {
               <Link
                 href={x.link}
                 key={x.name}
-                className={`${pathname === x.link ? "text-primary" : "text-card-foreground"
-                  } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
+                className={`${
+                  pathname === x.link ? "text-primary" : "text-card-foreground"
+                } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
               >
                 <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
                 <p>{x.name}</p>

@@ -11,6 +11,7 @@ export interface StoreState {
   amount: string;
   amountUSD: string;
   maxAmount: number;
+  minAmount: number;
   isReduceTP: boolean;
   isReduceSL: boolean;
   sliderValue: number;
@@ -35,6 +36,8 @@ export interface StoreState {
   setStopLossPercentage: (percentage: string) => void;
   setAmount: (amount: string) => void;
   setAmountUSD: (amountUSD: string) => void;
+  setMaxAmount: (maxAmount: number) => void;
+  setMinAmount: (minAmount: number) => void;
   setIsReduceTP: (reduce: boolean) => void;
   setIsReduceSL: (reduce: boolean) => void;
   setSliderValue: (value: number) => void;
@@ -50,7 +53,7 @@ export interface StoreState {
 }
 
 export const initialState: StoreState = {
-  balance: 1000,
+  balance: 0,
   currentMethod: "Buy",
   entryPrice: "0",
   takeProfit: "0",
@@ -59,7 +62,8 @@ export const initialState: StoreState = {
   stopLossPercentage: "0",
   amount: "0",
   amountUSD: "0",
-  maxAmount: 100000000000000000,
+  minAmount: 1,
+  maxAmount: 10,
   isReduceTP: true,
   isReduceSL: true,
   sliderValue: 50,
@@ -67,8 +71,8 @@ export const initialState: StoreState = {
   stopPnL: 0,
   riskRewardPnL: 0,
   accountLeverage: 500,
-  bidPrice: 46423,
-  askPrice: 46423,
+  bidPrice: 1,
+  askPrice: 1,
   symbol: "GBPUSD/EURUSD",
   leverage: 500,
   currentTabIndex: "Limit",
@@ -83,6 +87,8 @@ export const initialState: StoreState = {
   setStopLossPercentage: () => {},
   setAmount: () => {},
   setAmountUSD: () => {},
+  setMaxAmount: () => {},
+  setMinAmount: () => {},
   setIsReduceTP: () => {},
   setIsReduceSL: () => {},
   setSliderValue: () => {},

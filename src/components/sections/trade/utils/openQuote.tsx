@@ -3,6 +3,7 @@ import { useAuthStore } from "@/store/authStore";
 import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
+import { toast } from "react-toastify";
 
 import {
   sendSignedWrappedOpenQuote,
@@ -214,29 +215,51 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
     console.log("bOracleSignValue", bOracleSignValue);
 
-    const signatureOpenQuote = await ethersSigner._signTypedData(
-      domainOpen,
-      openQuoteSignType,
-      openQuoteSignValue
-    );
-    console.log("signatureOpenQuote", signatureOpenQuote);
+    let signatureOpenQuote;
+    try {
+      signatureOpenQuote = await ethersSigner._signTypedData(
+        domainOpen,
+        openQuoteSignType,
+        openQuoteSignValue
+      );
+      console.log("signatureOpenQuote", signatureOpenQuote);
+    } catch (error) {
+      console.error("Error obtaining signatureOpenQuote:", error);
+      toast.error("Failed to obtain signatureOpenQuote");
+      setLoading(false);
+      return;
+    }
 
     bOracleSignValue.signatureHashOpenQuote = signatureOpenQuote;
 
-    const signatureBoracle = await ethersSigner._signTypedData(
-      domainWrapper,
-      bOracleSignType,
-      bOracleSignValue
-    );
-    console.log("signatureBoracle", signatureBoracle);
+    let signatureBoracle;
+    try {
+      signatureBoracle = await ethersSigner._signTypedData(
+        domainWrapper,
+        bOracleSignType,
+        bOracleSignValue
+      );
+      console.log("signatureBoracle", signatureBoracle);
+    } catch (error) {
+      console.error("Error obtaining signatureBoracle:", error);
+      toast.error("Failed to obtain signatureBoracle");
+      setLoading(false);
+      return;
+    }
 
     quote.signatureBoracle = signatureBoracle;
     quote.signatureOpenQuote = signatureOpenQuote;
 
     console.log("Updated quote", quote);
 
-    await sendSignedWrappedOpenQuote(quote, token);
-    console.log("Open Quote sent");
+    try {
+      await sendSignedWrappedOpenQuote(quote, token);
+      console.log("Open Quote sent");
+      toast.success("Open Quote sent successfully");
+    } catch (error) {
+      console.error("Error sending Open Quote:", error);
+      toast.error(`Error sending Open Quote: ${error}`);
+    }
 
     setLoading(false);
   };
