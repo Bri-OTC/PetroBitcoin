@@ -1,17 +1,20 @@
 import { ethers } from "ethers";
 
+/// @dev to set in the sdk
 export const convertToBytes32 = (str: string): string => {
-  const maxLength = 32;
+  const maxLength = 31;
   const truncatedStr = str.slice(0, maxLength);
-  const paddedStr = truncatedStr.padEnd(32, "\0");
-  const hex = ethers.utils.hexlify(ethers.utils.toUtf8Bytes(paddedStr));
-  return hex;
+  const bytes32 = ethers.utils.formatBytes32String(truncatedStr);
+  return bytes32;
 };
+
+/// @dev to set in the sdk
 export const convertFromBytes32 = (bytes32: string): string => {
   const str = ethers.utils.parseBytes32String(bytes32);
   return str;
 };
 
+/// @dev to set in the sdk
 export const parseDecimalValue = (value: string): string => {
   try {
     const [integerPart, decimalPart = ""] = value.replace("n", "").split(".");

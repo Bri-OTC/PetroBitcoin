@@ -1,6 +1,6 @@
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import { networks } from "@pionerfriends/blockchain-client";
+import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import React, { useEffect, useState } from "react";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
@@ -16,24 +16,6 @@ import {
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
 
-export interface SignedCloseQuoteRequest {
-  issuerAddress: string;
-  counterpartyAddress: string;
-  version: string;
-  chainId: number;
-  verifyingContract: string;
-  bcontractId: number;
-  price: string;
-  amount: string;
-  limitOrStop: number;
-  expiry: string;
-  authorized: string;
-  nonce: number;
-  signatureClose: string;
-  emitTime: string;
-  messageState: number;
-}
-
 interface CloseQuoteButtonProps {
   request: SignedCloseQuoteRequest;
 }
@@ -43,12 +25,13 @@ const CloseQuoteButton: React.FC<CloseQuoteButtonProps> = ({ request }) => {
   const walletClient = useAuthStore((state) => state.walletClient);
   const wallet = useAuthStore((state) => state.wallet);
   const token = useAuthStore((state) => state.token);
+  const chainId = useAuthStore((state) => state.chainId);
   const symbol: string = useTradeStore((state) => state.symbol);
   const updateRfqRequest = useRfqRequestStore(
     (state) => state.updateRfqRequest
   );
 
-  let ethersProvider = wallet.getEthersProvider();
+  let ethersProvider = (wallet as any).getEthersProvider();
   const takeProfit: string = useTradeStore((state) => state.takeProfit);
 
   const handleCloseQuote = async () => {
@@ -65,8 +48,8 @@ const CloseQuoteButton: React.FC<CloseQuoteButtonProps> = ({ request }) => {
       name: "PionerV1Close",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: networks.sonic.contracts
-        .pionerV1Close as `0x${string}`,
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
     };
 
     const OpenCloseQuoteType = {
@@ -102,7 +85,9 @@ const CloseQuoteButton: React.FC<CloseQuoteButtonProps> = ({ request }) => {
       counterpartyAddress: request.counterpartyAddress,
       version: request.version,
       chainId: request.chainId,
-      verifyingContract: networks.sonic.contracts.pionerV1Close,
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
+
       bcontractId: request.bcontractId,
       price: parseUnits(takeProfit, 18).toString(),
       amount: request.amount,

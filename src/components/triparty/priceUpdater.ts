@@ -3,6 +3,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 import { getPrices } from "@pionerfriends/api-client";
 import { getPrefixedName } from "./configReader";
+import { convertToBytes32, parseDecimalValue } from "@/components/web3/utils";
 
 export function useActivePrice() {
   const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
@@ -48,13 +49,22 @@ export async function formatSymbols(symbol: string): Promise<[string, string]> {
   symbol2 = (await getPrefixedName(symbol2)) || symbol2;
   return [symbol1, symbol2];
 }
+
+export async function formatPair(symbol: string): Promise<string> {
+  let [symbol1, symbol2] = symbol.split("/");
+  symbol1 = (await getPrefixedName(symbol1)) || symbol1;
+  symbol2 = (await getPrefixedName(symbol2)) || symbol2;
+  const formateSymbol = convertToBytes32(`${symbol1}/${symbol2}`);
+
+  return formateSymbol;
+}
 let interval: NodeJS.Timeout | null = null;
 
 export function useStartPriceUpdater() {
   const activePrice = useActivePrice();
   const startPriceUpdater = () => {
     if (!interval) {
-      interval = setInterval(activePrice, 200);
+      interval = setInterval(activePrice, 800);
     }
   };
 

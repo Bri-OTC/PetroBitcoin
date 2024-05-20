@@ -48,13 +48,15 @@ const getOrders = async (
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
-          const size = parseFloat(quote.amount) / 1e18;
-          const trigger = parseFloat(quote.price) / 1e18;
-          const amount = size * trigger;
-          const filled = 0;
+          const size = String((parseFloat(quote.amount) / 1e18).toFixed(4));
+          const trigger = String((parseFloat(quote.price) / 1e18).toFixed(4));
+          const amount = String((Number(size) * Number(trigger)).toFixed(4));
+          const filled = "0";
           const remainingSize = size;
           const breakEvenPrice = trigger;
-          const limitPrice = parseFloat(quote.price) / 1e18;
+          const limitPrice = String(
+            (parseFloat(quote.price) / 1e18).toFixed(4)
+          );
           const status = quote.messageState === 0 ? "Open" : "Closed";
           const reduceOnly = "No";
           const fillAmount = "No";
@@ -79,16 +81,16 @@ const getOrders = async (
             .toString()
             .padStart(2, "0")}`;
           return {
-            id: quote.nonceOpenQuote,
-            size: size.toFixed(4),
+            id: String(quote.nonceOpenQuote),
+            size,
             market: asset,
             icon: "/$.svg",
-            trigger: trigger.toFixed(4),
-            amount: amount.toFixed(4),
-            filled: filled.toFixed(4),
-            remainingSize: remainingSize.toFixed(4),
-            breakEvenPrice: breakEvenPrice.toFixed(4),
-            limitPrice: limitPrice.toFixed(4),
+            trigger: trigger,
+            amount: amount,
+            filled: filled,
+            remainingSize: remainingSize,
+            breakEvenPrice: breakEvenPrice,
+            limitPrice: limitPrice,
             status,
             reduceOnly,
             fillAmount,

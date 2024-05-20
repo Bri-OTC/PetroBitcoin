@@ -83,7 +83,7 @@ export function DepositedBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as NetworkKey].contracts
+                to: networks[chainId as unknown as NetworkKey].contracts
                   .PionerV1 as Address,
                 data: dataDeposited,
               },
@@ -131,7 +131,7 @@ export function ClaimableBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as NetworkKey].contracts
+                to: networks[chainId as unknown as NetworkKey].contracts
                   .PionerV1 as Address,
                 data: dataDeposited,
               },
@@ -179,7 +179,7 @@ export function TimeToClaim() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as NetworkKey].contracts
+                to: networks[chainId as unknown as NetworkKey].contracts
                   .PionerV1 as Address,
                 data: dataDeposited,
               },
@@ -226,7 +226,7 @@ export function USDCBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as NetworkKey].contracts
+                to: networks[chainId as unknown as NetworkKey].contracts
                   .FakeUSD as Address,
                 data: dataUSDC,
               },
@@ -269,14 +269,15 @@ export function USDCAllowance() {
             functionName: "allowance",
             args: [
               wallet.address,
-              networks[chainId as NetworkKey].contracts.PionerV1Compliance,
+              networks[chainId as unknown as NetworkKey].contracts
+                .PionerV1Compliance,
             ],
           });
           const usdcBalanceResponse = await provider.request({
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as NetworkKey].contracts
+                to: networks[chainId as unknown as NetworkKey].contracts
                   .FakeUSD as Address,
                 data: dataUSDC,
               },

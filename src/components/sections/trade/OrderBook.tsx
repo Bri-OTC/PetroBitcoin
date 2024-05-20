@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTradeStore } from "@/store/tradeStore";
 import { useQuoteStore } from "@/store/quoteStore";
 
@@ -69,9 +69,13 @@ const OrderRowBid: React.FC<Order> = ({ price, amount }) => {
 
 interface OrderBookProps {
   maxRows?: number;
+  isOrderBookOn: boolean;
 }
 
-const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
+const OrderBook: React.FC<OrderBookProps> = ({
+  maxRows = 5,
+  isOrderBookOn,
+}) => {
   const [orders, setOrders] = useState<{ bids: number[][]; asks: number[][] }>({
     bids: [],
     asks: [],
@@ -81,7 +85,14 @@ const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
   const askPrice = useTradeStore((state) => state.askPrice);
   const { bidQty, askQty } = useQuoteStore();
 
+  const lastOrdersRef = useRef<{ bids: number[][]; asks: number[][] }>({
+    bids: [],
+    asks: [],
+  });
+
   useEffect(() => {
+    if (!isOrderBookOn) return;
+
     const subscribe = {
       event: "bts:subscribe",
       data: { channel: `order_book_btcusd` },
@@ -91,8 +102,17 @@ const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
     ws.onopen = () => ws.send(JSON.stringify(subscribe));
     ws.onmessage = (event) => setOrders(JSON.parse(event.data).data);
     ws.onclose = () => ws.close();
+
     return () => ws.close();
-  }, []);
+  }, [isOrderBookOn]);
+
+  useEffect(() => {
+    if (isOrderBookOn) {
+      lastOrdersRef.current = orders;
+    }
+  }, [isOrderBookOn, orders]);
+
+  const ordersToUse = isOrderBookOn ? orders : lastOrdersRef.current;
 
   const { asksToDisplay, bidsToDisplay } = useMemo(() => {
     if (
@@ -100,23 +120,29 @@ const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
       !askPrice ||
       !bidQty ||
       !askQty ||
-      !orders.asks ||
-      !orders.bids
+      !ordersToUse.asks ||
+      !ordersToUse.bids
     )
       return { asksToDisplay: [], bidsToDisplay: [] };
 
     const spread = askPrice - bidPrice;
-    const askPrices = orders.asks.map(([price]) => price);
-    const bidPrices = orders.bids.map(([price]) => price);
+    const askPrices = ordersToUse.asks.map(([price]) => price);
+    const bidPrices = ordersToUse.bids.map(([price]) => price);
 
-    const totalAskQty = orders.asks.reduce((sum, [_, qty]) => sum + qty, 0);
-    const totalBidQty = orders.bids.reduce((sum, [_, qty]) => sum + qty, 0);
+    const totalAskQty = ordersToUse.asks.reduce(
+      (sum, [_, qty]) => sum + qty,
+      0
+    );
+    const totalBidQty = ordersToUse.bids.reduce(
+      (sum, [_, qty]) => sum + qty,
+      0
+    );
 
     const asks = askPrices
       .slice(0, maxRows)
       .map((price, i) => {
         const amount =
-          totalAskQty > 0 ? (orders.asks[i][1] / totalAskQty) * askQty : 0;
+          totalAskQty > 0 ? (ordersToUse.asks[i][1] / totalAskQty) * askQty : 0;
         const newPrice =
           askPrice +
           (price - askPrices[0]) *
@@ -128,7 +154,8 @@ const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
     const bids = bidPrices.slice(-maxRows).map((price, i) => {
       const amount =
         totalBidQty > 0
-          ? (orders.bids[orders.bids.length - maxRows + i][1] / totalBidQty) *
+          ? (ordersToUse.bids[ordersToUse.bids.length - maxRows + i][1] /
+              totalBidQty) *
             bidQty
           : 0;
       const newPrice =
@@ -142,7 +169,7 @@ const OrderBook: React.FC<OrderBookProps> = ({ maxRows = 5 }) => {
       asksToDisplay: asks,
       bidsToDisplay: bids,
     };
-  }, [orders, maxRows, bidPrice, askPrice, bidQty, askQty]);
+  }, [ordersToUse, maxRows, bidPrice, askPrice, bidQty, askQty]);
 
   return (
     <div className="order-container">

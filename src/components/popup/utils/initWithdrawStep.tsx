@@ -41,7 +41,7 @@ function InitWithdraw({
         return;
       }
 
-      //const targetChainId = `0x${networks[chainId as NetworkKey].chainHex}`;
+      //const targetChainId = `0x${networks[chainId as unknown as NetworkKey].chainHex}`;
       const targetChainId = "0xFAA5";
       const currentChainId = await provider.request({ method: "eth_chainId" });
 
@@ -66,7 +66,7 @@ function InitWithdraw({
           params: [
             {
               from: wallet?.address,
-              to: networks[chainId as NetworkKey].contracts
+              to: networks[chainId as unknown as NetworkKey].contracts
                 .PionerV1Compliance as Address,
               data: dataDeposit,
             },

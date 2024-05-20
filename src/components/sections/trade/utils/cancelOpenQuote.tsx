@@ -22,17 +22,18 @@ export async function cancelOrder(order: Order) {
   }
   console.log("cancelOrder", order);
 
-  const ethersProvider = await wallet.getEthersProvider();
+  const ethersProvider = await (wallet as any).getEthersProvider();
   const ethersSigner = await ethersProvider.getSigner();
-  console.log("ethersSigner", ethersSigner);
+  const chainId = useAuthStore.getState().chainId;
 
-  const chainId = String(64165);
+  console.log("ethersSigner", ethersSigner);
 
   const domainOpen = {
     name: "PionerV1Open",
     version: "1.0",
     chainId: 64165,
-    verifyingContract: networks[chainId as NetworkKey].contracts.PionerV1Open,
+    verifyingContract:
+      networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
   };
 
   const cancelSignType = {
@@ -61,7 +62,8 @@ export async function cancelOrder(order: Order) {
     counterpartyAddress: order.counterpartyAddress,
     version: "1.0",
     chainId: 64165,
-    verifyingContract: networks[chainId as NetworkKey].contracts.PionerV1Open,
+    verifyingContract:
+      networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
     targetHash: order.targetHash,
     nonceCancel: 0,
     signatureCancel: signatureBoracle,

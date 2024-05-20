@@ -17,15 +17,15 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 
 export interface Order {
-  id: number;
-  size: number;
+  id: string;
+  size: string;
   market: string;
   icon: string;
-  trigger: number;
-  amount: number;
-  filled: number;
-  remainingSize: number;
-  breakEvenPrice: number;
+  trigger: string;
+  amount: string;
+  filled: string;
+  remainingSize: string;
+  breakEvenPrice: string;
   limitPrice: string;
   status: string;
   reduceOnly: string;
@@ -152,7 +152,7 @@ function SectionOrders({
                   <div>
                     <h3
                       className={`${
-                        x.size >= 0 ? "text-green-400" : "text-red-400"
+                        Number(x.size) >= 0 ? "text-green-400" : "text-red-400"
                       }`}
                     >
                       {x.size}

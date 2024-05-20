@@ -56,7 +56,8 @@ function MintStep({
           method: "eth_call",
           params: [
             {
-              to: networks[chainId as NetworkKey].contracts.FakeUSD as Address,
+              to: networks[chainId as unknown as NetworkKey].contracts
+                .FakeUSD as Address,
               data,
             },
             "latest",
@@ -90,7 +91,7 @@ function MintStep({
         return;
       }
 
-      //const targetChainId = `0x${networks[chainId as NetworkKey].chainHex}`;
+      //const targetChainId = `0x${networks[chainId as unknown as NetworkKey].chainHex}`;
       const targetChainId = "0xFAA5";
       const currentChainId = await provider.request({ method: "eth_chainId" });
 
@@ -115,7 +116,8 @@ function MintStep({
           params: [
             {
               from: wallet?.address,
-              to: networks[chainId as NetworkKey].contracts.FakeUSD as Address,
+              to: networks[chainId as unknown as NetworkKey].contracts
+                .FakeUSD as Address,
               data: dataMint,
             },
           ],

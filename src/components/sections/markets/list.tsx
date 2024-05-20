@@ -56,6 +56,11 @@ function SectionMarketsList() {
                 <ResearchComponent
                   searchTerm={searchTerm}
                   onMarketClick={handleMarketClick}
+                  selectedMarket={selectedMarket}
+                  activeTab="all"
+                  sortByPrice={false}
+                  handleTabClick={() => {}}
+                  toggleSortByPrice={() => {}}
                 />
               </TableBody>
             </Table>

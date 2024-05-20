@@ -25,8 +25,6 @@ export function Menu() {
   const { wallets } = useWallets();
   const wallet = wallets[0];
   const setProvider = useAuthStore((state) => state.setProvider);
-  const setEthersSigner = useAuthStore((state) => state.setEthersSigner);
-  const setWallet = useAuthStore((state) => state.setWallet);
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
   const provider = useAuthStore((state) => state.provider);
@@ -59,7 +57,6 @@ export function Menu() {
   useEffect(() => {
     const fetchData = async () => {
       if (ready && authenticated && wallet) {
-        setWallet(wallet);
         const provider = await wallet.getEthereumProvider();
         setProvider(provider);
         const walletClient = createWalletClient({

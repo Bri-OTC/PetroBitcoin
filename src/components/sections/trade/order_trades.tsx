@@ -8,7 +8,7 @@ import SheetPlaceOrder from "@/components/sheet/place_orders";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
 import { useAuthStore } from "@/store/authStore";
-import startMarketStatusUpdater from "@/components/triparty/marketStatusUpdater";
+import startMarketStatusUpdater from "@/components/hooks/marketStatusUpdater";
 import useBlurEffect from "@/components/hooks/blur";
 
 function SectionTradeOrderTrades() {
@@ -33,6 +33,8 @@ function SectionTradeOrderTrades() {
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
   const blur = useBlurEffect();
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
+  const token = useAuthStore((state) => state.token);
+  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
   const testBool = true;
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -58,9 +60,15 @@ function SectionTradeOrderTrades() {
   useEffect(() => {
     const checkMarketStatus = () => {
       const props = {
+        token: token,
         symbol: symbol,
+        setIsMarketOpen: setIsMarketOpen, // Provide the setIsMarketOpen argument
       };
-      startMarketStatusUpdater(props);
+      startMarketStatusUpdater(
+        props.token,
+        props.symbol,
+        props.setIsMarketOpen
+      );
     };
 
     const checkMarketStatusInterval = setInterval(checkMarketStatus, 60000); // Check every minute
@@ -68,8 +76,7 @@ function SectionTradeOrderTrades() {
     return () => {
       clearInterval(checkMarketStatusInterval);
     };
-  }, [symbol]);
-
+  }, [symbol, token, setIsMarketOpen]); // Add token and setIsMarketOpen to the dependency array
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="mt-5">
@@ -107,8 +114,8 @@ function SectionTradeOrderTrades() {
                   className={`w-full text-center pb-3 border-b-[3px] ${
                     currentMethod === x
                       ? currentMethod === "Sell"
-                        ? "border-[#F23645] text-[#F23645]"
-                        : "border-[#089981] text-[#089981]"
+                        ? "var(--green-color)"
+                        : "var(--red-color)"
                       : "border-transparent"
                   } font-medium transition-all cursor-pointer`}
                 >
@@ -169,7 +176,7 @@ function SectionTradeOrderTrades() {
                   {accountLeverage}x Account Leverage
                 </p>
                 <p className="text-card-foreground">
-                  <span className="text-red-500">6.25%</span> APR
+                  <span className="var(--red-color)">6.25%</span> APR
                 </p>
               </div>
               <div>
@@ -178,9 +185,9 @@ function SectionTradeOrderTrades() {
                     className={`w-full py-3 ${
                       testBool
                         ? currentMethod === "Buy"
-                          ? "bg-[#089981]"
-                          : "bg-[#F23645]"
-                        : "bg-[#666EFF] cursor-not-allowed"
+                          ? "var(--green-color)"
+                          : "var(--red-color)"
+                        : "var(--blue-color)"
                     }`}
                     disabled={!testBool}
                   >

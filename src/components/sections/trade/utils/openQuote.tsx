@@ -4,6 +4,8 @@ import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { toast } from "react-toastify";
+import { formatPair } from "@/components/triparty/priceUpdater";
+import { useWalletAndProvider } from "@/components/layout/menu";
 
 import {
   sendSignedWrappedOpenQuote,
@@ -24,9 +26,11 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
   const [loading, setLoading] = useState(false);
   const walletClient = useAuthStore((state) => state.walletClient);
-  const wallet = useAuthStore((state) => state.wallet);
+  const { wallet, provider } = useWalletAndProvider();
+
   const token = useAuthStore((state) => state.token);
   const symbol: string = useTradeStore((state) => state.symbol);
+
   const updateRfqRequest = useRfqRequestStore(
     (state) => state.updateRfqRequest
   );
@@ -46,8 +50,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       return;
     }
 
-    const ethersProvider = await wallet.getEthersProvider();
+    const ethersProvider = await (wallet as any).getEthersProvider();
     const ethersSigner = await ethersProvider.getSigner();
+    const formatedSymbol = await formatPair(symbol);
 
     setLoading(true);
 
@@ -56,11 +61,12 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       counterpartyAddress: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: networks[chainId as NetworkKey].contracts.PionerV1Open,
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
       x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
       parity: String(0),
       maxConfidence: parseDecimalValue("1"),
-      assetHex: convertToBytes32(symbol),
+      assetHex: formatedSymbol,
       maxDelay: "600",
       precision: 5,
       imA:
@@ -128,7 +134,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       name: "PionerV1Open",
       version: "1.0",
       chainId: 64165,
-      verifyingContract: networks[chainId as NetworkKey].contracts.PionerV1Open,
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
     };
 
     const openQuoteSignType = {
@@ -168,7 +175,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       version: "1.0",
       chainId: 64165,
       verifyingContract:
-        networks[chainId as NetworkKey].contracts.PionerV1Wrapper,
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Wrapper,
     };
 
     console.log("domainWrapper", domainWrapper);

@@ -131,7 +131,7 @@ function ResearchComponent({
       const updatedMarkets: Market[] = displayedMarkets.map((market) => {
         const pair = pairs.find((pair) => pair.originalPair === market.name);
         if (pair) {
-          const { bid, ask } = pairPrices[pair.prefixedPair] || {
+          const { bid, ask } = pairPrices?.[pair.prefixedPair] || {
             bid: 0,
             ask: 0,
           };
