@@ -72,10 +72,10 @@ function SectionTradeChart() {
         </div>
         <div
           className={`${
-            showChart ? "h-full" : "max-h-0"
+            showChart ? "h-50" : "max-h-0"
           } overflow-hidden transition-all bg-card text-white`}
         >
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-50 flex items-center justify-center">
             <TradingViewAdvancedChart symbol={symbol} interval={interval} />
           </div>
         </div>

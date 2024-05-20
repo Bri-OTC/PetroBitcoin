@@ -1,3 +1,4 @@
+// MintStep.tsx
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,7 +37,6 @@ function MintStep({
   onMint,
 }: MintStepProps) {
   const chainId = useAuthStore((state) => state.chainId);
-
   const [mintedAmount, setMintedAmount] = useState(0);
 
   useEffect(() => {
@@ -78,11 +78,9 @@ function MintStep({
     };
 
     fetchMintedAmount();
-  }, [provider, wallet]);
+  }, [provider, wallet, chainId]);
 
   async function handleMint() {
-    const chainId = useAuthStore((state) => state.chainId);
-
     setLoading(true);
     setError(null);
 
@@ -92,10 +90,16 @@ function MintStep({
         return;
       }
 
-      await provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: "0xFAA5" }],
-      });
+      //const targetChainId = `0x${networks[chainId as NetworkKey].chainHex}`;
+      const targetChainId = "0xFAA5";
+      const currentChainId = await provider.request({ method: "eth_chainId" });
+
+      if (currentChainId !== chainId) {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: targetChainId }],
+        });
+      }
 
       const dataMint = encodeFunctionData({
         abi: fakeUSDABI,
@@ -117,14 +121,38 @@ function MintStep({
           ],
         });
 
-        toast.success(
-          `Tokens minted successfully. Transaction hash: ${transaction}`
-        );
+        // Subscribe to new block headers
+        await window.ethereum.request({
+          method: "eth_subscribe",
+          params: ["newHeads", null],
+        });
 
-        setMintedAmount((prevAmount) => prevAmount + parseFloat(amount));
-        onMint(parseFloat(amount));
+        // Wait for the transaction to be confirmed
+        await new Promise<void>((resolve) => {
+          const checkConfirmation = async () => {
+            const receipt = await provider.request({
+              method: "eth_getTransactionReceipt",
+              params: [transaction],
+            });
+
+            if (receipt) {
+              toast.dismiss(toastId);
+              toast.success(
+                `Tokens minted successfully. Transaction hash: ${transaction}`
+              );
+              setMintedAmount((prevAmount) => prevAmount + parseFloat(amount));
+              onMint(parseFloat(amount));
+              resolve();
+            } else {
+              setTimeout(checkConfirmation, 1000); // Check again after 1 second
+            }
+          };
+
+          checkConfirmation();
+        });
       } catch (error) {
         console.error("Minting error:", error);
+        toast.dismiss(toastId);
         toast.error("Minting failed");
         setError("Minting failed");
       }

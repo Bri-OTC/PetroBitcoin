@@ -1,3 +1,4 @@
+// DepositStep.tsx
 import { Button } from "@/components/ui/button";
 import {
   PionerV1Compliance,
@@ -6,6 +7,7 @@ import {
 } from "@pionerfriends/blockchain-client";
 import { Address, encodeFunctionData, parseUnits } from "viem";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/authStore";
 
 interface DepositStepProps {
   amount: string;
@@ -17,7 +19,6 @@ interface DepositStepProps {
   onDeposit: (amount: number) => void;
   onClose: () => void;
 }
-import { useAuthStore } from "@/store/authStore";
 
 const pionerV1ComplianceABI = PionerV1Compliance.abi;
 
@@ -43,36 +44,78 @@ function DepositStep({
         return;
       }
 
+      //const targetChainId = `0x${networks[chainId as NetworkKey].chainHex}`;
+      const targetChainId = "0xFAA5";
+      const currentChainId = await provider.request({ method: "eth_chainId" });
+
+      if (currentChainId !== chainId) {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: targetChainId }],
+        });
+      }
+
       const dataDeposit = encodeFunctionData({
         abi: pionerV1ComplianceABI,
         functionName: "deposit",
         args: [parseUnits(amount, 18), 1, wallet?.address],
       });
 
-      const txDeposit = await provider.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: wallet?.address,
-            to: networks[chainId as NetworkKey].contracts
-              .PionerV1Compliance as Address,
-            data: dataDeposit,
-          },
-        ],
-      });
-
       const toastId = toast.loading("Depositing tokens...");
 
       try {
-        await provider.request({
-          method: "eth_getTransactionReceipt",
-          params: [txDeposit],
+        const txDeposit = await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: wallet?.address,
+              to: networks[chainId as NetworkKey].contracts
+                .PionerV1Compliance as Address,
+              data: dataDeposit,
+            },
+          ],
         });
 
-        toast.success("Tokens deposited successfully");
+        // Subscribe to new block headers
+        await window.ethereum.request({
+          method: "eth_subscribe",
+          params: ["newHeads", null],
+        });
+
+        // Wait for the transaction to be confirmed
+        const receipt = await new Promise<any>((resolve, reject) => {
+          const checkConfirmation = async () => {
+            try {
+              const txReceipt = await provider.request({
+                method: "eth_getTransactionReceipt",
+                params: [txDeposit],
+              });
+
+              if (txReceipt) {
+                if (txReceipt.status === "0x1") {
+                  resolve(txReceipt);
+                } else {
+                  reject(new Error("Transaction failed"));
+                }
+              } else {
+                setTimeout(checkConfirmation, 1000); // Check again after 1 second
+              }
+            } catch (error) {
+              reject(error);
+            }
+          };
+
+          checkConfirmation();
+        });
+
+        toast.dismiss(toastId);
+        toast.success(
+          `Tokens deposited successfully. Transaction hash: ${txDeposit}`
+        );
         onDeposit(parseFloat(amount));
         onClose();
       } catch (error) {
+        toast.dismiss(toastId);
         toast.error("Deposit failed");
         setError("Deposit failed");
       }

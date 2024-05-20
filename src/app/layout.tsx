@@ -53,7 +53,7 @@ export default function RootLayout({
             <ToastContainer
               autoClose={2000}
               toastStyle={{ background: "black", color: "white" }}
-              progressStyle={{ background: "#E0AD0C" }}
+              progressStyle={{ background: "var(--orange-color)" }}
             />
           </PrivyProviderWrapper>
         </ThemeProvider>

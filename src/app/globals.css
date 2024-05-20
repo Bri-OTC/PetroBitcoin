@@ -33,6 +33,10 @@
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
+    --greenPIO-color: var(--NEXT_PUBLIC_GREENPIO_COLOR, #089981);
+    --redPIO-color: var(--NEXT_PUBLIC_REDPIO_COLOR, #f23645);
+    --orangePIO-color: var(--NEXT_PUBLIC_ORANGEPIO_COLOR, #e0ad0c);
+    --bluePIO-color: var(--NEXT_PUBLIC_BLUEPIO_COLOR, #666eff);
   }
 
   .dark {
@@ -63,6 +67,11 @@
     --border: 214 14% 20%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    --green-color: var(--NEXT_PUBLIC_GREEN_COLOR, #089981);
+    --red-color: var(--NEXT_PUBLIC_RED_COLOR, #f23645);
+    --orange-color: var(--NEXT_PUBLIC_ORANGE_COLOR, #e0ad0c);
+    --blue-color: var(--NEXT_PUBLIC_BLUE_COLOR, #666eff);
   }
 }
 
@@ -126,6 +135,19 @@
   }
   100% {
     opacity: 1;
+  }
+}
+
+.container {
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding-left: 8px;
+    padding-right: 8px;
+    max-width: 100%;
   }
 }
 

@@ -41,35 +41,77 @@ function ClaimWithdraw({
         return;
       }
 
+      //const targetChainId = `0x${networks[chainId as NetworkKey].chainHex}`;
+      const targetChainId = "0xFAA5";
+      const currentChainId = await provider.request({ method: "eth_chainId" });
+
+      if (currentChainId !== chainId) {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: targetChainId }],
+        });
+      }
+
       const dataDeposit = encodeFunctionData({
         abi: pionerV1ComplianceABI,
         functionName: "withdraw",
         args: [parseUnits(amount, 18)],
       });
 
-      const txDeposit = await provider.request({
-        method: "eth_sendTransaction",
-        params: [
-          {
-            from: wallet?.address,
-            to: networks[chainId as NetworkKey].contracts
-              .PionerV1Compliance as Address,
-            data: dataDeposit,
-          },
-        ],
-      });
-
       const toastId = toast.loading("Claiming tokens...");
 
       try {
-        await provider.request({
-          method: "eth_getTransactionReceipt",
-          params: [txDeposit],
+        const txDeposit = await provider.request({
+          method: "eth_sendTransaction",
+          params: [
+            {
+              from: wallet?.address,
+              to: networks[chainId as NetworkKey].contracts
+                .PionerV1Compliance as Address,
+              data: dataDeposit,
+            },
+          ],
         });
 
-        toast.success("Tokens claimed successfully");
+        // Subscribe to new block headers
+        await window.ethereum.request({
+          method: "eth_subscribe",
+          params: ["newHeads", null],
+        });
+
+        // Wait for the transaction to be confirmed
+        const receipt = await new Promise<any>((resolve, reject) => {
+          const checkConfirmation = async () => {
+            try {
+              const txReceipt = await provider.request({
+                method: "eth_getTransactionReceipt",
+                params: [txDeposit],
+              });
+
+              if (txReceipt) {
+                if (txReceipt.status === "0x1") {
+                  resolve(txReceipt);
+                } else {
+                  reject(new Error("Transaction failed"));
+                }
+              } else {
+                setTimeout(checkConfirmation, 1000); // Check again after 1 second
+              }
+            } catch (error) {
+              reject(error);
+            }
+          };
+
+          checkConfirmation();
+        });
+
+        toast.dismiss(toastId);
+        toast.success(
+          `Tokens claimed successfully. Transaction hash: ${txDeposit}`
+        );
         onEvent(parseFloat(amount));
       } catch (error) {
+        toast.dismiss(toastId);
         toast.error("Claim failed");
         setError("Claim failed");
       }

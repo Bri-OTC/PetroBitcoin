@@ -1,3 +1,4 @@
+// ApproveStep.tsx
 import { Button } from "@/components/ui/button";
 import {
   FakeUSD,
@@ -30,9 +31,9 @@ function ApproveStep({
   wallet,
   onApprove,
 }: ApproveStepProps) {
-  async function handleApprove() {
-    const chainId = useAuthStore((state) => state.chainId);
+  const chainId = useAuthStore((state) => state.chainId);
 
+  async function handleApprove() {
     setLoading(true);
     setError(null);
 
@@ -40,6 +41,17 @@ function ApproveStep({
       if (!provider) {
         setError("No wallet provider");
         return;
+      }
+
+      //const targetChainId = `0x${networks[chainId as NetworkKey].chainHex}`;
+      const targetChainId = "0xFAA5";
+      const currentChainId = await provider.request({ method: "eth_chainId" });
+
+      if (currentChainId !== chainId) {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: targetChainId }],
+        });
       }
 
       const dataApprove = encodeFunctionData({
@@ -66,12 +78,46 @@ function ApproveStep({
           ],
         });
 
+        // Subscribe to new block headers
+        await window.ethereum.request({
+          method: "eth_subscribe",
+          params: ["newHeads", null],
+        });
+
+        // Wait for the transaction to be confirmed
+        const receipt = await new Promise<any>((resolve, reject) => {
+          const checkConfirmation = async () => {
+            try {
+              const txReceipt = await provider.request({
+                method: "eth_getTransactionReceipt",
+                params: [transaction],
+              });
+
+              if (txReceipt) {
+                if (txReceipt.status === "0x1") {
+                  resolve(txReceipt);
+                } else {
+                  reject(new Error("Transaction failed"));
+                }
+              } else {
+                setTimeout(checkConfirmation, 1000); // Check again after 1 second
+              }
+            } catch (error) {
+              reject(error);
+            }
+          };
+
+          checkConfirmation();
+        });
+
+        toast.dismiss(toastId);
         toast.success(
           `Tokens approved successfully. Transaction hash: ${transaction}`
         );
         onApprove(parseFloat(amount));
       } catch (error) {
         console.error("Approval error:", error);
+        toast.dismiss(toastId);
         toast.error("Approval failed");
         setError("Approval failed");
       }
