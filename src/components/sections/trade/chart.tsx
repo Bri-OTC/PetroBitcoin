@@ -20,8 +20,10 @@ import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import { useAuthStore } from "@/store/authStore";
 import useUpdateMarketStatus from "@/components/hooks/marketStatusUpdater";
-import QuoteWss from "@/components/triparty/quote";
+import useQuoteWss from "@/components/hooks/useQuoteWss";
+import useSignedFillOpenQuoteToastify from "@/components/hooks/useSignedFillOpenQuoteToastify";
 import useBlurEffect from "@/components/hooks/blur";
+import { useRfqRequestStore } from "@/components/triparty/quoteStore";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
@@ -31,8 +33,6 @@ function SectionTradeChart() {
   const symbol = useTradeStore((state) => state.symbol);
   const token = useAuthStore((state) => state.token);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
-
-  useUpdateMarketStatus(token, symbol, setIsMarketOpen);
 
   useEffect(() => {
     activePrice();
@@ -46,7 +46,6 @@ function SectionTradeChart() {
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="flex flex-col space-y-3 mt-2 px-5">
         <RfqRequestUpdater />
-        <QuoteWss />
 
         <div className="flex items-center justify-between">
           <Select onValueChange={handleIntervalChange}>

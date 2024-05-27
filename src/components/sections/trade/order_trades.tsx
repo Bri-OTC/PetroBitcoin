@@ -1,3 +1,4 @@
+// SectionTradeOrderTrades.tsx
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import SheetPlaceOrder from "@/components/sheet/place_orders";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
 import { useAuthStore } from "@/store/authStore";
-import startMarketStatusUpdater from "@/components/hooks/marketStatusUpdater";
+import useUpdateMarketStatus from "@/components/hooks/marketStatusUpdater";
 import useBlurEffect from "@/components/hooks/blur";
 
 function SectionTradeOrderTrades() {
@@ -30,12 +31,12 @@ function SectionTradeOrderTrades() {
     setCurrentTabIndex: setCurrentTabIndexStore,
     setCurrentTabIndex,
   } = useTradeStore();
+  const testBool = true;
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
   const blur = useBlurEffect();
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
   const token = useAuthStore((state) => state.token);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
-  const testBool = true;
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
@@ -57,26 +58,7 @@ function SectionTradeOrderTrades() {
     }
   }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
 
-  useEffect(() => {
-    const checkMarketStatus = () => {
-      const props = {
-        token: token,
-        symbol: symbol,
-        setIsMarketOpen: setIsMarketOpen, // Provide the setIsMarketOpen argument
-      };
-      startMarketStatusUpdater(
-        props.token,
-        props.symbol,
-        props.setIsMarketOpen
-      );
-    };
-
-    const checkMarketStatusInterval = setInterval(checkMarketStatus, 60000); // Check every minute
-
-    return () => {
-      clearInterval(checkMarketStatusInterval);
-    };
-  }, [symbol, token, setIsMarketOpen]); // Add token and setIsMarketOpen to the dependency array
+  useUpdateMarketStatus(token, symbol, setIsMarketOpen);
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="mt-5">

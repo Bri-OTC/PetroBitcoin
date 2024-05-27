@@ -1,8 +1,4 @@
-import {
-  sendRfq,
-  QuoteWebsocketClient,
-  QuoteResponse,
-} from "@pionerfriends/api-client";
+import { sendRfq } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import {
   adjustQuantities,
@@ -95,7 +91,7 @@ export const useRfqRequest = () => {
   };
 
   useEffect(() => {
-    console.log("HFEZHFHEZYUHFYEZGHYFGHYZEHGHYUEZGHGYHEZYUGFHYH")
+    console.log("HFEZHFHEZYUHFYEZGHYFGHYZEHGHYUEZGHGYHEZYUGFHYH");
     const intervalId = setInterval(() => {
       initializeSymbolList();
       loadPrefixData();

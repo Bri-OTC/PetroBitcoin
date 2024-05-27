@@ -17,6 +17,11 @@ import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { createWalletClient, custom, verifyMessage } from "viem";
+import { useRfqRequestStore } from "@/components/triparty/quoteStore";
+import useUpdateMarketStatus from "@/components/hooks/marketStatusUpdater";
+import useQuoteWss from "@/components/hooks/useQuoteWss";
+import useSignedFillOpenQuoteToastify from "@/components/hooks/useSignedFillOpenQuoteToastify";
+import { useTradeStore } from "@/store/tradeStore";
 
 export function Menu() {
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
@@ -28,15 +33,22 @@ export function Menu() {
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
   const provider = useAuthStore((state) => state.provider);
+  const symbol = useTradeStore((state) => state.symbol);
+
   const [payload, setPayload] = useState<{
     uuid: string;
     message: string;
   } | null>(null);
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
+  const { addQuote } = useRfqRequestStore();
 
   const disableLogin = !!(authenticated && token);
 
+  useUpdateMarketStatus(token, symbol, setIsMarketOpen);
+  useQuoteWss(token, addQuote);
+  useSignedFillOpenQuoteToastify(token);
   const { login } = useLogin({
     onComplete: async (user, isNewUser, wasAlreadyAuthenticated) => {
       console.log(user, isNewUser, wasAlreadyAuthenticated);
@@ -140,6 +152,16 @@ export function Menu() {
     }
   }, [payload]);
 
+  const clearPrivyData = () => {
+    // Clear Privy data from localStorage
+    localStorage.removeItem("privy:authenticated");
+    localStorage.removeItem("privy:user");
+
+    // Clear Privy data from cookies
+    Cookies.remove("privy:authenticated");
+    Cookies.remove("privy:user");
+  };
+
   const attemptLogin = async (uuid: string, signature: string) => {
     try {
       const loginResponse = await apiLogin(uuid, signature);
@@ -217,8 +239,11 @@ export function Menu() {
                 setToken(null);
                 setPayloadError(false);
                 setLoginError(false);
-                if (ready) {
-                  login();
+                if (ready && authenticated) {
+                  clearPrivyData(); // Clear Privy data if user is already logged in
+                  logout(); // Log out the user
+                } else if (ready) {
+                  login(); // Log in the user if not already logged in
                 }
               }}
               className="text-center text-white p-3"

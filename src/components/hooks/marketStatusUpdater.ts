@@ -15,7 +15,7 @@ const useUpdateMarketStatus = (
   setIsMarketOpen: (isOpen: boolean) => void
 ) => {
   useEffect(() => {
-    if (!token) return; // Exit early if there's no token
+    if (!token) return;
 
     const updateMarketStatus = async () => {
       try {
@@ -52,7 +52,7 @@ const useUpdateMarketStatus = (
     };
 
     updateMarketStatus();
-    const interval = setInterval(updateMarketStatus, 60000); // Check every minute
+    const interval = setInterval(updateMarketStatus, 60000);
 
     return () => clearInterval(interval);
   }, [symbol, setIsMarketOpen, token]);

@@ -1,3 +1,4 @@
+//layout.tsx ( next)
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
@@ -54,6 +55,9 @@ export default function RootLayout({
               autoClose={2000}
               toastStyle={{ background: "black", color: "white" }}
               progressStyle={{ background: "var(--orange-color)" }}
+              closeOnClick={true}
+              pauseOnHover={true}
+              draggable={true}
             />
           </PrivyProviderWrapper>
         </ThemeProvider>
