@@ -10,9 +10,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@pionerfriends/api-client": "^1.0.32",
-    "@pionerfriends/blockchain-client": "^1.0.32",
-    "@privy-io/react-auth": "^1.66.0",
+    "@pionerfriends/api-client": "^1.0.38",
+    "@pionerfriends/blockchain-client": "^1.0.38",
+    "@privy-io/react-auth": "^1.66.1",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -47,7 +47,7 @@
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.1",
-    "viem": "^2.12.1",
+    "viem": "^2.13.1",
     "zustand": "^4.5.2"
   },
   "devDependencies": {

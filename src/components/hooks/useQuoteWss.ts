@@ -1,25 +1,26 @@
 import { useEffect } from "react";
-import { QuoteResponse } from "@pionerfriends/api-client";
-import { useQuoteWebSocketStore } from "@/store/useQuoteWebSocketStore";
+import { toast } from "react-toastify";
+import { PionerWebsocketClient, QuoteResponse, WebSocketType } from "@pionerfriends/api-client";
 
 const useQuoteWss = (
   token: string | null,
   addQuote: (message: QuoteResponse) => void
 ) => {
-  const initializeWebSocket = useQuoteWebSocketStore(
-    (state) => state.initializeWebSocket
-  );
-  const closeWebSocket = useQuoteWebSocketStore(
-    (state) => state.closeWebSocket
-  );
-
+  let quoteClient = null;
   useEffect(() => {
     if (token) {
-      initializeWebSocket(token, addQuote);
+      quoteClient = new PionerWebsocketClient(
+        WebSocketType.LiveQuotes,
+        (message) => { console.log('Quote Message:', message), addQuote(message); },
+        () => console.log('Quote Open'),
+        () => console.log('Quote Closed'),
+        () => console.log('Quote Reconnected'),
+        (error) => console.error('Quote Error:', error)
+      );
+
+      quoteClient.startWebSocket(token);
+      toast('Quote Websocket Started');
     }
-    return () => {
-      closeWebSocket();
-    };
   }, [token, addQuote]);
 };
 
