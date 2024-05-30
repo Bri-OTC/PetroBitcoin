@@ -136,6 +136,7 @@ async function getPairConfig(
   leverage: number,
   notional: number
 ): Promise<Row> {
+  console.log(tickerA, tickerB, side, leverage, notional);
   if (Object.keys(symbolList).length === 0) {
     await initializeSymbolList();
   }
