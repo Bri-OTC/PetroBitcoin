@@ -15,7 +15,8 @@ import { usePrivy, useLogin } from "@privy-io/react-auth";
 import { FaTimes } from "react-icons/fa";
 import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+
 import { createWalletClient, custom, verifyMessage } from "viem";
 import { useRfqRequestStore } from "@/components/triparty/quoteStore";
 import useUpdateMarketStatus from "@/hooks/marketStatusUpdater";
@@ -50,14 +51,20 @@ export function Menu() {
 
   const disableLogin = !!(authenticated && token);
 
+  /** Global workers*/
   useUpdateMarketStatus(token, symbol, setIsMarketOpen);
   useQuoteWss(token, addQuote);
   useFillOpenQuote(token);
   useFillCloseQuote(token);
   useMethodColor();
+  /** */
 
   const { login } = useLogin({
-    onComplete: async (user, isNewUser, wasAlreadyAuthenticated) => {
+    onComplete: async (
+      user,
+      isNewUser: boolean,
+      wasAlreadyAuthenticated: boolean
+    ) => {
       console.log(user, isNewUser, wasAlreadyAuthenticated);
       await fetchPayload();
     },
@@ -65,13 +72,12 @@ export function Menu() {
       console.log(error);
     },
   });
-
   useEffect(() => {
     const tokenFromCookie = Cookies.get("token");
     if (tokenFromCookie && !token && ready && authenticated) {
       setToken(tokenFromCookie);
     }
-  }, [authenticated]);
+  }, [authenticated, ready, token, setToken]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -87,7 +93,7 @@ export function Menu() {
     };
 
     fetchData();
-  }, [wallet]);
+  }, [wallet, ready, authenticated, setProvider, setWalletClient]);
 
   const fetchPayload = async () => {
     if (wallet && !token) {
@@ -114,7 +120,7 @@ export function Menu() {
     }
   };
 
-  const signMessage = async () => {
+  const signMessage = useCallback(async () => {
     if (payload && !token) {
       const { uuid, message } = payload;
 
@@ -146,7 +152,39 @@ export function Menu() {
         setLoginError(true);
       }
     }
-  };
+  }, [payload, token, wallet]);
+
+  const attemptLogin = useCallback(
+    async (uuid: string, signature: string) => {
+      try {
+        const loginResponse = await apiLogin(uuid, signature);
+
+        if (
+          loginResponse &&
+          loginResponse.status === 200 &&
+          loginResponse.data.token
+        ) {
+          const token = loginResponse.data.token;
+          const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(wallet.address);
+          if (isValidAddress) {
+            setToken(token);
+            setLoginError(false);
+          } else {
+            console.error("Invalid wallet address detected:", wallet.address);
+            setPayload(null);
+            setLoginError(true);
+          }
+        } else {
+          setPayload(null);
+          setLoginError(true);
+        }
+      } catch (error) {
+        console.error("Error logging in:", error);
+        setLoginError(true);
+      }
+    },
+    [wallet, setToken]
+  );
 
   useEffect(() => {
     if (payload) {
@@ -157,7 +195,7 @@ export function Menu() {
         }
       });
     }
-  }, [payload]);
+  }, [payload, signMessage, attemptLogin]);
 
   const clearPrivyData = () => {
     // Clear Privy data from localStorage
@@ -169,28 +207,6 @@ export function Menu() {
     Cookies.remove("privy:user");
   };
 
-  const attemptLogin = async (uuid: string, signature: string) => {
-    try {
-      const loginResponse = await apiLogin(uuid, signature);
-
-      if (
-        loginResponse &&
-        loginResponse.status === 200 &&
-        loginResponse.data.token
-      ) {
-        const token = loginResponse.data.token;
-        setToken(token);
-        setLoginError(false);
-      } else {
-        setPayload(null);
-        setLoginError(true);
-      }
-    } catch (error) {
-      console.error("Error logging in:", error);
-      setLoginError(true);
-    }
-  };
-
   useEffect(() => {
     if (loginError) {
       logout();
@@ -199,7 +215,31 @@ export function Menu() {
       setPayloadError(false);
       setLoginError(false);
     }
-  }, [loginError]);
+  }, [loginError, logout, setPayload, setToken]);
+
+  const checkWalletAddress = useCallback(() => {
+    if (wallet && token) {
+      const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(wallet.address);
+      if (!isValidAddress) {
+        console.error("Invalid wallet address detected:", wallet.address);
+        logout();
+        setPayload(null);
+        setToken(null);
+        setPayloadError(false);
+        setLoginError(false);
+      }
+    }
+  }, [wallet, token, logout, setToken]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkWalletAddress();
+    }, 5000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [wallet, token, checkWalletAddress]);
 
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
@@ -247,10 +287,11 @@ export function Menu() {
                 setPayloadError(false);
                 setLoginError(false);
                 if (ready && authenticated) {
-                  clearPrivyData(); // Clear Privy data if user is already logged in
-                  logout(); // Log out the user
+                  clearPrivyData();
+                  logout();
+                  login();
                 } else if (ready) {
-                  login(); // Log in the user if not already logged in
+                  login();
                 }
               }}
               className="text-center text-white p-3"

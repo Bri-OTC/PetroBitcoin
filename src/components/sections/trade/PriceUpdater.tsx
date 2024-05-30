@@ -61,6 +61,7 @@ export default function PriceUpdater() {
     setAskPrice,
     entryPriceModified,
     setEntryPriceModified,
+    setEntryPrice,
   ]);
 
   return null;

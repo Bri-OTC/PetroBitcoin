@@ -48,9 +48,9 @@ const getOrders = async (
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
-          const size = String((parseFloat(quote.amount) / 1e18).toFixed(4));
-          const trigger = String((parseFloat(quote.price) / 1e18).toFixed(4));
-          const amount = String((Number(size) * Number(trigger)).toFixed(4));
+          const size = (parseFloat(quote.amount) / 1e18).toFixed(4);
+          const trigger = (parseFloat(quote.price) / 1e18).toFixed(4);
+          const amount = (Number(size) * Number(trigger)).toFixed(4);
           const filled = "0";
           const remainingSize = size;
           const breakEvenPrice = trigger;
@@ -82,7 +82,7 @@ const getOrders = async (
             .padStart(2, "0")}`;
           return {
             id: String(quote.nonceOpenQuote),
-            size,
+            size: size,
             market: asset,
             icon: "/$.svg",
             trigger: trigger,
@@ -91,10 +91,10 @@ const getOrders = async (
             remainingSize: remainingSize,
             breakEvenPrice: breakEvenPrice,
             limitPrice: limitPrice,
-            status,
-            reduceOnly,
-            fillAmount,
-            entryTime,
+            status: status,
+            reduceOnly: reduceOnly,
+            fillAmount: fillAmount,
+            entryTime: entryTime,
             targetHash: quote.signatureOpenQuote,
             counterpartyAddress: quote.counterpartyAddress,
           };

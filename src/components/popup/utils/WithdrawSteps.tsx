@@ -50,7 +50,7 @@ function WithdrawSteps({
     } else {
       setError(null);
     }
-  }, [amount]);
+  }, [amount, setError]);
 
   return (
     <div className="space-y-3">

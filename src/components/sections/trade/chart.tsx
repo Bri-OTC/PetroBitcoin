@@ -19,9 +19,6 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import { useAuthStore } from "@/store/authStore";
-import useUpdateMarketStatus from "@/hooks/marketStatusUpdater";
-import useQuoteWss from "@/hooks/useQuoteWss";
-import useSignedFillOpenQuoteToastify from "@/components/hooks/useSignedFillOpenQuoteToastify";
 import useBlurEffect from "@/hooks/blur";
 import { useRfqRequestStore } from "@/components/triparty/quoteStore";
 

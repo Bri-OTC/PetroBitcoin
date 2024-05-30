@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -25,9 +21,7 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     },
     "incremental": true
   },
@@ -43,5 +37,6 @@
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/store/authstore.ts"
-  ]
+  ],
+  "types": ["node"]
 }

@@ -126,7 +126,7 @@ export function DepositedBalance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider]);
+  }, [wallet, provider, chainId, logout]);
 
   return depositedBalance;
 }
@@ -174,7 +174,7 @@ export function ClaimableBalance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider]);
+  }, [wallet, provider, chainId]);
 
   return depositedBalance;
 }
@@ -222,7 +222,7 @@ export function TimeToClaim() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider]);
+  }, [wallet, provider, chainId]);
 
   return depositedBalance;
 }
@@ -269,7 +269,7 @@ export function USDCBalance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider]);
+  }, [wallet, provider, chainId]);
 
   return usdcBalance;
 }
@@ -320,7 +320,7 @@ export function USDCAllowance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider]);
+  }, [wallet, provider, chainId]);
 
   return usdcBalance;
 }

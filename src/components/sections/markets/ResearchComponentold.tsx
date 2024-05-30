@@ -1,6 +1,6 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Fuse from "fuse.js";
 import { useTradeStore } from "@/store/tradeStore";
 import { FaStar } from "react-icons/fa";
@@ -150,35 +150,7 @@ function ResearchComponent({
     };
   }, [displayedMarkets, token, nasdaqData, nyseData, forexData]);
 
-  useEffect(() => {
-    const startIndex = currentPage * pageSize;
-    const endIndex = startIndex + pageSize;
-    const displayedMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
-    setDisplayedMarkets(displayedMarkets);
-
-    if (tableRef.current) {
-      tableRef.current.scrollTop = 0;
-    }
-  }, [currentPage, pageSize, markets, searchTerm, sortByPrice, favorites]);
-
-  const fetchMoreData = () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-
-    setTimeout(() => {
-      const startIndex = (currentPage + 1) * pageSize;
-      const endIndex = startIndex + pageSize;
-      const newMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
-
-      setDisplayedMarkets((prevMarkets) => [...prevMarkets, ...newMarkets]);
-      setCurrentPage((prevPage) => prevPage + 1);
-      setHasMore(endIndex < getDisplayedMarkets().length);
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const getDisplayedMarkets = (): Market[] => {
+  const getDisplayedMarkets = useCallback((): Market[] => {
     let displayedMarkets: Market[] = [];
 
     if (activeTab === "favorites") {
@@ -239,6 +211,42 @@ function ResearchComponent({
     }
 
     return displayedMarkets;
+  }, [
+    activeTab,
+    favorites,
+    searchTerm,
+    defaultSecondAsset,
+    markets,
+    fuse,
+    sortByPrice,
+  ]);
+
+  useEffect(() => {
+    const startIndex = currentPage * pageSize;
+    const endIndex = startIndex + pageSize;
+    const displayedMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
+    setDisplayedMarkets(displayedMarkets);
+
+    if (tableRef.current) {
+      tableRef.current.scrollTop = 0;
+    }
+  }, [currentPage, pageSize, getDisplayedMarkets]);
+
+  const fetchMoreData = () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+
+    setTimeout(() => {
+      const startIndex = (currentPage + 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const newMarkets = getDisplayedMarkets().slice(startIndex, endIndex);
+
+      setDisplayedMarkets((prevMarkets) => [...prevMarkets, ...newMarkets]);
+      setCurrentPage((prevPage) => prevPage + 1);
+      setHasMore(endIndex < getDisplayedMarkets().length);
+      setIsLoading(false);
+    }, 1000);
   };
 
   const handleTabClick = (tab: string) => {

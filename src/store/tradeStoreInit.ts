@@ -62,7 +62,7 @@ export const initialState: StoreState = {
   stopLossPercentage: "0",
   amount: "0",
   amountUSD: "0",
-  minAmount: 1,
+  minAmount: 0,
   maxAmount: 10,
   isReduceTP: true,
   isReduceSL: true,

@@ -90,7 +90,7 @@ function SheetPlaceOrder() {
 
   useEffect(() => {
     setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toString());
-  }, [entryPrice]);
+  }, [entryPrice, amount, setAmountUSD]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

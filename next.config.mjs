@@ -21,13 +21,15 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    const customPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
     return [
       {
         source: "/api/:path*",
         destination:
           process.env.NODE_ENV === "development"
-            ? process.env.PROXY_TARGET_DEV + "/api/:path*"
-            : process.env.PROXY_TARGET_PROD + "/api/:path*",
+            ? `${process.env.PROXY_TARGET_DEV}:${customPort}/api/:path*`
+            : `${process.env.PROXY_TARGET_PROD}:${customPort}/api/:path*`,
       },
     ];
   },

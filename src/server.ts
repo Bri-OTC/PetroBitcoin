@@ -3,34 +3,32 @@ import { parse } from "url";
 import next from "next";
 import { createProxyMiddleware } from "http-proxy-middleware";
 import dotenv from "dotenv";
+
 dotenv.config({ path: "../.env" });
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+const customPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
 const apiProxy = createProxyMiddleware({
   target:
     process.env.NODE_ENV === "development"
-      ? process.env.PROXY_TARGET_DEV
-      : process.env.PROXY_TARGET_PROD,
+      ? `${process.env.PROXY_TARGET_DEV}:${customPort}`
+      : `${process.env.PROXY_TARGET_PROD}:${customPort}`,
   changeOrigin: true,
-  pathRewrite: {
-    "^/api": "",
-  },
+  pathRewrite: { "^/api": "" },
 });
 
 const wsProxy = createProxyMiddleware({
   target:
     process.env.NODE_ENV === "development"
-      ? process.env.PROXY_TARGET_DEV
-      : process.env.PROXY_TARGET_PROD,
-
+      ? `${process.env.PROXY_TARGET_DEV}:${customPort}`
+      : `${process.env.PROXY_TARGET_PROD}:${customPort}`,
   changeOrigin: true,
   ws: true,
-  pathRewrite: {
-    "^/ws": "",
-  },
+  pathRewrite: { "^/ws": "" },
 });
 
 app.prepare().then(() => {
@@ -65,7 +63,6 @@ app.prepare().then(() => {
     }
   });
 
-  const customPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
   server.listen(customPort, (err?: any) => {
     if (err) throw err;
     console.log(`> Ready on http://localhost:${customPort}`);

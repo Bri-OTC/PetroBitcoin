@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
 function SectionHomeRanking() {
@@ -17,42 +17,44 @@ function SectionHomeRanking() {
   const blur = useBlurEffect();
   const [currentTab, setCurrentTab] = useState("Winners");
   const [filteredRanking, setFilteredRanking] = useState<any[]>([]);
+  const fetchRankingData = useCallback(
+    async (topType: string) => {
+      try {
+        const headers: HeadersInit | undefined = token
+          ? { Authorization: token }
+          : undefined;
+
+        const response = await fetch(
+          `https://api.pio.finance:2096/api/v1/get_top_assets?topType=${topType}`,
+          {
+            method: "GET",
+            headers,
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const top3Assets = data.slice(0, 3);
+          setFilteredRanking(top3Assets);
+        } else {
+          console.error("Error fetching ranking data:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching ranking data:", error);
+      }
+    },
+    [token]
+  );
 
   useEffect(() => {
     if (token) {
       fetchRankingData(currentTab === "Winners" ? "gainers" : "losers");
     }
-  }, [currentTab, token]);
+  }, [currentTab, token, fetchRankingData]);
 
   const toggleTab = (label: string) => {
     setCurrentTab(label);
     fetchRankingData(label === "Winners" ? "gainers" : "losers");
-  };
-
-  const fetchRankingData = async (topType: string) => {
-    try {
-      const headers: HeadersInit | undefined = token
-        ? { Authorization: token }
-        : undefined;
-
-      const response = await fetch(
-        `https://api.pio.finance:2096/api/v1/get_top_assets?topType=${topType}`,
-        {
-          method: "GET",
-          headers,
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const top3Assets = data.slice(0, 3);
-        setFilteredRanking(top3Assets);
-      } else {
-        console.error("Error fetching ranking data:", response.statusText);
-      }
-    } catch (error) {
-      console.error("Error fetching ranking data:", error);
-    }
   };
 
   return (
