@@ -1,7 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 
 function SectionUserFees() {
   const blur = useBlurEffect();

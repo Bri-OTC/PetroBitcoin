@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 function SectionHomeRanking() {
   const token = useAuthStore((state) => state.token);
   const blur = useBlurEffect();

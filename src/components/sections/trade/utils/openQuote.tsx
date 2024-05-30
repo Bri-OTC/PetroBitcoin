@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { convertToBytes32, parseDecimalValue } from "@/components/web3/utils";
 import { DepositedBalance } from "@/components/sections/wallet/table";
-import { useBalance } from "@/components/hooks/useBalance";
+import { useBalance } from "@/hooks/useBalance";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;

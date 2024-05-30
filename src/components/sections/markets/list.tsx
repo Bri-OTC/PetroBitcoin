@@ -2,7 +2,7 @@
 // components/sections/markets/list.tsx
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 import {
   Table,
   TableBody,

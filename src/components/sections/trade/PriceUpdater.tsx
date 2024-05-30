@@ -47,7 +47,7 @@ export default function PriceUpdater() {
       }
     };
 
-    const interval = setInterval(fetchPrices, 2000);
+    const interval = setInterval(fetchPrices, 1000);
 
     return () => {
       clearInterval(interval);

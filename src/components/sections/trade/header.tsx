@@ -6,7 +6,7 @@ import { MdMenu } from "react-icons/md";
 import { useTradeStore } from "@/store/tradeStore";
 import Link from "next/link";
 import useFavorites from "@/components/sections/markets/useFavorites";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 
 function SectionTradeHeader() {
   const symbol = useTradeStore((state) => state.symbol);

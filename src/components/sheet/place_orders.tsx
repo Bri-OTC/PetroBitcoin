@@ -2,7 +2,6 @@
 import { DrawerClose, DrawerContent, DrawerTitle } from "../ui/drawer";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Checkbox } from "../ui/checkbox";
 import { FaEquals } from "react-icons/fa";
 import { Dialog, DialogTrigger } from "../ui/dialog";
 import { Card } from "../ui/card";
@@ -14,8 +13,9 @@ import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
 import { useEffect } from "react";
 import React, { useState } from "react";
-import { useBalance } from "@/components/hooks/useBalance";
+import { useBalance } from "@/hooks/useBalance";
 import Link from "next/link";
+import { useColorStore } from "@/store/colorStore";
 
 function SheetPlaceOrder() {
   const token = useAuthStore().token;
@@ -23,17 +23,11 @@ function SheetPlaceOrder() {
 
   const currentMethod = useTradeStore((state) => state.currentMethod);
   const entryPrice = useTradeStore((state) => state.entryPrice);
-  const takeProfit = useTradeStore((state) => state.takeProfit);
-  const takeProfitPercentage = useTradeStore(
-    (state) => state.takeProfitPercentage
-  );
-  const stopLoss = useTradeStore((state) => state.stopLoss);
-  const stopLossPercentage = useTradeStore((state) => state.stopLossPercentage);
+
   const amount = useTradeStore((state) => state.amount);
   const amountUSD = useTradeStore((state) => state.amountUSD);
   const sliderValue = useTradeStore((state) => state.sliderValue);
-  const isReduceTP = useTradeStore((state) => state.isReduceTP);
-  const isReduceSL = useTradeStore((state) => state.isReduceSL);
+
   const bidPrice = useTradeStore((state) => state.bidPrice);
   const askPrice = useTradeStore((state) => state.askPrice);
   const [prevBidPrice, setPrevBidPrice] = useState(bidPrice);
@@ -45,18 +39,9 @@ function SheetPlaceOrder() {
   const setCurrentTabIndex = useTradeStore((state) => state.setCurrentTabIndex);
 
   const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
-  const setTakeProfit = useTradeStore((state) => state.setTakeProfit);
-  const setTakeProfitPercentage = useTradeStore(
-    (state) => state.setTakeProfitPercentage
-  );
-  const setStopLoss = useTradeStore((state) => state.setStopLoss);
-  const setStopLossPercentage = useTradeStore(
-    (state) => state.setStopLossPercentage
-  );
+
   const setAmount = useTradeStore((state) => state.setAmount);
   const setAmountUSD = useTradeStore((state) => state.setAmountUSD);
-  const setIsReduceTP = useTradeStore((state) => state.setIsReduceTP);
-  const setIsReduceSL = useTradeStore((state) => state.setIsReduceSL);
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
 
   const accountLeverage = useTradeStore((state) => state.accountLeverage);
@@ -70,6 +55,8 @@ function SheetPlaceOrder() {
     amount,
     entryPrice
   );
+
+  const color = useColorStore((state) => state.color);
 
   useEffect(() => {
     if (currentMethod === "Buy") {
@@ -181,22 +168,30 @@ function SheetPlaceOrder() {
             <h3 className="text-left text-card-foreground">Entry Price</h3>
             <div className="flex items-center space-x-5 border-b">
               <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
+                className={`pb-3 outline-none w-full border-b-[0px] bg-transparent ${
+                  currentTabIndex === "Market"
+                    ? "text-gray-400 cursor-not-allowed"
+                    : "hover:shadow-[0_0_0_2px] hover:shadow-[${color}]"
+                }`}
                 placeholder="Input Price"
                 value={entryPrice}
                 onChange={(e) => setEntryPrice(e.target.value)}
+                disabled={currentTabIndex === "Market"}
               />
               <p>USD</p>
             </div>
           </div>
           <Button
             onClick={toggleTabIndex}
-            className="w-full bg-card text-card-foreground hover:bg-primary hover:text-primary-foreground"
+            className={`w-full ${
+              currentTabIndex === "Market"
+                ? "bg-primary text-primary-foreground"
+                : "bg-card text-card-foreground hover:bg-primary hover:text-primary-foreground"
+            }`}
           >
             {currentTabIndex}
           </Button>
         </div>
-        <div className="flex space-x-5 justify-between items-end"></div>
 
         <div className="flex space-x-5 justify-between items-center">
           <div className="flex flex-col space-y-2 w-full">
@@ -266,11 +261,11 @@ function SheetPlaceOrder() {
         </h3>
         <div className="flex items-center justify-between p-5 px-8 bg-card">
           <div className="flex flex-col items-center space-y-2 text-center">
-            <h3>Exit PnL</h3>
+            <h3>Liquidation Price</h3>
             <h3>{exitPnL} USD</h3>
           </div>
           <div className="flex flex-col items-center space-y-2 text-center">
-            <h3>Stop PnL</h3>
+            <h3>Liquidation PnL</h3>
             <h3>{stopPnL} USD</h3>
           </div>
           <div className="flex flex-col items-center space-y-2 text-center">

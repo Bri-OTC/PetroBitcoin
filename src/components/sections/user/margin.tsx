@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { useTradeStore } from "../../../store/tradeStore";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 
 const leverageValue = [1, 10, 25, 50, 100, 500];
 function SectionUserMargin() {

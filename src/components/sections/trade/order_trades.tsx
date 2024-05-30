@@ -9,8 +9,9 @@ import SheetPlaceOrder from "@/components/sheet/place_orders";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
 import { useAuthStore } from "@/store/authStore";
-import useUpdateMarketStatus from "@/components/hooks/marketStatusUpdater";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
+import { useColorStore } from "@/store/colorStore";
+import { useMethodColor } from "@/hooks/useMethodColor";
 
 function SectionTradeOrderTrades() {
   const {
@@ -31,12 +32,12 @@ function SectionTradeOrderTrades() {
     setCurrentTabIndex: setCurrentTabIndexStore,
     setCurrentTabIndex,
   } = useTradeStore();
-  const testBool = true;
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
   const blur = useBlurEffect();
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
-  const token = useAuthStore((state) => state.token);
-  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
+  const testBool = true;
+  const color = useColorStore((state) => state.color);
+  useMethodColor();
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
     setAmount(e.target.value);
@@ -58,7 +59,6 @@ function SectionTradeOrderTrades() {
     }
   }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
 
-  useUpdateMarketStatus(token, symbol, setIsMarketOpen);
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="mt-5">
@@ -95,9 +95,7 @@ function SectionTradeOrderTrades() {
                   onClick={() => setCurrentMethodStore(x)}
                   className={`w-full text-center pb-3 border-b-[3px] ${
                     currentMethod === x
-                      ? currentMethod === "Sell"
-                        ? "var(--green-color)"
-                        : "var(--red-color)"
+                      ? `border-[${color}] text-[${color}]`
                       : "border-transparent"
                   } font-medium transition-all cursor-pointer`}
                 >
@@ -108,10 +106,10 @@ function SectionTradeOrderTrades() {
 
             <div className="flex flex-col space-y-5">
               <p className="text-card-foreground">Price</p>
-              <div className="flex pb-3 items-center space-x-2 border-b">
-                <Input
+              <div className="flex pb-3 items-center space-x-2">
+                <input
                   type="number"
-                  className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
+                  className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
                   placeholder="Input Price"
                   value={entryPrice}
                   onChange={(e) => setEntryPrice(e.target.value)}
@@ -124,7 +122,7 @@ function SectionTradeOrderTrades() {
                   <p className="text-card-foreground">Amount (Contracts)</p>
                   <input
                     type="number"
-                    className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
+                    className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
                     value={amount}
                     onChange={handleAmountChange}
                   />
@@ -136,7 +134,7 @@ function SectionTradeOrderTrades() {
                   <p className="text-card-foreground">Amount (USD)</p>
                   <input
                     type="number"
-                    className="pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
+                    className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
                     value={amountUSD}
                     onChange={handleAmountUSDChange}
                   />
@@ -147,7 +145,7 @@ function SectionTradeOrderTrades() {
                   <button
                     key={x}
                     onClick={() => setSliderValue(x)}
-                    className="w-full bg-card py-2 text-center hover:bg-primary rounded-lg cursor-pointer"
+                    className={`w-full bg-card py-2 text-center hover:bg-[${color}] rounded-lg cursor-pointer`}
                   >
                     {x}%
                   </button>
@@ -158,7 +156,7 @@ function SectionTradeOrderTrades() {
                   {accountLeverage}x Account Leverage
                 </p>
                 <p className="text-card-foreground">
-                  <span className="var(--red-color)">6.25%</span> APR
+                  <span className="text-red-500">6.25%</span> APR
                 </p>
               </div>
               <div>
@@ -166,10 +164,8 @@ function SectionTradeOrderTrades() {
                   <DrawerTrigger
                     className={`w-full py-3 ${
                       testBool
-                        ? currentMethod === "Buy"
-                          ? "var(--green-color)"
-                          : "var(--red-color)"
-                        : "var(--blue-color)"
+                        ? `bg-[${color}]`
+                        : "bg-[#666EFF] cursor-not-allowed"
                     }`}
                     disabled={!testBool}
                   >

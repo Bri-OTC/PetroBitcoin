@@ -18,8 +18,8 @@ export const useTradeStore = create<StoreState>((set) => ({
       entryPrice: price,
       maxAmount: parseFloat(
         (
-          initialState.balance /
-          (parseFloat(initialState.entryPrice) / state.leverage)
+          (state.balance * state.leverage) /
+          parseFloat(state.entryPrice)
         ).toFixed(2)
       ),
       estimatedLiquidationPrice:
@@ -177,14 +177,20 @@ export const useTradeStore = create<StoreState>((set) => ({
   setAskPrice: (price) => set({ askPrice: price }),
   setSymbol: (symbol) => set({ symbol }),
   setLeverage: (leverage) =>
-    set({
-      leverage: leverage,
-      maxAmount: parseFloat(
-        (
-          initialState.balance /
-          (parseFloat(initialState.entryPrice) / leverage)
-        ).toFixed(2)
-      ),
+    set((state) => {
+      const maxAmount = parseFloat(
+        (state.balance / (parseFloat(state.entryPrice) / leverage)).toFixed(2)
+      );
+      const estimatedLiquidationPrice =
+        parseFloat(state.entryPrice) /
+        (1 - parseFloat(state.amount) / state.balance);
+
+      return {
+        ...state,
+        leverage,
+        maxAmount: maxAmount,
+        estimatedLiquidationPrice: estimatedLiquidationPrice,
+      };
     }),
 
   //

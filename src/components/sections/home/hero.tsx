@@ -15,7 +15,7 @@ import { RiExchangeLine } from "react-icons/ri";
 import Deposit from "../../../components/popup/Deposit";
 import Withdraw from "../../../components/popup/Withdraw";
 import Faucet from "../../../components/popup/Faucet";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 import Link from "next/link";
 import { getPrices, PricesResponse } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";

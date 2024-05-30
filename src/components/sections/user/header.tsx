@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { HiOutlineCog6Tooth } from "react-icons/hi2";
 import { useWallets } from "@privy-io/react-auth";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 
 function SectionUserHeader() {
   const { wallets } = useWallets();

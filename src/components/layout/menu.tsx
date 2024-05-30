@@ -18,10 +18,13 @@ import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { createWalletClient, custom, verifyMessage } from "viem";
 import { useRfqRequestStore } from "@/components/triparty/quoteStore";
-import useUpdateMarketStatus from "@/components/hooks/marketStatusUpdater";
-import useQuoteWss from "@/components/hooks/useQuoteWss";
-import useSignedFillOpenQuoteToastify from "@/components/hooks/useSignedFillOpenQuoteToastify";
+import useUpdateMarketStatus from "@/hooks/marketStatusUpdater";
+import useQuoteWss from "@/hooks/useQuoteWss";
+import useFillOpenQuote from "@/hooks/useFillOpenQuote";
+import useFillCloseQuote from "@/hooks/useFillCloseQuote";
 import { useTradeStore } from "@/store/tradeStore";
+import { useColorStore } from "@/store/colorStore";
+import { useMethodColor } from "@/hooks/useMethodColor";
 
 export function Menu() {
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
@@ -34,6 +37,7 @@ export function Menu() {
   const token = useAuthStore((state) => state.token);
   const provider = useAuthStore((state) => state.provider);
   const symbol = useTradeStore((state) => state.symbol);
+  const color = useColorStore((state) => state.color);
 
   const [payload, setPayload] = useState<{
     uuid: string;
@@ -48,7 +52,10 @@ export function Menu() {
 
   useUpdateMarketStatus(token, symbol, setIsMarketOpen);
   useQuoteWss(token, addQuote);
-  useSignedFillOpenQuoteToastify(token);
+  useFillOpenQuote(token);
+  useFillCloseQuote(token);
+  useMethodColor();
+
   const { login } = useLogin({
     onComplete: async (user, isNewUser, wasAlreadyAuthenticated) => {
       console.log(user, isNewUser, wasAlreadyAuthenticated);

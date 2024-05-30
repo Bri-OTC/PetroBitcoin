@@ -12,7 +12,7 @@ import { GiGiftOfKnowledge } from "react-icons/gi";
 import { RiMoneyDollarCircleLine } from "react-icons/ri";
 import { useTradeStore } from "../../../store/tradeStore";
 import { DepositedBalance } from "./table";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 
 const menu = [
   {

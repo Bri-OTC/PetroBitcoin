@@ -56,13 +56,21 @@ export const useRfqRequest = () => {
         parseFloat(entryPrice) * adjustedQuantitiesResult.sQuantity
       );
 
+      // Ensure interest rates are positive
+      const lInterestRate = Math.abs(
+        parseFloat(lConfig?.funding?.toString() || "0")
+      );
+      const sInterestRate = Math.abs(
+        parseFloat(sConfig?.funding?.toString() || "0")
+      );
+
       updateRfqRequest({
         expiration: "10000",
         assetAId: resolvedSymbol1,
         assetBId: resolvedSymbol2,
         sPrice: String(entryPrice),
         sQuantity: adjustedQuantitiesResult.sQuantity.toString(),
-        sInterestRate: sConfig?.funding?.toString() || "",
+        sInterestRate: sInterestRate.toString(),
         sIsPayingApr: sConfig?.isAPayingApr || true,
         sImA: sConfig?.imA?.toString() || "",
         sImB: sConfig?.imB?.toString() || "",
@@ -74,7 +82,7 @@ export const useRfqRequest = () => {
         sTimelockB: sConfig?.timeLockB?.toString() || "",
         lPrice: String(entryPrice),
         lQuantity: adjustedQuantitiesResult.lQuantity.toString(),
-        lInterestRate: lConfig?.funding?.toString() || "",
+        lInterestRate: lInterestRate.toString(),
         lIsPayingApr: lConfig?.isAPayingApr || true,
         lImA: lConfig?.imA?.toString() || "",
         lImB: lConfig?.imB?.toString() || "",
@@ -106,35 +114,7 @@ export const useRfqRequest = () => {
     if (token != null) {
       const sendRfqRequest = async () => {
         try {
-          await setRfqRequest(); /*
-          console.log(rfqRequest.assetAId);
-          console.log(rfqRequest.assetBId);
-          console.log(rfqRequest.chainId);
-          console.log(rfqRequest.expiration);
-          console.log(rfqRequest.lDfA);
-          console.log(rfqRequest.lDfB);
-          console.log(rfqRequest.lExpirationA);
-          console.log(rfqRequest.lExpirationB);
-          console.log(rfqRequest.lImA);
-          console.log(rfqRequest.lImB);
-          console.log(rfqRequest.lInterestRate);
-          console.log(rfqRequest.lIsPayingApr);
-          console.log(rfqRequest.lPrice);
-          console.log(rfqRequest.lQuantity);
-          console.log(rfqRequest.lTimelockA);
-          console.log(rfqRequest.lTimelockB);
-          console.log(rfqRequest.sDfA);
-          console.log(rfqRequest.sDfB);
-          console.log(rfqRequest.sExpirationA);
-          console.log(rfqRequest.sExpirationB);
-          console.log(rfqRequest.sImA);
-          console.log(rfqRequest.sImB);
-          console.log(rfqRequest.sInterestRate);
-          console.log(rfqRequest.sIsPayingApr);
-          console.log(rfqRequest.sPrice);
-          console.log(rfqRequest.sQuantity);
-          console.log(rfqRequest.sTimelockA);
-          console.log(rfqRequest.sTimelockB);*/
+          await setRfqRequest();
           await sendRfq(rfqRequest, token);
           console.log("RFQ request sent successfully");
         } catch (error) {
@@ -144,7 +124,7 @@ export const useRfqRequest = () => {
 
       const intervalId = setInterval(() => {
         sendRfqRequest();
-      }, 10000);
+      }, 5000);
 
       return () => {
         clearInterval(intervalId);

@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRef } from "react";
 import { toast } from "react-toastify";
-import useBlurEffect from "@/components/hooks/blur";
+import useBlurEffect from "@/hooks/blur";
 
 function SectionUserReferrals() {
   const blur = useBlurEffect();

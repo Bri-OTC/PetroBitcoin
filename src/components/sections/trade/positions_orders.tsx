@@ -10,11 +10,11 @@ import {
   signedWrappedOpenQuoteResponse,
   getSignedWrappedOpenQuotes,
 } from "@pionerfriends/api-client";
-import { useTradeStore } from "@/store/tradeStore";
-import { useAuthStore } from "@/store/authStore";
-import useBlurEffect from "@/components/hooks/blur";
-import { formatUnits } from "viem/utils";
 import { convertFromBytes32 } from "@/components/web3/utils";
+
+import { useAuthStore } from "@/store/authStore";
+import useBlurEffect from "@/hooks/blur";
+const menu = ["Positions", "Orders"];
 
 const getPositions = () => {
   const positions = [
@@ -118,7 +118,6 @@ function SectionTradePositionsOrders() {
   const wallet = useAuthStore((state) => state.wallet);
   const token = useAuthStore((state) => state.token);
 
-  const menu = ["Positions", "Orders"];
   const [currentTab, setCurrentTab] = useState(menu[0]);
   const blur = useBlurEffect();
 
@@ -127,11 +126,14 @@ function SectionTradePositionsOrders() {
   const [currentActiveRowOrders, setCurrentActiveRowOrders] =
     useState<activeMenu>({});
 
+  const positions = getPositions();
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     const fetchOrders = async () => {
       if (!wallet || !token) return;
+      console.log("getOrders", token);
+
       const fetchedOrders = await getOrders(64165, wallet.address, token);
       setOrders(fetchedOrders);
     };
@@ -146,10 +148,6 @@ function SectionTradePositionsOrders() {
       clearInterval(intervalId);
     };
   }, [wallet, token]);
-
-  if (!wallet || !token) return null;
-
-  const positions = getPositions();
 
   const toggleActiveRow = (label: string) => {
     if (currentTab === "Positions") {
@@ -244,6 +242,9 @@ function SectionTradePositionsOrders() {
                   toggleActiveRow={toggleActiveRow}
                   hideRow={hideRow}
                 />
+                <Button variant="ghost" className="text-primary w-full mt-5">
+                  <p>Cancel All</p>
+                </Button>
               </motion.div>
             )}
             {/* Orders Tab End */}
