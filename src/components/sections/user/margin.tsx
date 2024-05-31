@@ -1,15 +1,19 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Slider } from "@/components/ui/slider";
 import { useTradeStore } from "../../../store/tradeStore";
 import useBlurEffect from "@/hooks/blur";
 
 const leverageValue = [1, 10, 25, 50, 100, 500];
+
 function SectionUserMargin() {
   const blur = useBlurEffect();
   const { leverage, setLeverage } = useTradeStore();
+
+  useEffect(() => {
+    useTradeStore.getState().initializeLeverage();
+  }, []);
 
   const handleLeverageChange = (event: React.FormEvent<HTMLDivElement>) => {
     const target = event.currentTarget as HTMLDivElement;

@@ -1,3 +1,4 @@
+//cancelO
 import {
   sendSignedCancelOpenQuote,
   SignedCancelOpenQuoteRequest,
@@ -11,66 +12,82 @@ import {
   NetworkKey,
 } from "@pionerfriends/blockchain-client";
 import { Order } from "@/components/sections/trade/SectionOrders";
+import { generateRandomNonce } from "@/components/web3/utils";
 
-export async function cancelOrder(order: Order) {
-  const wallet = useAuthStore.getState().wallet;
-  const token = useAuthStore.getState().token;
-
+export async function cancelOrder(
+  order: Order,
+  wallet: any,
+  token: string,
+  provider: any
+) {
   if (!wallet || !token || !wallet.address) {
     console.error("Missing wallet, token, walletClient or wallet.address");
-    return;
+    toast.error("Failed to cancel order: Invalid wallet or token");
+    return false;
   }
   console.log("cancelOrder", order);
 
-  const ethersProvider = await (wallet as any).getEthersProvider();
-  const ethersSigner = await ethersProvider.getSigner();
-  const chainId = useAuthStore.getState().chainId;
+  try {
+    const ethersProvider = await wallet.getEthersProvider();
+    const ethersSigner = await ethersProvider.getSigner();
+    const chainId = useAuthStore.getState().chainId;
 
-  console.log("ethersSigner", ethersSigner);
+    console.log("ethersSigner", ethersSigner);
 
-  const domainOpen = {
-    name: "PionerV1Open",
-    version: "1.0",
-    chainId: 64165,
-    verifyingContract:
-      networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
-  };
+    const domainOpen = {
+      name: "PionerV1Open",
+      version: "1.0",
+      chainId: Number(chainId),
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+    };
 
-  const cancelSignType = {
-    CancelRequestSign: [
-      { name: "orderHash", type: "bytes" },
-      { name: "nonce", type: "uint256" },
-    ],
-  };
+    const cancelSignType = {
+      CancelRequestSign: [
+        { name: "orderHash", type: "bytes" },
+        { name: "nonce", type: "uint256" },
+      ],
+    };
 
-  const cancelSignValue = {
-    orderHash: order.targetHash,
-    nonce: 0,
-  };
+    const cancelSignValue = {
+      orderHash: order.targetHash,
+      nonce: 0,
+    };
 
-  console.log("cancelSignValue", cancelSignValue);
+    console.log("cancelSignValue", cancelSignValue);
 
-  const signatureBoracle = await ethersSigner._signTypedData(
-    domainOpen,
-    cancelSignType,
-    cancelSignValue
-  );
-  console.log("signatureBoracle", signatureBoracle);
+    const signatureBoracle = await ethersSigner._signTypedData(
+      domainOpen,
+      cancelSignType,
+      cancelSignValue
+    );
+    console.log("signatureBoracle", signatureBoracle);
 
-  const quote: SignedCancelOpenQuoteRequest = {
-    issuerAddress: wallet.address,
-    counterpartyAddress: order.counterpartyAddress,
-    version: "1.0",
-    chainId: 64165,
-    verifyingContract:
-      networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
-    targetHash: order.targetHash,
-    nonceCancel: 0,
-    signatureCancel: signatureBoracle,
-    emitTime: Date.now().toString(),
-    messageState: 0,
-  };
+    const quote: SignedCancelOpenQuoteRequest = {
+      issuerAddress: wallet.address,
+      counterpartyAddress: order.counterpartyAddress,
+      version: "1.0",
+      chainId: Number(chainId),
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+      targetHash: order.targetHash,
+      nonceCancel: generateRandomNonce(),
+      signatureCancel: signatureBoracle,
+      emitTime: Date.now().toString(),
+      messageState: 0,
+    };
 
-  sendSignedCancelOpenQuote(quote, token);
-  return true;
+    const success = await sendSignedCancelOpenQuote(quote, token);
+
+    if (!success) {
+      toast.error("Failed to cancel order");
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error canceling order:", error);
+    toast.error("An error occurred while canceling the order");
+    return false;
+  }
 }

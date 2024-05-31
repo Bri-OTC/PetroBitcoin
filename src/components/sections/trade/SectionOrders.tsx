@@ -1,3 +1,4 @@
+//SectionOrders.tsx
 import {
   Table,
   TableBody,
@@ -9,7 +10,14 @@ import {
 import Image from "next/image";
 import { Fragment } from "react";
 import { Button } from "@/components/ui/button";
-import { FaEdit } from "react-icons/fa";
+import { FaChartLine } from "react-icons/fa";
+import { toast } from "react-toastify";
+import Link from "next/link";
+import { useTradeStore } from "@/store/tradeStore";
+import { useAuthStore } from "@/store/authStore";
+import { useWalletAndProvider } from "@/components/layout/menu";
+import { cancelOrder as cancelOrderUtil } from "@/components/sections/trade/utils/cancelOpenQuote";
+import { removePrefix } from "@/components/web3/utils";
 
 export interface Order {
   id: string;
@@ -29,7 +37,6 @@ export interface Order {
   targetHash: string;
   counterpartyAddress: string;
 }
-
 interface SectionOrdersProps {
   orders: Order[];
   currentActiveRowOrders: { [key: string]: boolean };
@@ -43,6 +50,73 @@ function SectionOrders({
   toggleActiveRow,
   hideRow,
 }: SectionOrdersProps) {
+  const { wallet, provider } = useWalletAndProvider();
+  const token = useAuthStore.getState().token;
+
+  const handleCancelOrder = async (order: Order) => {
+    try {
+      if (!wallet || !wallet.address || !token) {
+        console.error("Missing wallet, wallet address, or token");
+        toast.error("Failed to cancel order: Invalid wallet or token");
+        return;
+      }
+
+      const success = await cancelOrderUtil(order, wallet, token, provider);
+      if (success) {
+        toast.success("Order canceled successfully");
+        hideRow(order.targetHash);
+      } else {
+        toast.error("Failed to cancel order");
+      }
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      toast.error("An error occurred while canceling the order");
+    }
+  };
+
+  const handleCancelAllOrders = async () => {
+    for (const order of orders) {
+      try {
+        if (!wallet || !wallet.address || !token) {
+          console.error("Missing wallet, wallet address, or token");
+          toast.error("Failed to cancel order: Invalid wallet or token");
+          continue;
+        }
+
+        const success = await cancelOrderUtil(order, wallet, token, provider);
+        if (success) {
+          toast.success(`Order ${order.id} canceled successfully`);
+          hideRow(order.targetHash);
+        } else {
+          toast.error(`Failed to cancel order ${order.id}`);
+        }
+      } catch (error) {
+        console.error(`Error canceling order ${order.id}:`, error);
+        toast.error(`An error occurred while canceling order ${order.id}`);
+      }
+    }
+  };
+
+  const setSelectedMarket = useTradeStore((state) => state.setSymbol);
+
+  const handleMarketClick = (marketName: string) => {
+    setSelectedMarket(marketName);
+  };
+
+  const handleToggleActiveRow = (label: string) => {
+    const isActive = currentActiveRowOrders[label];
+
+    Object.keys(currentActiveRowOrders).forEach((key) => {
+      if (currentActiveRowOrders[key]) {
+        toggleActiveRow(key);
+      }
+    });
+
+    if (!isActive) {
+      toggleActiveRow(label);
+    }
+  };
+
   return (
     <Table className="whitespace-nowrap">
       <TableHeader>
@@ -61,16 +135,21 @@ function SectionOrders({
       </TableHeader>
       <TableBody>
         {orders.map((x, index) => {
+          const formattedMarket = removePrefix(x.market);
+
           return (
-            <Fragment key={x.market + "Fragment"}>
+            <Fragment key={x.targetHash}>
               {index !== 0 && (
-                <TableRow key={x.market + "Orders"} className="border-none">
+                <TableRow
+                  key={`separator-${x.targetHash}`}
+                  className="border-none"
+                >
                   <TableCell className="py-2"></TableCell>
                 </TableRow>
               )}
               <TableRow
-                onClick={() => toggleActiveRow(x.market)}
-                key={x.icon + "Orders"}
+                onClick={() => handleToggleActiveRow(x.targetHash)}
+                key={`row-${x.targetHash}`}
                 className="bg-card hover:bg-card border-none cursor-pointer"
               >
                 <TableCell className="pl-3 pr-0 w-[45px]">
@@ -87,7 +166,7 @@ function SectionOrders({
                     >
                       {x.size}
                     </h3>
-                    <h3 className="text-card-foreground">{x.market}</h3>
+                    <h3 className="text-card-foreground">{formattedMarket}</h3>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -103,10 +182,10 @@ function SectionOrders({
                   </div>
                 </TableCell>
               </TableRow>
-              {currentActiveRowOrders[x.market] && (
+              {currentActiveRowOrders[x.targetHash] && (
                 <>
                   <TableRow
-                    key={x.market + "Orders" + "Child"}
+                    key={`details-1-${x.targetHash}`}
                     className="bg-card hover:bg-card border-none"
                   >
                     <TableCell colSpan={4} className="py-1">
@@ -129,7 +208,7 @@ function SectionOrders({
                     </TableCell>
                   </TableRow>
                   <TableRow
-                    key={x.market + "Orders" + "Child" + "2"}
+                    key={`details-2-${x.targetHash}`}
                     className="bg-card hover:bg-card border-none"
                   >
                     <TableCell colSpan={4} className="py-1">
@@ -146,21 +225,28 @@ function SectionOrders({
                     </TableCell>
                   </TableRow>
                   <TableRow
-                    key={x.market + "Orders" + "Child" + "3"}
+                    key={`actions-${x.targetHash}`}
                     className="bg-card hover:bg-card border-none"
                   >
                     <TableCell colSpan={4}>
                       <div className="w-full flex justify-center space-x-3">
-                        <Button variant="secondary" className="flex space-x-2">
-                          <FaEdit />
-                          <p>Modify</p>
-                        </Button>
                         <Button
-                          onClick={() => hideRow(x.market)}
+                          onClick={() => handleCancelOrder(x)}
                           variant="destructive"
                         >
                           <p>Cancel</p>
                         </Button>
+                        <Link
+                          href="/trade"
+                          onClick={() => handleMarketClick(x.market)}
+                        >
+                          <Button variant="outline">
+                            <div className="flex items-center space-x-2">
+                              <FaChartLine />
+                              <p>Chart</p>
+                            </div>
+                          </Button>
+                        </Link>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -169,6 +255,17 @@ function SectionOrders({
             </Fragment>
           );
         })}
+        <TableRow>
+          <TableCell colSpan={4} className="p-0">
+            <Button
+              variant="ghost"
+              className="text-primary w-full mt-5 text-lg hover:bg-muted"
+              onClick={handleCancelAllOrders}
+            >
+              <p>Cancel All</p>
+            </Button>
+          </TableCell>
+        </TableRow>
       </TableBody>
     </Table>
   );

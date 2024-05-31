@@ -29,3 +29,23 @@ export const parseDecimalValue = (value: string): string => {
     return "0";
   }
 };
+
+export function generateRandomNonce() {
+  const randomNumber = Math.floor(Math.random() * 1000000) + 1;
+  return randomNumber;
+}
+
+const prefixList = ["forex", "crypto", "nasdaq"];
+
+export function removePrefix(market: string): string {
+  const [base, quote] = market.split("/");
+  const baseWithoutPrefix = prefixList.reduce(
+    (acc, prefix) => acc.replace(`${prefix}.`, ""),
+    base
+  );
+  const quoteWithoutPrefix = prefixList.reduce(
+    (acc, prefix) => acc.replace(`${prefix}.`, ""),
+    quote
+  );
+  return `${baseWithoutPrefix}/${quoteWithoutPrefix}`;
+}

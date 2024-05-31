@@ -35,8 +35,8 @@ function SectionTradeOrderTrades() {
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
   const blur = useBlurEffect();
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
-  const testBool = true;
-  const color = useColorStore((state) => state.color);
+  const testBool = false;
+  const color = useColorStore((state) => state.color) || "#E0AD0C";
   useMethodColor();
 
   const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +109,7 @@ function SectionTradeOrderTrades() {
               <div className="flex pb-3 items-center space-x-2">
                 <input
                   type="number"
-                  className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
+                  className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[#e0ae0c85]`}
                   placeholder="Input Price"
                   value={entryPrice}
                   onChange={(e) => setEntryPrice(e.target.value)}
@@ -145,7 +145,7 @@ function SectionTradeOrderTrades() {
                   <button
                     key={x}
                     onClick={() => setSliderValue(x)}
-                    className={`w-full bg-card py-2 text-center hover:bg-[${color}] rounded-lg cursor-pointer`}
+                    className={`w-full bg-card py-2 text-center hover:bg-[#e0ae0c86] rounded-lg cursor-pointer`}
                   >
                     {x}%
                   </button>
@@ -162,14 +162,14 @@ function SectionTradeOrderTrades() {
               <div>
                 <Drawer>
                   <DrawerTrigger
-                    className={`w-full py-3 ${
-                      testBool
-                        ? `bg-[${color}]`
+                    className={`w-full py-2  hover:bg-[#e0ae0cea] rounded-lg text-black ${
+                      isMarketOpen
+                        ? `bg-[#E0AD0C]`
                         : "bg-[#666EFF] cursor-not-allowed"
                     }`}
-                    disabled={!testBool}
+                    disabled={!isMarketOpen}
                   >
-                    <p>{currentMethod}</p>
+                    <p>{isMarketOpen ? currentMethod : "Market Closed"}</p>
                   </DrawerTrigger>
                   <SheetPlaceOrder />
                 </Drawer>

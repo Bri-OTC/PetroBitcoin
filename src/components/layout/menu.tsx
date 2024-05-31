@@ -65,7 +65,6 @@ export function Menu() {
       isNewUser: boolean,
       wasAlreadyAuthenticated: boolean
     ) => {
-      console.log(user, isNewUser, wasAlreadyAuthenticated);
       await fetchPayload();
     },
     onError: (error) => {
@@ -165,6 +164,7 @@ export function Menu() {
           loginResponse.data.token
         ) {
           const token = loginResponse.data.token;
+          console.log(`Token: ${token} `);
           const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(wallet.address);
           if (isValidAddress) {
             setToken(token);
@@ -264,7 +264,7 @@ export function Menu() {
             </div>
           ) : payload ? (
             <div className="text-center text-white p-3 flex items-center">
-              <span className="mr-2">Signing in...</span>
+              <span className="mr-2">Waiting wallet signature</span>
               <button
                 onClick={() => {
                   logout();

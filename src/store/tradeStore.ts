@@ -4,6 +4,30 @@ import { StoreState, initialState } from "./tradeStoreInit";
 export const useTradeStore = create<StoreState>((set) => ({
   ...initialState,
 
+  initializeLeverage: () => {
+    if (typeof window !== "undefined") {
+      const storedLeverage = localStorage.getItem("leverage") || "500"; // Retrieve from local storage or set a default value
+      set((state) => {
+        const maxAmount = parseFloat(
+          (
+            state.balance /
+            (parseFloat(state.entryPrice) / parseFloat(storedLeverage))
+          ).toFixed(2)
+        );
+        const estimatedLiquidationPrice =
+          parseFloat(state.entryPrice) /
+          (1 - parseFloat(state.amount) / state.balance);
+
+        return {
+          ...state,
+          leverage: parseFloat(storedLeverage),
+          maxAmount: maxAmount,
+          estimatedLiquidationPrice: estimatedLiquidationPrice,
+        };
+      });
+    }
+  },
+
   setBalance: (balance) =>
     set((state) => ({
       balance: balance,
@@ -185,6 +209,10 @@ export const useTradeStore = create<StoreState>((set) => ({
         parseFloat(state.entryPrice) /
         (1 - parseFloat(state.amount) / state.balance);
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("leverage", leverage.toString()); // Store in local storage
+      }
+
       return {
         ...state,
         leverage,
@@ -193,7 +221,6 @@ export const useTradeStore = create<StoreState>((set) => ({
       };
     }),
 
-  //
   setCurrentTabIndex: (index) => set({ currentTabIndex: index }),
   //
   setEstimatedLiquidationPrice: (price) =>
@@ -201,3 +228,5 @@ export const useTradeStore = create<StoreState>((set) => ({
 
   setEntryPriceModified: (modified) => set({ entryPriceModified: modified }),
 }));
+
+useTradeStore.getState().initializeLeverage();

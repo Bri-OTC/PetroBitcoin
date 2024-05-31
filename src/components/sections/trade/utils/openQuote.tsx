@@ -12,7 +12,11 @@ import {
   SignedWrappedOpenQuoteRequest,
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
-import { convertToBytes32, parseDecimalValue } from "@/components/web3/utils";
+import {
+  convertToBytes32,
+  parseDecimalValue,
+  generateRandomNonce,
+} from "@/components/web3/utils";
 import { DepositedBalance } from "@/components/sections/wallet/table";
 import { useBalance } from "@/hooks/useBalance";
 
@@ -95,7 +99,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
           : rfqRequest.sExpirationB,
       timeLock:
         currentMethod === "Buy" ? rfqRequest.lTimelockA : rfqRequest.sTimelockA,
-      nonceBoracle: 0,
+      nonceBoracle: generateRandomNonce(),
       signatureBoracle: "",
       isLong: currentMethod === "Buy" ? true : false,
       price: parseDecimalValue(entryPrice),
@@ -108,7 +112,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       authorized: "0x0000000000000000000000000000000000000000",
-      nonceOpenQuote: 0,
+      nonceOpenQuote: generateRandomNonce(),
       signatureOpenQuote: "",
       emitTime: String(Date.now()),
       messageState: 1,

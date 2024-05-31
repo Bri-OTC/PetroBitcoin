@@ -14,7 +14,7 @@ const useQuoteWss = (
     useRef<PionerWebsocketClient<WebSocketType.LiveQuotes> | null>(null);
 
   useEffect(() => {
-    if (token) {
+    if (token && token.trim() !== "") {
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveQuotes>(
           WebSocketType.LiveQuotes,

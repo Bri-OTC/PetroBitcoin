@@ -11,6 +11,7 @@ import {
   getSignedWrappedOpenQuotes,
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
+import { useWalletAndProvider } from "@/components/layout/menu";
 
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
@@ -115,7 +116,7 @@ interface activeMenu {
 }
 
 function SectionTradePositionsOrders() {
-  const wallet = useAuthStore((state) => state.wallet);
+  const { wallet, provider } = useWalletAndProvider();
   const token = useAuthStore((state) => state.token);
 
   const [currentTab, setCurrentTab] = useState(menu[0]);
@@ -131,18 +132,23 @@ function SectionTradePositionsOrders() {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      if (!wallet || !token) return;
-      console.log("getOrders", token);
+      if (!wallet || !token) {
+        return;
+      }
 
-      const fetchedOrders = await getOrders(64165, wallet.address, token);
-      setOrders(fetchedOrders);
+      try {
+        const fetchedOrders = await getOrders(64165, wallet.address, token);
+        setOrders(fetchedOrders);
+      } catch (error) {
+        console.error("Error fetching orders:", error);
+      }
     };
 
-    fetchOrders();
+    fetchOrders(); // Initial fetch
 
     const intervalId = setInterval(() => {
       fetchOrders();
-    }, 1000);
+    }, 1000); // Re-fetch every second
 
     return () => {
       clearInterval(intervalId);
@@ -242,9 +248,6 @@ function SectionTradePositionsOrders() {
                   toggleActiveRow={toggleActiveRow}
                   hideRow={hideRow}
                 />
-                <Button variant="ghost" className="text-primary w-full mt-5">
-                  <p>Cancel All</p>
-                </Button>
               </motion.div>
             )}
             {/* Orders Tab End */}
