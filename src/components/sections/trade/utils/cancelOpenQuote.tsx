@@ -2,6 +2,8 @@
 import {
   sendSignedCancelOpenQuote,
   SignedCancelOpenQuoteRequest,
+  sendSignedCancelCloseQuote,
+  signedCancelCloseQuoteResponse,
 } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
@@ -13,6 +15,7 @@ import {
 } from "@pionerfriends/blockchain-client";
 import { Order } from "@/components/sections/trade/SectionOrders";
 import { generateRandomNonce } from "@/components/web3/utils";
+import { toast } from "react-toastify";
 
 export async function cancelOrder(
   order: Order,
@@ -62,22 +65,39 @@ export async function cancelOrder(
       cancelSignValue
     );
     console.log("signatureBoracle", signatureBoracle);
+    let success;
+    if (order.reduceOnly == "No") {
+      const quote: SignedCancelOpenQuoteRequest = {
+        issuerAddress: wallet.address,
+        counterpartyAddress: order.counterpartyAddress,
+        version: "1.0",
+        chainId: Number(chainId),
+        verifyingContract:
+          networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+        targetHash: order.targetHash,
+        nonceCancel: generateRandomNonce(),
+        signatureCancel: signatureBoracle,
+        emitTime: Date.now().toString(),
+        messageState: 0,
+      };
 
-    const quote: SignedCancelOpenQuoteRequest = {
-      issuerAddress: wallet.address,
-      counterpartyAddress: order.counterpartyAddress,
-      version: "1.0",
-      chainId: Number(chainId),
-      verifyingContract:
-        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
-      targetHash: order.targetHash,
-      nonceCancel: generateRandomNonce(),
-      signatureCancel: signatureBoracle,
-      emitTime: Date.now().toString(),
-      messageState: 0,
-    };
-
-    const success = await sendSignedCancelOpenQuote(quote, token);
+      success = await sendSignedCancelOpenQuote(quote, token);
+    } else if (order.reduceOnly == "Yes") {
+      const quote: signedCancelCloseQuoteResponse = {
+        issuerAddress: wallet.address,
+        counterpartyAddress: order.counterpartyAddress,
+        version: "1.0",
+        chainId: Number(chainId),
+        verifyingContract:
+          networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
+        targetHash: order.targetHash,
+        nonceCancel: generateRandomNonce(),
+        signature: signatureBoracle,
+        emitTime: Date.now().toString(),
+        messageState: 0,
+      };
+      success = await sendSignedCancelCloseQuote(quote, token);
+    }
 
     if (!success) {
       toast.error("Failed to cancel order");
