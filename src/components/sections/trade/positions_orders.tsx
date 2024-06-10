@@ -38,9 +38,6 @@ function SectionTradePositionsOrders() {
     useState<activeMenu>({});
   const [currentActiveRowOrders, setCurrentActiveRowOrders] =
     useState<activeMenu>({});
-  if (!wallet || !token) {
-    return;
-  }
 
   const [positions, setPositions] = useState<Position[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);

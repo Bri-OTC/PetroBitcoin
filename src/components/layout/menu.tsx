@@ -16,6 +16,7 @@ import { FaTimes } from "react-icons/fa";
 import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, useCallback } from "react";
+import { fantomSonicTestnet } from "@/app/privy-provider";
 
 import { createWalletClient, custom, verifyMessage } from "viem";
 import { useRfqRequestStore } from "@/components/triparty/quoteStore";
@@ -36,9 +37,9 @@ export function Menu() {
   const setProvider = useAuthStore((state) => state.setProvider);
   const setToken = useAuthStore((state) => state.setToken);
   const token = useAuthStore((state) => state.token);
-  const provider = useAuthStore((state) => state.provider);
   const symbol = useTradeStore((state) => state.symbol);
   const color = useColorStore((state) => state.color);
+  const { wallet: wallet2, provider } = useWalletAndProvider();
 
   const [payload, setPayload] = useState<{
     uuid: string;
@@ -48,9 +49,51 @@ export function Menu() {
   const [loginError, setLoginError] = useState(false);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
   const { addQuote } = useRfqRequestStore();
+  const chainId = wallet?.chainId;
 
   const disableLogin = !!(authenticated && token);
+  const [isFantomSonicTestnet, setIsFantomSonicTestnet] = useState(false);
 
+  useEffect(() => {
+    const checkChain = async () => {
+      if (wallet && provider) {
+        try {
+          const currentChainId = await provider.request({
+            method: "eth_chainId",
+          });
+          setIsFantomSonicTestnet(currentChainId === "0xFAA5");
+        } catch (error) {
+          console.error("Error checking chain:", error);
+        }
+      }
+    };
+
+    checkChain();
+  }, [wallet, provider]);
+
+  const addChain = async () => {
+    if (wallet && provider) {
+      try {
+        await provider.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: "0xFAA5",
+              chainName: fantomSonicTestnet.name,
+              nativeCurrency: fantomSonicTestnet.nativeCurrency,
+              rpcUrls: fantomSonicTestnet.rpcUrls.default.http,
+              blockExplorerUrls: fantomSonicTestnet.blockExplorers?.default.url
+                ? [fantomSonicTestnet.blockExplorers.default.url]
+                : [],
+            },
+          ],
+        });
+        setIsFantomSonicTestnet(true);
+      } catch (error) {
+        console.error("Error adding chain:", error);
+      }
+    }
+  };
   /** Global workers*/
   useUpdateMarketStatus(token, symbol, setIsMarketOpen);
   useQuoteWss(token, addQuote);
@@ -72,8 +115,9 @@ export function Menu() {
       console.log(error);
     },
   });
+
   useEffect(() => {
-    const tokenFromCookie = Cookies.get("token");
+    const tokenFromCookie = Cookies.get("token") ?? null;
     const authenticatedFromStorage = localStorage.getItem("authenticated");
 
     if (
@@ -213,8 +257,13 @@ export function Menu() {
     Cookies.remove("privy:user");
 
     localStorage.removeItem("authenticated");
-  };
 
+    // Clear token and other relevant data
+    setToken(null);
+    setPayload(null);
+    setPayloadError(false);
+    setLoginError(false);
+  };
   useEffect(() => {
     if (loginError) {
       logout();
@@ -249,6 +298,16 @@ export function Menu() {
     };
   }, [wallet, token, checkWalletAddress]);
 
+  useEffect(() => {
+    if (authenticated && token && (!wallet || !wallet.address)) {
+      logout();
+      setPayload(null);
+      setToken(null);
+      setPayloadError(false);
+      setLoginError(false);
+    }
+  }, [authenticated, token, wallet, logout, setToken]);
+
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
       <div className="w-full h-[1px] bg-border"></div>
@@ -256,7 +315,16 @@ export function Menu() {
         {ready ? (
           ready && authenticated && token ? (
             <div className="text-center text-white p-3 flex items-center">
-              <h3 className="mr-2">Account: {wallet?.address}</h3>
+              {!isFantomSonicTestnet ? (
+                <button
+                  onClick={addChain}
+                  className="text-white hover:text-gray-200 mr-2"
+                >
+                  Switch to Fantom Sonic Testnet
+                </button>
+              ) : (
+                <h3 className="mr-2">Account: {wallet?.address}</h3>
+              )}
               <button
                 onClick={() => {
                   logout();
@@ -290,12 +358,8 @@ export function Menu() {
             <button
               disabled={disableLogin}
               onClick={() => {
-                setPayload(null);
-                setToken(null);
-                setPayloadError(false);
-                setLoginError(false);
+                clearPrivyData();
                 if (ready && authenticated) {
-                  clearPrivyData();
                   logout();
                   login();
                 } else if (ready) {

@@ -103,11 +103,15 @@ export function DepositedBalance() {
               "latest" as const,
             ],
           });
-          const depositedBalanceInUnits = formatUnits(
-            BigInt(depositedBalanceResponse as string),
-            18
-          );
-          setDepositedBalance(depositedBalanceInUnits);
+          if (depositedBalanceResponse === "0x") {
+            setDepositedBalance("0");
+          } else {
+            const depositedBalanceInUnits = formatUnits(
+              BigInt(depositedBalanceResponse as string),
+              18
+            );
+            setDepositedBalance(depositedBalanceInUnits);
+          }
         } catch (error) {
           console.error(error);
           // Check for the specific error message
@@ -157,11 +161,15 @@ export function ClaimableBalance() {
               "latest",
             ],
           });
-          const depositedBalanceInUnits = formatUnits(
-            BigInt(depositedBalanceResponse as string),
-            18
-          );
-          setDepositedBalance(depositedBalanceInUnits);
+          if (depositedBalanceResponse === "0x") {
+            setDepositedBalance("0");
+          } else {
+            const depositedBalanceInUnits = formatUnits(
+              BigInt(depositedBalanceResponse as string),
+              18
+            );
+            setDepositedBalance(depositedBalanceInUnits);
+          }
         } catch (error) {
           console.error("Error fetching deposited balance:", error);
         }
@@ -205,11 +213,15 @@ export function TimeToClaim() {
               "latest",
             ],
           });
-          const depositedBalanceInUnits = formatUnits(
-            BigInt(depositedBalanceResponse as string),
-            18
-          );
-          setDepositedBalance(depositedBalanceInUnits);
+          if (depositedBalanceResponse === "0x") {
+            setDepositedBalance("0");
+          } else {
+            const depositedBalanceInUnits = formatUnits(
+              BigInt(depositedBalanceResponse as string),
+              18
+            );
+            setDepositedBalance(depositedBalanceInUnits);
+          }
         } catch (error) {
           console.error("Error fetching deposited balance:", error);
         }
@@ -252,11 +264,15 @@ export function USDCBalance() {
               "latest",
             ],
           });
-          const usdcBalanceInUnits = formatUnits(
-            BigInt(usdcBalanceResponse as string),
-            18
-          );
-          setUsdcBalance(usdcBalanceInUnits);
+          if (usdcBalanceResponse === "0x") {
+            setUsdcBalance("0");
+          } else {
+            const usdcBalanceInUnits = formatUnits(
+              BigInt(usdcBalanceResponse as string),
+              18
+            );
+            setUsdcBalance(usdcBalanceInUnits);
+          }
         } catch (error) {
           console.error("Error fetching USDC balance:", error);
         }
@@ -303,11 +319,15 @@ export function USDCAllowance() {
               "latest",
             ],
           });
-          const usdcBalanceInUnits = formatUnits(
-            BigInt(usdcBalanceResponse as string),
-            18
-          );
-          setUsdcBalance(usdcBalanceInUnits);
+          if (usdcBalanceResponse === "0x") {
+            setUsdcBalance("0");
+          } else {
+            const usdcBalanceInUnits = formatUnits(
+              BigInt(usdcBalanceResponse as string),
+              18
+            );
+            setUsdcBalance(usdcBalanceInUnits);
+          }
         } catch (error) {
           console.error("Error fetching USDC balance:", error);
         }
