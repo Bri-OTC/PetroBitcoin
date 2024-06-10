@@ -75,7 +75,10 @@ export const initialState: StoreState = {
   bidPrice: 1,
   askPrice: 1,
   symbol: "GBPUSD/EURUSD",
-  leverage: 500,
+  leverage:
+    typeof window !== "undefined"
+      ? parseFloat(localStorage.getItem("leverage") || "500")
+      : 500,
   currentTabIndex: "Limit",
   estimatedLiquidationPrice: 0,
   entryPriceModified: false,

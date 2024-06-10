@@ -6,27 +6,32 @@ export const useTradeStore = create<StoreState>((set) => ({
 
   initializeLeverage: () => {
     if (typeof window !== "undefined") {
-      const storedLeverage = localStorage.getItem("leverage") || "500"; // Retrieve from local storage or set a default value
-      set((state) => {
-        const maxAmount = parseFloat(
-          (
-            state.balance /
-            (parseFloat(state.entryPrice) / parseFloat(storedLeverage))
-          ).toFixed(2)
-        );
-        const estimatedLiquidationPrice =
-          parseFloat(state.entryPrice) /
-          (1 - parseFloat(state.amount) / state.balance);
-
-        return {
-          ...state,
-          leverage: parseFloat(storedLeverage),
-          maxAmount: maxAmount,
-          estimatedLiquidationPrice: estimatedLiquidationPrice,
-        };
-      });
+      const storedLeverage = localStorage.getItem("leverage") || "500";
+      set((state) => ({
+        leverage: parseFloat(storedLeverage),
+      }));
     }
   },
+
+  setLeverage: (leverage) =>
+    set((state) => {
+      const maxAmount = parseFloat(
+        (state.balance / (parseFloat(state.entryPrice) / leverage)).toFixed(2)
+      );
+      const estimatedLiquidationPrice =
+        parseFloat(state.entryPrice) /
+        (1 - parseFloat(state.amount) / state.balance);
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("leverage", leverage.toString());
+      }
+
+      return {
+        leverage,
+        maxAmount,
+        estimatedLiquidationPrice,
+      };
+    }),
 
   setBalance: (balance) =>
     set((state) => ({
@@ -200,26 +205,6 @@ export const useTradeStore = create<StoreState>((set) => ({
   setBidPrice: (price) => set({ bidPrice: price }),
   setAskPrice: (price) => set({ askPrice: price }),
   setSymbol: (symbol) => set({ symbol }),
-  setLeverage: (leverage) =>
-    set((state) => {
-      const maxAmount = parseFloat(
-        (state.balance / (parseFloat(state.entryPrice) / leverage)).toFixed(2)
-      );
-      const estimatedLiquidationPrice =
-        parseFloat(state.entryPrice) /
-        (1 - parseFloat(state.amount) / state.balance);
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("leverage", leverage.toString()); // Store in local storage
-      }
-
-      return {
-        ...state,
-        leverage,
-        maxAmount: maxAmount,
-        estimatedLiquidationPrice: estimatedLiquidationPrice,
-      };
-    }),
 
   setCurrentTabIndex: (index) => set({ currentTabIndex: index }),
   //

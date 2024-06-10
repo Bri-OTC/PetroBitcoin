@@ -29,6 +29,7 @@ interface activeMenu {
 function SectionTradePositionsOrders() {
   const { wallet, provider } = useWalletAndProvider();
   const token = useAuthStore((state) => state.token);
+  const chainId = useAuthStore((state) => state.chainId);
 
   const [currentTab, setCurrentTab] = useState(menu[0]);
   const blur = useBlurEffect();
@@ -37,37 +38,42 @@ function SectionTradePositionsOrders() {
     useState<activeMenu>({});
   const [currentActiveRowOrders, setCurrentActiveRowOrders] =
     useState<activeMenu>({});
+  if (!wallet || !token) {
+    return;
+  }
 
-  const positions = getPositions();
+  const [positions, setPositions] = useState<Position[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const fetchOrders = async () => {
+    const fetchData = async () => {
       if (!wallet || !token) {
         return;
       }
 
       try {
-        const [openOrders, closeOrders] = await Promise.all([
+        const [openOrders, closeOrders, positionsData] = await Promise.all([
           getOrders(64165, wallet.address, token),
           getCloseOrders(64165, wallet.address, token),
+          getPositions(Number(chainId), token, wallet.address),
         ]);
         setOrders([...openOrders, ...closeOrders]);
+        setPositions(positionsData);
       } catch (error) {
-        console.error("Error fetching orders:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    fetchOrders(); // Initial fetch
+    fetchData(); // Initial fetch
 
     const intervalId = setInterval(() => {
-      fetchOrders();
+      fetchData();
     }, 1000); // Re-fetch every second
 
     return () => {
       clearInterval(intervalId);
     };
-  }, [wallet, token]);
+  }, [wallet, token, chainId]);
 
   const toggleActiveRow = (label: string) => {
     if (currentTab === "Positions") {

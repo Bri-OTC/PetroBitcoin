@@ -5,16 +5,21 @@ import {
   QuoteResponse,
   WebSocketType,
 } from "@pionerfriends/api-client";
+import { useWalletAndProvider } from "@/components/layout/menu";
+import useBlurEffect from "@/hooks/blur";
 
 const useQuoteWss = (
   token: string | null,
   addQuote: (message: QuoteResponse) => void
 ) => {
+  const { wallet, provider } = useWalletAndProvider();
+  const blur = useBlurEffect();
+
   const quoteClientRef =
     useRef<PionerWebsocketClient<WebSocketType.LiveQuotes> | null>(null);
 
   useEffect(() => {
-    if (token && token.trim() !== "") {
+    if (token && token !== null && !wallet) {
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveQuotes>(
           WebSocketType.LiveQuotes,

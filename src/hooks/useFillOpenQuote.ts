@@ -6,15 +6,18 @@ import {
   WebSocketType,
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
+import { useWalletAndProvider } from "@/components/layout/menu";
 
 const useFillOpenQuote = (token: string | null) => {
+  const { wallet, provider } = useWalletAndProvider();
+
   const quoteClientRef =
     useRef<PionerWebsocketClient<WebSocketType.LiveWrappedOpenQuotes> | null>(
       null
     );
 
   useEffect(() => {
-    if (token && token.trim() !== "") {
+    if (token && token !== null && !wallet) {
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveWrappedOpenQuotes>(
           WebSocketType.LiveWrappedOpenQuotes,

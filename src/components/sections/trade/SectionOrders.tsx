@@ -238,7 +238,7 @@ function SectionOrders({
                         </Button>
                         <Link
                           href="/trade"
-                          onClick={() => handleMarketClick(x.market)}
+                          onClick={() => handleMarketClick(formattedMarket)}
                         >
                           <Button variant="outline">
                             <div className="flex items-center space-x-2">

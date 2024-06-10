@@ -35,7 +35,7 @@ function SectionTradeOrderTrades() {
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
   const blur = useBlurEffect();
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
-  const testBool = false;
+  const testBool = true;
   const color = useColorStore((state) => state.color) || "#E0AD0C";
   useMethodColor();
 
@@ -156,20 +156,20 @@ function SectionTradeOrderTrades() {
                   {accountLeverage}x Account Leverage
                 </p>
                 <p className="text-card-foreground">
-                  <span className="text-red-500">6.25%</span> APR
+                  <span className="text-red-500">12.25%</span> APR
                 </p>
               </div>
               <div>
                 <Drawer>
                   <DrawerTrigger
                     className={`w-full py-2  hover:bg-[#e0ae0cea] rounded-lg text-black ${
-                      isMarketOpen
-                        ? `bg-[#E0AD0C]`
+                      testBool
+                        ? `bg-[#666EFF]`
                         : "bg-[#666EFF] cursor-not-allowed"
                     }`}
-                    disabled={!isMarketOpen}
+                    disabled={!testBool}
                   >
-                    <p>{isMarketOpen ? currentMethod : "Market Closed"}</p>
+                    <p>{testBool ? currentMethod : "Market Closed"}</p>
                   </DrawerTrigger>
                   <SheetPlaceOrder />
                 </Drawer>

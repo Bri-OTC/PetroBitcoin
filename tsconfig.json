@@ -6,8 +6,11 @@
     "strict": true,
     "noEmit": true,
     "esModuleInterop": true,
+    //"moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    //"jsx": "preserve",
+    "incremental": true,
     "target": "es5",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
@@ -22,8 +25,7 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "incremental": true
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -37,6 +39,5 @@
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/store/authstore.ts"
-  ],
-  "types": ["node"]
+  ]
 }

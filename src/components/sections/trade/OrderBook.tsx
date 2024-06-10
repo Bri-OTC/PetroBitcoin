@@ -171,6 +171,58 @@ const OrderBook: React.FC<OrderBookProps> = ({
     };
   }, [ordersToUse, maxRows, bidPrice, askPrice, bidQty, askQty]);
 
+  useEffect(() => {
+    if (!isOrderBookOn) return;
+
+    let ws: WebSocket | null = null;
+    let timeoutId: NodeJS.Timeout | null = null;
+    let retryCount = 0;
+
+    const connect = () => {
+      const subscribe = {
+        event: "bts:subscribe",
+        data: { channel: `order_book_btcusd` },
+      };
+
+      ws = new WebSocket("wss://ws.bitstamp.net");
+      ws.onopen = () => {
+        retryCount = 0; // Reset retry count on successful connection
+        if (ws) {
+          ws.send(JSON.stringify(subscribe));
+        }
+      };
+      ws.onmessage = (event) => {
+        setOrders(JSON.parse(event.data).data);
+      };
+      ws.onclose = () => {
+        reconnect();
+      };
+    };
+
+    const reconnect = () => {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+
+      // Exponential backoff delay
+      const delay = Math.min(Math.pow(2, retryCount) * 1000, 30000);
+      retryCount++;
+
+      timeoutId = setTimeout(connect, delay);
+    };
+
+    connect();
+
+    return () => {
+      if (ws) {
+        ws.close();
+        ws = null;
+      }
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [isOrderBookOn]);
+
   return (
     <div className="order-container">
       <table className="order-book">

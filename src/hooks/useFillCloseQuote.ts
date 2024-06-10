@@ -5,13 +5,16 @@ import {
   signedCloseQuoteResponse,
   WebSocketType,
 } from "@pionerfriends/api-client";
+import { useWalletAndProvider } from "@/components/layout/menu";
 
 const useFillCloseQuote = (token: string | null) => {
+  const { wallet, provider } = useWalletAndProvider();
+
   const quoteClientRef =
     useRef<PionerWebsocketClient<WebSocketType.LiveCloseQuotes> | null>(null);
 
   useEffect(() => {
-    if (token && token.trim() !== "") {
+    if (token && token !== null && !wallet) {
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveCloseQuotes>(
           WebSocketType.LiveCloseQuotes,

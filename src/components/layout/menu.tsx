@@ -66,6 +66,7 @@ export function Menu() {
       wasAlreadyAuthenticated: boolean
     ) => {
       await fetchPayload();
+      localStorage.setItem("authenticated", "true");
     },
     onError: (error) => {
       console.log(error);
@@ -73,7 +74,12 @@ export function Menu() {
   });
   useEffect(() => {
     const tokenFromCookie = Cookies.get("token");
-    if (tokenFromCookie && !token && ready && authenticated) {
+    const authenticatedFromStorage = localStorage.getItem("authenticated");
+
+    if (
+      (tokenFromCookie && !token && ready && authenticated) ||
+      authenticatedFromStorage
+    ) {
       setToken(tokenFromCookie);
     }
   }, [authenticated, ready, token, setToken]);
@@ -205,6 +211,8 @@ export function Menu() {
     // Clear Privy data from cookies
     Cookies.remove("privy:authenticated");
     Cookies.remove("privy:user");
+
+    localStorage.removeItem("authenticated");
   };
 
   useEffect(() => {
