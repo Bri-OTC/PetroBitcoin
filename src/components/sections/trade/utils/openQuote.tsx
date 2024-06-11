@@ -1,12 +1,13 @@
+// openQuote.tsx
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
+import { useQuoteStore } from "@/components/triparty/quoteStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { toast } from "react-toastify";
 import { formatPair } from "@/components/triparty/priceUpdater";
 import { useWalletAndProvider } from "@/components/layout/menu";
-
 import {
   sendSignedWrappedOpenQuote,
   SignedWrappedOpenQuoteRequest,
@@ -25,6 +26,9 @@ interface OpenQuoteButtonProps {
 }
 
 const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
+  const { getBestQuotes } = useQuoteStore();
+  const { bestBid, bestAsk } = getBestQuotes();
+
   const depositedBalance = DepositedBalance();
   const chainId = String(64165);
 
@@ -38,6 +42,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const updateRfqRequest = useRfqRequestStore(
     (state) => state.updateRfqRequest
   );
+
   const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
 
   const currentMethod: string = useTradeStore((state) => state.currentMethod);
@@ -60,9 +65,26 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
     setLoading(true);
 
+    let counterparty;
+    if (currentMethod === "Buy") {
+      if (!bestBid || !bestBid.counterpartyAddress) {
+        console.error("No best bid or counterparty address available");
+        setLoading(false);
+        return;
+      }
+      counterparty = bestBid.counterpartyAddress;
+    } else {
+      if (!bestAsk || !bestAsk.counterpartyAddress) {
+        console.error("No best ask or counterparty address available");
+        setLoading(false);
+        return;
+      }
+      counterparty = bestAsk.counterpartyAddress;
+    }
+
     const quote: SignedWrappedOpenQuoteRequest = {
       issuerAddress: wallet.address,
-      counterpartyAddress: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
+      counterpartyAddress: counterparty,
       version: "1.0",
       chainId: 64165,
       verifyingContract:

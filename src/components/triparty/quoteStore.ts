@@ -1,3 +1,4 @@
+// useQuoteStore.ts
 import { create } from "zustand";
 
 export interface QuoteResponse {
@@ -16,23 +17,35 @@ export interface QuoteResponse {
   lQuantity: string;
 }
 
-interface RfqStore {
+interface BestQuote {
+  price: string;
+  counterpartyAddress: string;
+}
+
+interface QuoteStore {
   bids: QuoteResponse[];
   asks: QuoteResponse[];
   addQuote: (quote: QuoteResponse) => void;
+  chainId: number;
+  getBestQuotes: () => {
+    bestBid: BestQuote | undefined;
+    bestAsk: BestQuote | undefined;
+  };
 }
 
 const isQuoteValid = (quote: QuoteResponse) => {
   const currentTime = new Date().getTime();
   const quoteTime = new Date(quote.createdAt).getTime();
   const expirationTime = new Date(quote.expiration).getTime();
+  // todo add chainId check
   return currentTime - quoteTime <= 5000 && currentTime < expirationTime;
 };
 
-export const useRfqRequestStore = create<RfqStore>((set) => ({
+export const useQuoteStore = create<QuoteStore>((set, get) => ({
   bids: [],
   asks: [],
   addQuote: (quote: QuoteResponse) => {
+    console.log("adding quote", quote);
     if (!isQuoteValid(quote)) return;
 
     set((state) => {
@@ -46,5 +59,30 @@ export const useRfqRequestStore = create<RfqStore>((set) => ({
 
       return { bids, asks };
     });
+  },
+  chainId: 0,
+  getBestQuotes: () => {
+    const { bids, asks } = get();
+
+    const validBids = bids.filter(isQuoteValid);
+    const validAsks = asks.filter(isQuoteValid);
+
+    const bestBid: BestQuote | undefined =
+      validBids.length > 0
+        ? {
+            price: validBids[0].sPrice,
+            counterpartyAddress: validBids[0].userAddress,
+          }
+        : undefined;
+
+    const bestAsk: BestQuote | undefined =
+      validAsks.length > 0
+        ? {
+            price: validAsks[0].lPrice,
+            counterpartyAddress: validAsks[0].userAddress,
+          }
+        : undefined;
+
+    return { bestBid, bestAsk };
   },
 }));

@@ -113,7 +113,7 @@ export function DepositedBalance() {
             setDepositedBalance(depositedBalanceInUnits);
           }
         } catch (error) {
-          console.error(error);
+          //console.error(error);
           // Check for the specific error message
           if (error === "Error: Wallet timeout") {
             // Disconnect wallet and clear data only for the specific error

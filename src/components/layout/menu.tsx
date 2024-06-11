@@ -19,7 +19,7 @@ import { useEffect, useState, useCallback } from "react";
 import { fantomSonicTestnet } from "@/app/privy-provider";
 
 import { createWalletClient, custom, verifyMessage } from "viem";
-import { useRfqRequestStore } from "@/components/triparty/quoteStore";
+import { useQuoteStore } from "@/components/triparty/quoteStore";
 import useUpdateMarketStatus from "@/hooks/marketStatusUpdater";
 import useQuoteWss from "@/hooks/useQuoteWss";
 import useFillOpenQuote from "@/hooks/useFillOpenQuote";
@@ -48,7 +48,7 @@ export function Menu() {
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
-  const { addQuote } = useRfqRequestStore();
+  const { addQuote } = useQuoteStore();
   const chainId = wallet?.chainId;
 
   const disableLogin = !!(authenticated && token);
@@ -61,7 +61,15 @@ export function Menu() {
           const currentChainId = await provider.request({
             method: "eth_chainId",
           });
-          setIsFantomSonicTestnet(currentChainId === "0xFAA5");
+          console.log("Current chain ID:", currentChainId);
+
+          if (currentChainId === "0xfaa5") {
+            console.log("Fantom Sonic Testnet is already added to MetaMask");
+            setIsFantomSonicTestnet(true);
+          } else {
+            console.log("Fantom Sonic Testnet is not added to MetaMask");
+            setIsFantomSonicTestnet(false);
+          }
         } catch (error) {
           console.error("Error checking chain:", error);
         }
@@ -315,16 +323,15 @@ export function Menu() {
         {ready ? (
           ready && authenticated && token ? (
             <div className="text-center text-white p-3 flex items-center">
-              {!isFantomSonicTestnet ? (
+              {!isFantomSonicTestnet && (
                 <button
                   onClick={addChain}
                   className="text-white hover:text-gray-200 mr-2"
                 >
                   Switch to Fantom Sonic Testnet
                 </button>
-              ) : (
-                <h3 className="mr-2">Account: {wallet?.address}</h3>
               )}
+              <h3 className="mr-2">Account: {wallet?.address}</h3>
               <button
                 onClick={() => {
                   logout();
@@ -340,7 +347,7 @@ export function Menu() {
             </div>
           ) : payload ? (
             <div className="text-center text-white p-3 flex items-center">
-              <span className="mr-2">Waiting wallet signature</span>
+              <span className="mr-2">Sign Message...</span>
               <button
                 onClick={() => {
                   logout();

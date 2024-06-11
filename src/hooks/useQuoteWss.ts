@@ -13,32 +13,49 @@ const useQuoteWss = (
   addQuote: (message: QuoteResponse) => void
 ) => {
   const { wallet, provider } = useWalletAndProvider();
-  const blur = useBlurEffect();
 
   const quoteClientRef =
     useRef<PionerWebsocketClient<WebSocketType.LiveQuotes> | null>(null);
 
   useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
     if (token && token !== null && !wallet) {
+      console.log("Setting up WebSocket connection...");
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveQuotes>(
           WebSocketType.LiveQuotes,
           (message: QuoteResponse) => {
-            console.log("Quote Message:", message);
+            console.log("Received Quote:", message);
             addQuote(message);
           },
-          () => console.log("Quote Open"),
-          () => console.log("Quote Closed"),
-          () => console.log("Quote Reconnected"),
-          (error: Error) => console.error("Quote Error:", error)
+          () => console.log("WebSocket Open"),
+          () => console.log("WebSocket Closed"),
+          () => console.log("WebSocket Reconnected"),
+          (error: Error) => console.error("WebSocket Error:", error)
         );
       quoteClientRef.current.startWebSocket(token);
-      toast("Quote Websocket Started");
+      console.log("WebSocket Started");
+
+      // Set up an interval to log the WebSocket status every 5 seconds
+      intervalId = setInterval(() => {
+        if (quoteClientRef.current) {
+          console.log("WebSocket status:", quoteClientRef.current);
+        }
+      }, 5000);
+    } else {
+      console.log("Token or wallet missing. WebSocket not started.");
     }
 
     return () => {
       if (quoteClientRef.current) {
+        console.log("Closing WebSocket connection...");
         quoteClientRef.current.closeWebSocket();
+        console.log("WebSocket Closed");
+      }
+      // Clear the interval when the component unmounts
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
   }, [token, addQuote]);

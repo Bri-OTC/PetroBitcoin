@@ -70,7 +70,7 @@ export const getCloseOrders = async (
             reduceOnly: reduceOnly,
             fillAmount: fillAmount,
             entryTime: entryTime,
-            targetHash: quote.signatureClose,
+            targetHash: quote.signatureOpenQuote,
             counterpartyAddress: quote.counterpartyAddress,
           };
         }

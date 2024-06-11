@@ -145,7 +145,7 @@ export const useRfqRequest = () => {
 
       const intervalId = setInterval(() => {
         sendRfqRequest();
-      }, 5000);
+      }, 1000);
 
       return () => {
         clearInterval(intervalId);
