@@ -54,50 +54,32 @@ export async function cancelOrder(
 
     const cancelSignValue = {
       orderHash: order.targetHash,
-      nonce: 0,
+      nonce: Date.now().toString(),
     };
 
     console.log("cancelSignValue", cancelSignValue);
 
-    const signatureBoracle = await ethersSigner._signTypedData(
+    const signatureCancel = await ethersSigner._signTypedData(
       domainOpen,
       cancelSignType,
       cancelSignValue
     );
-    console.log("signatureBoracle", signatureBoracle);
     let success;
-    if (order.reduceOnly == "No") {
-      const quote: SignedCancelOpenQuoteRequest = {
-        issuerAddress: wallet.address,
-        counterpartyAddress: order.counterpartyAddress,
-        version: "1.0",
-        chainId: Number(chainId),
-        verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
-        targetHash: order.targetHash,
-        nonceCancel: generateRandomNonce(),
-        signatureCancel: signatureBoracle,
-        emitTime: Date.now().toString(),
-        messageState: 0,
-      };
+    const cancel: SignedCancelOpenQuoteRequest = {
+      issuerAddress: wallet.address,
+      counterpartyAddress: order.counterpartyAddress,
+      version: "1.0",
+      chainId: Number(chainId),
+      verifyingContract:
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+      targetHash: order.targetHash,
+      nonceCancel: cancelSignValue.nonce,
+      signatureCancel: signatureCancel,
+      emitTime: Date.now().toString(),
+      messageState: 0,
+    };
 
-      success = await sendSignedCancelOpenQuote(quote, token);
-    } else if (order.reduceOnly == "Yes") {
-      const quote: signedCancelCloseQuoteResponse = {
-        issuerAddress: wallet.address,
-        counterpartyAddress: order.counterpartyAddress,
-        version: "1.0",
-        chainId: Number(chainId),
-        verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
-        targetHash: order.targetHash,
-        nonceCancel: generateRandomNonce(),
-        signature: signatureBoracle,
-        emitTime: Date.now().toString(),
-        messageState: 0,
-      };
-      success = await sendSignedCancelCloseQuote(quote, token);
-    }
+    success = await sendSignedCancelOpenQuote(cancel, token);
 
     if (!success) {
       toast.error("Failed to cancel order");
