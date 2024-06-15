@@ -20,10 +20,10 @@ const useQuoteWss = (
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
-    if (token && token !== null && !wallet) {
+    if (token && token !== null && wallet) {
       console.log("Setting up WebSocket connection...");
       quoteClientRef.current =
-        new PionerWebsocketClient<WebSocketType.LiveQuotes>(
+        new PionerWebsocketClient(
           WebSocketType.LiveQuotes,
           (message: QuoteResponse) => {
             console.log("Received Quote:", message);
