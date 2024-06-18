@@ -366,11 +366,10 @@ export function Menu() {
               disabled={disableLogin}
               onClick={() => {
                 clearPrivyData();
-                if (ready && authenticated) {
+                if (ready && !authenticated) {
+                  login();
+                } else if (ready && authenticated) {
                   logout();
-                  login();
-                } else if (ready) {
-                  login();
                 }
               }}
               className="text-center text-white p-3"

@@ -51,10 +51,12 @@ function SheetPlaceOrder() {
   const exitPnL = useTradeStore((state) => state.exitPnL);
   const stopPnL = useTradeStore((state) => state.stopPnL);
   const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
-  const { sufficientBalance, maxAmountAllowed, isBalanceZero } = useBalance(
-    amount,
-    entryPrice
-  );
+  const {
+    sufficientBalance,
+    maxAmountAllowed,
+    isBalanceZero,
+    isAmountMinAmount,
+  } = useBalance(amount, entryPrice);
 
   const color = useColorStore((state) => state.color);
 
@@ -229,6 +231,10 @@ function SheetPlaceOrder() {
             to continue trading.
           </p>
         ) : !sufficientBalance ? (
+          <p className="text-red-500 text-sm mt-1">
+            Max amount allowed at this price: {maxAmountAllowed.toFixed(8)}
+          </p>
+        ) : !isAmountMinAmount ? (
           <p className="text-red-500 text-sm mt-1">
             Max amount allowed at this price: {maxAmountAllowed.toFixed(8)}
           </p>

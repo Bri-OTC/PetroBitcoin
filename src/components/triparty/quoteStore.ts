@@ -15,11 +15,15 @@ export interface QuoteResponse {
   lMarketPrice: string;
   lPrice: string;
   lQuantity: string;
+  minAmount: string;
+  maxAmount: string;
 }
 
 interface BestQuote {
   price: string;
   counterpartyAddress: string;
+  minAmount: string;
+  maxAmount: string;
 }
 
 interface QuoteStore {
@@ -27,7 +31,7 @@ interface QuoteStore {
   asks: QuoteResponse[];
   addQuote: (quote: QuoteResponse) => void;
   chainId: number;
-  getBestQuotes: () => {
+  getBestQuotes: (amount: string) => {
     bestBid: BestQuote | undefined;
     bestAsk: BestQuote | undefined;
   };
@@ -39,6 +43,30 @@ const isQuoteValid = (quote: QuoteResponse) => {
   const expirationTime = new Date(quote.expiration).getTime();
   // todo add chainId check
   return currentTime - quoteTime <= 5000 && currentTime < expirationTime;
+};
+
+const findBestQuote = (
+  quotes: QuoteResponse[],
+  amount: string
+): BestQuote | undefined => {
+  const validQuotes = quotes.filter(
+    (quote) =>
+      isQuoteValid(quote) &&
+      parseFloat(quote.minAmount) <= parseFloat(amount) &&
+      parseFloat(quote.maxAmount) >= parseFloat(amount)
+  );
+
+  if (validQuotes.length === 0) {
+    return undefined;
+  }
+
+  const bestQuote = validQuotes[0];
+  return {
+    price: bestQuote.sPrice,
+    counterpartyAddress: bestQuote.userAddress,
+    minAmount: bestQuote.minAmount,
+    maxAmount: bestQuote.maxAmount,
+  };
 };
 
 export const useQuoteStore = create<QuoteStore>((set, get) => ({
@@ -61,27 +89,11 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
     });
   },
   chainId: 0,
-  getBestQuotes: () => {
+  getBestQuotes: (amount: string) => {
     const { bids, asks } = get();
 
-    const validBids = bids.filter(isQuoteValid);
-    const validAsks = asks.filter(isQuoteValid);
-
-    const bestBid: BestQuote | undefined =
-      validBids.length > 0
-        ? {
-            price: validBids[0].sPrice,
-            counterpartyAddress: validBids[0].userAddress,
-          }
-        : undefined;
-
-    const bestAsk: BestQuote | undefined =
-      validAsks.length > 0
-        ? {
-            price: validAsks[0].lPrice,
-            counterpartyAddress: validAsks[0].userAddress,
-          }
-        : undefined;
+    const bestBid = findBestQuote(bids, amount);
+    const bestAsk = findBestQuote(asks, amount);
 
     return { bestBid, bestAsk };
   },

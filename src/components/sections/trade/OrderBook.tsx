@@ -98,7 +98,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
       data: { channel: `order_book_btcusd` },
     };
 
-    const ws = new WebSocket("wss://ws.bitstamp.net");
+    const ws = new WebSocket("wss://ws.bitstamp.net"); // wss://www.cryptofacilities.com/ws/v1 // wss://ws.bitstamp.net
     ws.onopen = () => ws.send(JSON.stringify(subscribe));
     ws.onmessage = (event) => setOrders(JSON.parse(event.data).data);
     ws.onclose = () => ws.close();
