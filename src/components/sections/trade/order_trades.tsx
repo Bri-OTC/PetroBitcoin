@@ -15,7 +15,7 @@ import { useMethodColor } from "@/hooks/useMethodColor";
 
 function SectionTradeOrderTrades() {
   const {
-    accountLeverage,
+    leverage,
     bidPrice,
     askPrice,
     entryPrice,
@@ -153,7 +153,7 @@ function SectionTradeOrderTrades() {
               </div>
               <div className="flex items-center space-x-2">
                 <p className="text-card-foreground">
-                  {accountLeverage}x Account Leverage
+                  {leverage}x Account Leverage
                 </p>
                 <p className="text-card-foreground">
                   <span className="text-red-500">12.25%</span> APR
