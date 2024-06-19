@@ -29,7 +29,7 @@ interface BestQuote {
 interface QuoteStore {
   bids: QuoteResponse[];
   asks: QuoteResponse[];
-  addQuote: (quote: QuoteResponse) => void;
+  addQuote: (quote: QuoteResponse | null) => void;
   chainId: number;
   getBestQuotes: (amount: string) => {
     bestBid: BestQuote | undefined;
@@ -37,7 +37,9 @@ interface QuoteStore {
   };
 }
 
-const isQuoteValid = (quote: QuoteResponse) => {
+const isQuoteValid = (quote: QuoteResponse | null | undefined) => {
+  if (!quote) return false;
+
   const currentTime = new Date().getTime();
   const quoteTime = new Date(quote.createdAt).getTime();
   const expirationTime = new Date(quote.expiration).getTime();
@@ -45,34 +47,19 @@ const isQuoteValid = (quote: QuoteResponse) => {
   return currentTime - quoteTime <= 5000 && currentTime < expirationTime;
 };
 
-const findBestQuote = (
-  quotes: QuoteResponse[],
-  amount: string
-): BestQuote | undefined => {
-  const validQuotes = quotes.filter(
-    (quote) =>
-      isQuoteValid(quote) &&
-      parseFloat(quote.minAmount) <= parseFloat(amount) &&
-      parseFloat(quote.maxAmount) >= parseFloat(amount)
-  );
-
-  if (validQuotes.length === 0) {
-    return undefined;
-  }
-
-  const bestQuote = validQuotes[0];
-  return {
-    price: bestQuote.sPrice,
-    counterpartyAddress: bestQuote.userAddress,
-    minAmount: bestQuote.minAmount,
-    maxAmount: bestQuote.maxAmount,
-  };
-};
-
 export const useQuoteStore = create<QuoteStore>((set, get) => ({
   bids: [],
   asks: [],
-  addQuote: (quote: QuoteResponse) => {
+  addQuote: (quote: QuoteResponse | null) => {
+    if (!quote) {
+      // Remove expired quotes
+      set((state) => ({
+        bids: state.bids.filter(isQuoteValid),
+        asks: state.asks.filter(isQuoteValid),
+      }));
+      return;
+    }
+
     console.log("adding quote", quote);
     if (!isQuoteValid(quote)) return;
 
@@ -92,9 +79,37 @@ export const useQuoteStore = create<QuoteStore>((set, get) => ({
   getBestQuotes: (amount: string) => {
     const { bids, asks } = get();
 
-    const bestBid = findBestQuote(bids, amount);
-    const bestAsk = findBestQuote(asks, amount);
+    const validBids = bids.filter(isQuoteValid);
+    const validAsks = asks.filter(isQuoteValid);
 
-    return { bestBid, bestAsk };
+    const bestBid = validBids.find(
+      (quote) =>
+        parseFloat(quote.minAmount) <= parseFloat(amount) &&
+        parseFloat(quote.maxAmount) >= parseFloat(amount)
+    );
+    const bestAsk = validAsks.find(
+      (quote) =>
+        parseFloat(quote.minAmount) <= parseFloat(amount) &&
+        parseFloat(quote.maxAmount) >= parseFloat(amount)
+    );
+
+    return {
+      bestBid: bestBid
+        ? {
+            price: bestBid.sPrice,
+            counterpartyAddress: bestBid.userAddress,
+            minAmount: bestBid.minAmount,
+            maxAmount: bestBid.maxAmount,
+          }
+        : undefined,
+      bestAsk: bestAsk
+        ? {
+            price: bestAsk.lPrice,
+            counterpartyAddress: bestAsk.userAddress,
+            minAmount: bestAsk.minAmount,
+            maxAmount: bestAsk.maxAmount,
+          }
+        : undefined,
+    };
   },
 }));

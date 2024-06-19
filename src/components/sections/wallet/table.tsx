@@ -25,11 +25,9 @@ import {
 } from "@pionerfriends/blockchain-client";
 import { encodeFunctionData, Address, formatUnits } from "viem";
 import useBlurEffect from "@/hooks/blur";
-import ResearchComponent from "../markets/ResearchComponentold";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { usePrivy, useLogin } from "@privy-io/react-auth";
-import Cookies from "js-cookie";
 
 function GasBalance() {
   const { wallet, provider } = useWalletAndProvider();
@@ -70,15 +68,6 @@ export function DepositedBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
   const chainId = useAuthStore((state) => state.chainId);
-  const clearPrivyData = () => {
-    // Clear Privy data from localStorage
-    localStorage.removeItem("privy:authenticated");
-    localStorage.removeItem("privy:user");
-
-    // Clear Privy data from cookies
-    Cookies.remove("privy:authenticated");
-    Cookies.remove("privy:user");
-  };
 
   const { ready, authenticated, user, logout } = usePrivy();
 
@@ -115,11 +104,6 @@ export function DepositedBalance() {
         } catch (error) {
           //console.error(error);
           // Check for the specific error message
-          if (error === "Error: Wallet timeout") {
-            // Disconnect wallet and clear data only for the specific error
-            logout();
-            clearPrivyData();
-          }
         }
       }
     };

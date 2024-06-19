@@ -18,8 +18,7 @@ import {
   parseDecimalValue,
   generateRandomNonce,
 } from "@/components/web3/utils";
-import { DepositedBalance } from "@/components/sections/wallet/table";
-import { useBalance } from "@/hooks/useBalance";
+import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
@@ -29,7 +28,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const { getBestQuotes } = useQuoteStore();
   const { bestBid, bestAsk } = getBestQuotes();
 
-  const depositedBalance = DepositedBalance();
   const chainId = String(64165);
 
   const [loading, setLoading] = useState(false);
@@ -49,10 +47,17 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const entryPrice: string = useTradeStore((state) => state.entryPrice);
   const amount: string = useTradeStore((state) => state.amount);
 
-  const { sufficientBalance, maxAmountAllowed, isBalanceZero } = useBalance(
-    amount,
-    entryPrice
-  );
+  const {
+    sufficientBalance,
+    maxAmountAllowed,
+    isBalanceZero,
+    isAmountMinAmount,
+    minAmountFromQuote,
+    maxAmountFromQuote,
+    advisedAmount,
+    noQuotesReceived,
+  } = useOpenQuoteChecks(amount, entryPrice);
+
   const handleOpenQuote = async () => {
     if (!wallet || !token || !walletClient || !wallet.address) {
       console.error(" Missing wallet, token, walletClient or wallet.address");
@@ -81,6 +86,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       }
       counterparty = bestAsk.counterpartyAddress;
     }
+    const nonce = String(generateRandomNonce());
 
     const quote: SignedWrappedOpenQuoteRequest = {
       issuerAddress: wallet.address,
@@ -121,7 +127,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
           : rfqRequest.sExpirationB,
       timeLock:
         currentMethod === "Buy" ? rfqRequest.lTimelockA : rfqRequest.sTimelockA,
-      nonceBoracle: generateRandomNonce(),
+      nonceBoracle: nonce,
       signatureBoracle: "",
       isLong: currentMethod === "Buy" ? true : false,
       price: parseDecimalValue(entryPrice),
@@ -134,7 +140,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       authorized: "0x0000000000000000000000000000000000000000",
-      nonceOpenQuote: generateRandomNonce(),
+      nonceOpenQuote: nonce,
       signatureOpenQuote: "",
       emitTime: String(Date.now()),
       messageState: 1,
@@ -301,7 +307,13 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     <Button
       className="w-full py-6 border-none"
       onClick={handleOpenQuote}
-      disabled={loading || !sufficientBalance}
+      disabled={
+        loading ||
+        !sufficientBalance ||
+        isBalanceZero ||
+        isAmountMinAmount ||
+        noQuotesReceived
+      }
     >
       {loading ? "Loading..." : "Open Quote"}
     </Button>

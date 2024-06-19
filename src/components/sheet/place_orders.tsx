@@ -1,4 +1,5 @@
 // SheetPlaceOrder.tsx
+import React, { useEffect, useState } from "react";
 import { DrawerClose, DrawerContent, DrawerTitle } from "../ui/drawer";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -11,9 +12,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import OpenQuoteButton from "@/components/sections/trade/utils/openQuote";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import { useEffect } from "react";
-import React, { useState } from "react";
-import { useBalance } from "@/hooks/useBalance";
+import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 import Link from "next/link";
 import { useColorStore } from "@/store/colorStore";
 
@@ -39,7 +38,6 @@ function SheetPlaceOrder() {
   const setCurrentTabIndex = useTradeStore((state) => state.setCurrentTabIndex);
 
   const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
-
   const setAmount = useTradeStore((state) => state.setAmount);
   const setAmountUSD = useTradeStore((state) => state.setAmountUSD);
   const setSliderValue = useTradeStore((state) => state.setSliderValue);
@@ -51,41 +49,34 @@ function SheetPlaceOrder() {
   const exitPnL = useTradeStore((state) => state.exitPnL);
   const stopPnL = useTradeStore((state) => state.stopPnL);
   const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
+
   const {
     sufficientBalance,
     maxAmountAllowed,
     isBalanceZero,
     isAmountMinAmount,
-  } = useBalance(amount, entryPrice);
+    minAmountFromQuote,
+    maxAmountFromQuote,
+    advisedAmount,
+    noQuotesReceived,
+  } = useOpenQuoteChecks(amount, entryPrice);
 
   const color = useColorStore((state) => state.color);
 
   useEffect(() => {
     if (currentMethod === "Buy") {
-      try {
-        setEntryPrice(askPrice.toString());
-      } catch (error) {
-        console.error("Error setting entry price:", error);
-      }
+      setEntryPrice(askPrice.toString());
     } else if (currentMethod === "Sell") {
-      try {
-        setEntryPrice(bidPrice.toString());
-      } catch (error) {
-        console.error("Error setting entry price:", error);
-      }
+      setEntryPrice(bidPrice.toString());
     }
   }, [currentMethod, askPrice, bidPrice, setEntryPrice]);
 
   useEffect(() => {
     if (currentTabIndex === "Market") {
       if (currentMethod === "Buy") {
-        try {
-          setEntryPrice(askPrice.toString());
-        } catch (error) {}
+        setEntryPrice(askPrice.toString());
       } else if (currentMethod === "Sell") {
-        try {
-          setEntryPrice(bidPrice.toString());
-        } catch (error) {}
+        setEntryPrice(bidPrice.toString());
       }
     }
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);
@@ -111,12 +102,12 @@ function SheetPlaceOrder() {
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
-    setAmountUSD(String(parseFloat(value) * parseFloat(entryPrice)));
+    setAmountUSD((parseFloat(value) * parseFloat(entryPrice)).toString());
   };
 
   const handleAmountUSDChange = (value: string) => {
     setAmountUSD(value);
-    setAmount(String(parseFloat(value) / parseFloat(entryPrice)));
+    setAmount((parseFloat(value) / parseFloat(entryPrice)).toString());
   };
 
   return (
@@ -124,25 +115,21 @@ function SheetPlaceOrder() {
       <DrawerTitle className="text-center mt-3">{symbol}</DrawerTitle>
       <div className="flex flex-col space-y-3 p-5">
         <div className="flex border-b">
-          {["Buy", "Sell"].map((x) => {
-            return (
-              <h2
-                key={x + "drawer"}
-                onClick={() => setCurrentMethod(x)}
-                className={`w-full text-center pb-3 border-b-[3px] ${
-                  currentMethod === x
-                    ? `${
-                        currentMethod === "Sell"
-                          ? "border-[#F23645] text-[#F23645]"
-                          : "border-[#089981] text-[#089981]"
-                      }`
-                    : "border-transparent"
-                } font-medium transition-all cursor-pointer`}
-              >
-                {x}
-              </h2>
-            );
-          })}
+          {["Buy", "Sell"].map((x) => (
+            <h2
+              key={x + "drawer"}
+              onClick={() => setCurrentMethod(x)}
+              className={`w-full text-center pb-3 border-b-[3px] ${
+                currentMethod === x
+                  ? currentMethod === "Sell"
+                    ? "border-[#F23645] text-[#F23645]"
+                    : "border-[#089981] text-[#089981]"
+                  : "border-transparent"
+              } font-medium transition-all cursor-pointer`}
+            >
+              {x}
+            </h2>
+          ))}
         </div>
         <div className="flex items-center justify-center mt-5 space-x-5">
           <Card className="py-4">
@@ -151,7 +138,7 @@ function SheetPlaceOrder() {
                 bidPrice !== prevBidPrice ? "fade-effect" : ""
               }`}
             >
-              Bid price : {bidPrice.toFixed(5)}
+              Bid price: {bidPrice.toFixed(5)}
             </p>
           </Card>
           <Card className="py-4">
@@ -160,7 +147,7 @@ function SheetPlaceOrder() {
                 askPrice !== prevAskPrice ? "fade-effect" : ""
               }`}
             >
-              Ask price : {askPrice.toFixed(5)}
+              Ask price: {askPrice.toFixed(5)}
             </p>
           </Card>
         </div>
@@ -173,7 +160,7 @@ function SheetPlaceOrder() {
                 className={`pb-3 outline-none w-full border-b-[0px] bg-transparent ${
                   currentTabIndex === "Market"
                     ? "text-gray-400 cursor-not-allowed"
-                    : "hover:shadow-[0_0_0_2px] hover:shadow-[${color}]"
+                    : `hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`
                 }`}
                 placeholder="Input Price"
                 value={entryPrice}
@@ -201,7 +188,7 @@ function SheetPlaceOrder() {
             <div className="flex items-center space-x-5 border-b">
               <Input
                 className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
+                placeholder="Input Amount"
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
               />
@@ -234,9 +221,19 @@ function SheetPlaceOrder() {
           <p className="text-red-500 text-sm mt-1">
             Max amount allowed at this price: {maxAmountAllowed.toFixed(8)}
           </p>
-        ) : !isAmountMinAmount ? (
+        ) : parseFloat(amount) < parseFloat(minAmountFromQuote) ? (
           <p className="text-red-500 text-sm mt-1">
-            Max amount allowed at this price: {maxAmountAllowed.toFixed(8)}
+            Minimum amount: {minAmountFromQuote}. Advised amount:{" "}
+            {advisedAmount}.
+          </p>
+        ) : parseFloat(amount) > parseFloat(maxAmountFromQuote) ? (
+          <p className="text-red-500 text-sm mt-1">
+            Maximum amount: {maxAmountFromQuote}. Advised amount:{" "}
+            {advisedAmount}.
+          </p>
+        ) : noQuotesReceived ? (
+          <p className="text-red-500 text-sm mt-1">
+            No quotes have been received. Please try again later.
           </p>
         ) : null}
         <div className="py-3">
@@ -300,7 +297,7 @@ function SheetPlaceOrder() {
               expiryA: "",
               expiryB: "",
               timeLock: "",
-              nonceBoracle: 0,
+              nonceBoracle: "0",
               signatureBoracle: "",
               isLong: currentMethod === "Buy",
               price: entryPrice,
@@ -310,7 +307,7 @@ function SheetPlaceOrder() {
               frontEnd: "",
               affiliate: "",
               authorized: "",
-              nonceOpenQuote: 0,
+              nonceOpenQuote: "0",
               signatureOpenQuote: "",
               emitTime: "0",
               messageState: 0,
