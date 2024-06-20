@@ -46,8 +46,8 @@ function SectionTradeHeader() {
 
   const menuUrl =
     process.env.NODE_ENV === "development"
-      ? "http://localhost:3000/markets"
-      : "https://testnet.pio.finance/markets";
+      ? "http://localhost:3000/home"
+      : "https://testnet.pio.finance/home";
 
   return (
     <div className={`container ${blur ? "blur" : ""}`}>

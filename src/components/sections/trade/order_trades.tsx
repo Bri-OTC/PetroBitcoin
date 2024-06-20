@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { FaEquals } from "react-icons/fa";
 import { ChangeEvent, useEffect } from "react";
-import SheetPlaceOrder from "@/components/sheet/place_orders";
+import SheetPlaceOrder from "@/components/sheet/place_open";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
 import { useAuthStore } from "@/store/authStore";

@@ -49,14 +49,6 @@ function Global() {
   );
 }
 
-const menus = [
-  { name: "Landing", icon: <GoHomeFill /> },
-  { name: "Markets", icon: <MdOutlineInsertChart /> },
-  { name: "Trade", icon: <RiExchangeBoxLine /> },
-  { name: "Wallet", icon: <BiSolidWallet /> },
-  { name: "User", icon: <IoPersonSharp /> },
-];
-
 function Pages() {
   return (
     <div>

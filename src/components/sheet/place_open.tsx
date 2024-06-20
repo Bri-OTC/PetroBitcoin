@@ -108,7 +108,9 @@ function SheetPlaceOrder() {
   useEffect(() => {
     if (!userInteracted) {
       setAmount(minAmountFromQuote.toString());
-      setAmountUSD((minAmountFromQuote * parseFloat(entryPrice)).toString());
+      setAmountUSD(
+        (parseFloat(minAmountFromQuote) * parseFloat(entryPrice)).toString()
+      );
     }
   }, [minAmountFromQuote, entryPrice, userInteracted, setAmount, setAmountUSD]);
 

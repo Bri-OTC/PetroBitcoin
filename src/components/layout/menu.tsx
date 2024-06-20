@@ -17,7 +17,7 @@ import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, useCallback } from "react";
 import { fantomSonicTestnet } from "@/app/privy-provider";
-
+import { MarketDrawer } from "@/components/sections/markets/MarketDrawer";
 import { createWalletClient, custom, verifyMessage } from "viem";
 import { useQuoteStore } from "@/store/quoteStore";
 import useUpdateMarketStatus from "@/hooks/marketStatusUpdater";
@@ -384,6 +384,22 @@ export function Menu() {
       <div className="bg-accent text-card-foreground">
         <div className="flex items-center justify-between w-full container py-3 space-x-5">
           {menus.map((x) => {
+            if (x.name === "Markets") {
+              return (
+                <MarketDrawer key={x.name}>
+                  <div
+                    className={`group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all ${
+                      pathname === x.link
+                        ? "text-primary"
+                        : "text-card-foreground"
+                    }`}
+                  >
+                    <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
+                    <p>{x.name}</p>
+                  </div>
+                </MarketDrawer>
+              );
+            }
             return (
               <Link
                 href={x.link}
