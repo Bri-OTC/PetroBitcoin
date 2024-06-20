@@ -44,7 +44,9 @@ export default function RootLayout({
             <div className="bg-black min-h-screen">
               <div className="flex flex-col min-h-screen bg-background">
                 <div className="flex-grow overflow-y-auto">
-                  <div className="max-w-[1024px] mx-auto">{children}</div>
+                  <div className="max-w-[1024px] mx-auto transform scale-100 md:scale-67">
+                    {children}
+                  </div>
                 </div>
                 <Menu />
               </div>

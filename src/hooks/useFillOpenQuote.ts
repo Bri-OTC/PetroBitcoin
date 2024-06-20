@@ -17,7 +17,7 @@ const useFillOpenQuote = (token: string | null) => {
     );
 
   useEffect(() => {
-    if (token && token !== null && !wallet) {
+    if (token && token !== null && wallet) {
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveWrappedOpenQuotes>(
           WebSocketType.LiveWrappedOpenQuotes,

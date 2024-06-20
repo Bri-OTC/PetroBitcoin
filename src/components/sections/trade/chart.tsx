@@ -20,7 +20,7 @@ import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
-import { useRfqRequestStore } from "@/components/triparty/quoteStore";
+import { useRfqRequestStore } from "@/store/quoteStore";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);

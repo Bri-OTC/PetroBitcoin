@@ -4,55 +4,62 @@ import { DrawerClose, DrawerContent, DrawerTitle } from "../ui/drawer";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { FaEquals } from "react-icons/fa";
-import { Dialog, DialogTrigger } from "../ui/dialog";
 import { Card } from "../ui/card";
 import { Slider } from "../ui/slider";
-import PopupModify from "../popup/modify";
 import { useTradeStore } from "@/store/tradeStore";
 import OpenQuoteButton from "@/components/sections/trade/utils/openQuote";
-import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
 import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 import Link from "next/link";
 import { useColorStore } from "@/store/colorStore";
 
+// Utility functions
+const calculateMaxAmountAllowed = (balance: number, maxAmount: number) => {
+  return Math.min(balance, maxAmount);
+};
+
+const calculateStepSize = (minAmount: number, maxAmountAllowed: number) => {
+  return minAmount > maxAmountAllowed ? minAmount : maxAmountAllowed / 100;
+};
+
+const calculateNearestStep = (value: number, stepSize: number) => {
+  return Math.round(value / stepSize) * stepSize;
+};
+
 function SheetPlaceOrder() {
-  const token = useAuthStore().token;
   const { wallet, provider } = useWalletAndProvider();
+  const {
+    currentMethod,
+    entryPrice,
+    amount,
+    amountUSD,
+    sliderValue,
+    bidPrice,
+    askPrice,
+    symbol,
+    currentTabIndex,
+    setCurrentMethod,
+    setCurrentTabIndex,
+    setEntryPrice,
+    setAmount,
+    setAmountUSD,
+    setSliderValue,
+    accountLeverage,
+    estimatedLiquidationPrice,
+    exitPnL,
+    stopPnL,
+    riskRewardPnL,
+    balance,
+    maxAmount,
+  } = useTradeStore();
 
-  const currentMethod = useTradeStore((state) => state.currentMethod);
-  const entryPrice = useTradeStore((state) => state.entryPrice);
-
-  const amount = useTradeStore((state) => state.amount);
-  const amountUSD = useTradeStore((state) => state.amountUSD);
-  const sliderValue = useTradeStore((state) => state.sliderValue);
-
-  const bidPrice = useTradeStore((state) => state.bidPrice);
-  const askPrice = useTradeStore((state) => state.askPrice);
   const [prevBidPrice, setPrevBidPrice] = useState(bidPrice);
   const [prevAskPrice, setPrevAskPrice] = useState(askPrice);
-  const symbol = useTradeStore((state) => state.symbol);
-  const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
-
-  const setCurrentMethod = useTradeStore((state) => state.setCurrentMethod);
-  const setCurrentTabIndex = useTradeStore((state) => state.setCurrentTabIndex);
-
-  const setEntryPrice = useTradeStore((state) => state.setEntryPrice);
-  const setAmount = useTradeStore((state) => state.setAmount);
-  const setAmountUSD = useTradeStore((state) => state.setAmountUSD);
-  const setSliderValue = useTradeStore((state) => state.setSliderValue);
-
-  const accountLeverage = useTradeStore((state) => state.accountLeverage);
-  const estimatedLiquidationPrice = useTradeStore(
-    (state) => state.estimatedLiquidationPrice
-  );
-  const exitPnL = useTradeStore((state) => state.exitPnL);
-  const stopPnL = useTradeStore((state) => state.stopPnL);
-  const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
+  const [userInteracted, setUserInteracted] = useState(false);
 
   const {
     sufficientBalance,
-    maxAmountAllowed,
+    maxAmountOpenable,
     isBalanceZero,
     isAmountMinAmount,
     minAmountFromQuote,
@@ -62,6 +69,12 @@ function SheetPlaceOrder() {
   } = useOpenQuoteChecks(amount, entryPrice);
 
   const color = useColorStore((state) => state.color);
+
+  const maxAmountAllowed = calculateMaxAmountAllowed(balance, maxAmount);
+  const stepSize = calculateStepSize(
+    Number(minAmountFromQuote),
+    maxAmountOpenable
+  );
 
   useEffect(() => {
     if (currentMethod === "Buy") {
@@ -82,10 +95,6 @@ function SheetPlaceOrder() {
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);
 
   useEffect(() => {
-    setAmountUSD((parseFloat(amount) * parseFloat(entryPrice)).toString());
-  }, [entryPrice, amount, setAmountUSD]);
-
-  useEffect(() => {
     const timer = setTimeout(() => {
       setPrevBidPrice(bidPrice);
       setPrevAskPrice(askPrice);
@@ -96,18 +105,35 @@ function SheetPlaceOrder() {
     };
   }, [bidPrice, askPrice]);
 
+  useEffect(() => {
+    if (!userInteracted) {
+      setAmount(minAmountFromQuote.toString());
+      setAmountUSD((minAmountFromQuote * parseFloat(entryPrice)).toString());
+    }
+  }, [minAmountFromQuote, entryPrice, userInteracted, setAmount, setAmountUSD]);
+
   const toggleTabIndex = () => {
     setCurrentTabIndex(currentTabIndex === "Market" ? "Limit" : "Market");
   };
 
   const handleAmountChange = (value: string) => {
+    setUserInteracted(true);
     setAmount(value);
     setAmountUSD((parseFloat(value) * parseFloat(entryPrice)).toString());
   };
 
   const handleAmountUSDChange = (value: string) => {
+    setUserInteracted(true);
     setAmountUSD(value);
     setAmount((parseFloat(value) / parseFloat(entryPrice)).toString());
+  };
+
+  const handleSliderChange = (value: number) => {
+    setUserInteracted(true);
+    const newValue = calculateNearestStep(value, stepSize);
+    setSliderValue(newValue);
+    setAmount(newValue.toString());
+    setAmountUSD((newValue * parseFloat(entryPrice)).toString());
   };
 
   return (
@@ -238,25 +264,23 @@ function SheetPlaceOrder() {
         ) : null}
         <div className="py-3">
           <Slider
-            min={1}
-            max={100}
-            value={[sliderValue]}
-            onValueChange={(value) => setSliderValue(value[0])}
+            min={0}
+            max={maxAmountAllowed}
+            step={stepSize}
+            value={[parseFloat(amount)]}
+            onValueChange={(value) => handleSliderChange(value[0])}
           />
         </div>
         <div className="flex items-center space-x-2">
-          {[25, 50, 75, "Max"].map((x) => {
-            const value = x === "Max" ? 100 : x;
-            return (
-              <h2
-                key={x + "drawer"}
-                onClick={() => setSliderValue(Number(value))}
-                className="w-full bg-card py-2 text-center hover:bg-primary rounded-lg cursor-pointer"
-              >
-                {x}
-              </h2>
-            );
-          })}
+          {[25, 50, 75, 100].map((x) => (
+            <Button
+              key={x}
+              onClick={() => handleSliderChange((x / 100) * maxAmountAllowed)}
+              className="w-full bg-card py-2 text-center hover:bg-primary rounded-lg"
+            >
+              {x}%
+            </Button>
+          ))}
         </div>
         <h3 className="text-left text-card-foreground">
           {accountLeverage}x Account Leverage | Estimated Liquidation Price:{" "}

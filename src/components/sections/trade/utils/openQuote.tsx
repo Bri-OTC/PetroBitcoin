@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
-import { useQuoteStore } from "@/components/triparty/quoteStore";
+import { useQuoteStore } from "@/store/quoteStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { toast } from "react-toastify";
 import { formatPair } from "@/components/triparty/priceUpdater";

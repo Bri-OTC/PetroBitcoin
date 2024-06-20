@@ -1,4 +1,4 @@
-import { useRfqRequestStore } from "./quoteStore";
+import { useRfqRequestStore } from "../../store/quoteStore";
 
 export const useBestQuoteAddress = (position: "long" | "short") => {
   const { bids, asks } = useRfqRequestStore();

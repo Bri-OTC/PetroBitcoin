@@ -14,7 +14,7 @@ const useFillCloseQuote = (token: string | null) => {
     useRef<PionerWebsocketClient<WebSocketType.LiveCloseQuotes> | null>(null);
 
   useEffect(() => {
-    if (token && token !== null && !wallet) {
+    if (token && token !== null && wallet) {
       quoteClientRef.current =
         new PionerWebsocketClient<WebSocketType.LiveCloseQuotes>(
           WebSocketType.LiveCloseQuotes,

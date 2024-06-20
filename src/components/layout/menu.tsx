@@ -19,7 +19,7 @@ import { useEffect, useState, useCallback } from "react";
 import { fantomSonicTestnet } from "@/app/privy-provider";
 
 import { createWalletClient, custom, verifyMessage } from "viem";
-import { useQuoteStore } from "@/components/triparty/quoteStore";
+import { useQuoteStore } from "@/store/quoteStore";
 import useUpdateMarketStatus from "@/hooks/marketStatusUpdater";
 import useQuoteWss from "@/hooks/useQuoteWss";
 import useFillOpenQuote from "@/hooks/useFillOpenQuote";

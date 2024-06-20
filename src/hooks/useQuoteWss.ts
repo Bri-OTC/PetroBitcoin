@@ -22,27 +22,27 @@ const useQuoteWss = (
 
     if (token && token !== null && wallet) {
       console.log("Setting up WebSocket connection...");
-      quoteClientRef.current =
-        new PionerWebsocketClient(
-          WebSocketType.LiveQuotes,
-          (message: QuoteResponse) => {
-            console.log("Received Quote:", message);
-            addQuote(message);
-          },
-          () => console.log("WebSocket Open"),
-          () => console.log("WebSocket Closed"),
-          () => console.log("WebSocket Reconnected"),
-          (error: Error) => console.error("WebSocket Error:", error)
-        );
+      quoteClientRef.current = new PionerWebsocketClient(
+        WebSocketType.LiveQuotes,
+        (message: QuoteResponse) => {
+          //console.log("Received Quote:", message);
+          addQuote(message);
+        },
+        () => console.log("WebSocket Open"),
+        () => console.log("WebSocket Closed"),
+        () => console.log("WebSocket Reconnected"),
+        (error: Error) => console.error("WebSocket Error:", error)
+      );
       quoteClientRef.current.startWebSocket(token);
       console.log("WebSocket Started");
 
       // Set up an interval to log the WebSocket status every 5 seconds
+      /*
       intervalId = setInterval(() => {
         if (quoteClientRef.current) {
           console.log("WebSocket status:", quoteClientRef.current);
         }
-      }, 5000);
+      }, 5000);*/
     } else {
       console.log("Token or wallet missing. WebSocket not started.");
     }

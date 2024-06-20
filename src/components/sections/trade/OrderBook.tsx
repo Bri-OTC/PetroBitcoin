@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTradeStore } from "@/store/tradeStore";
-import { useQuoteStore } from "@/store/quoteStore";
+import { useQuoteStore } from "@/store/quotePriceStore";
 
 interface Order {
   price: number | null;
