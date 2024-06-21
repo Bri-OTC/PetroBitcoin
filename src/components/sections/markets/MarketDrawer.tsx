@@ -35,34 +35,32 @@ export function MarketDrawer({ children }: MarketDrawerProps) {
       <DrawerTrigger asChild>
         <div>{children}</div>
       </DrawerTrigger>
-      <DrawerContent className="h-[75vh] max-h-[75vh] overflow-y-auto">
-        <div className="mx-auto w-full max-w-3xl p-6 h-full">
-          <div className="h-full flex flex-col">
-            <h1 className="font-medium mb-4">Markets</h1>
-            <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5 mb-4">
-              <FaSearch className="text-card-foreground" />
-              <Input
-                onChange={searchHandler}
-                placeholder="Search"
-                className="bg-card border-none"
-              />
-            </div>
-            <div className="flex-grow overflow-y-auto">
-              <Table>
-                <TableHeader></TableHeader>
-                <TableBody>
-                  <ResearchComponent
-                    searchTerm={searchTerm}
-                    onMarketClick={handleMarketClick}
-                    selectedMarket={selectedMarket}
-                    activeTab="all"
-                    sortByPrice={false}
-                    handleTabClick={() => {}}
-                    toggleSortByPrice={() => {}}
-                  />
-                </TableBody>
-              </Table>
-            </div>
+      <DrawerContent className="h-[75vh] max-h-[75vh] overflow-hidden w-[70%]">
+        <div className="h-full flex flex-col px-4">
+          <h1 className="font-medium mb-4">Markets</h1>
+          <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5 mb-4">
+            <FaSearch className="text-card-foreground" />
+            <Input
+              onChange={searchHandler}
+              placeholder="Search"
+              className="bg-card border-none"
+            />
+          </div>
+          <div className="flex-grow overflow-y-auto">
+            <Table>
+              <TableHeader></TableHeader>
+              <TableBody>
+                <ResearchComponent
+                  searchTerm={searchTerm}
+                  onMarketClick={handleMarketClick}
+                  selectedMarket={selectedMarket}
+                  activeTab="all"
+                  sortByPrice={false}
+                  handleTabClick={() => {}}
+                  toggleSortByPrice={() => {}}
+                />
+              </TableBody>
+            </Table>
           </div>
         </div>
       </DrawerContent>

@@ -1,4 +1,4 @@
-// layout.tsx (next)
+//layout.tsx ( next)
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
@@ -41,14 +41,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <PrivyProviderWrapper>
-            <div className="bg-black min-h-screen">
-              <div className="flex flex-col min-h-screen bg-background">
-                <div className="flex-grow overflow-y-auto">
-                  <div className="max-w-[1024px] mx-auto transform scale-100 md:scale-67">
-                    {children}
+            <div className="bg-black">
+              <div className="flex flex-col h-[100vh] bg-background">
+                <div className="h-full flex flex-col">
+                  <div className="h-full max-h-[90vh] overflow-y-auto">
+                    <div className="max-w-[1024px] mx-auto">{children}</div>
                   </div>
+                  <Menu />
                 </div>
-                <Menu />
               </div>
             </div>
             <ToastContainer

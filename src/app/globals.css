@@ -237,10 +237,3 @@
 .best-prices td {
   text-align: center;
 }
-
-/* zoomStyles.css */
-@media (min-width: 1024px) {
-  html {
-    zoom: 67%;
-  }
-}

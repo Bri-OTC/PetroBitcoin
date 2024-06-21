@@ -382,13 +382,13 @@ export function Menu() {
         )}
       </div>
       <div className="bg-accent text-card-foreground">
-        <div className="flex items-center justify-between w-full container py-3 space-x-5">
+        <div className="grid grid-cols-5 w-full container py-3">
           {menus.map((x) => {
             if (x.name === "Markets") {
               return (
                 <MarketDrawer key={x.name}>
                   <div
-                    className={`group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all ${
+                    className={`group flex flex-col items-center text-center space-y-1 hover:text-primary cursor-pointer transition-all ${
                       pathname === x.link
                         ? "text-primary"
                         : "text-card-foreground"
@@ -406,7 +406,7 @@ export function Menu() {
                 key={x.name}
                 className={`${
                   pathname === x.link ? "text-primary" : "text-card-foreground"
-                } group flex flex-col items-center text-center space-y-1 hover:text-primary w-full cursor-pointer transition-all`}
+                } group flex flex-col items-center text-center space-y-1 hover:text-primary cursor-pointer transition-all`}
               >
                 <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
                 <p>{x.name}</p>

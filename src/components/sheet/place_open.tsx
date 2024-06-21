@@ -139,7 +139,7 @@ function SheetPlaceOrder() {
   };
 
   return (
-    <DrawerContent>
+    <DrawerContent className="transform scale-60 origin-bottom">
       <DrawerTitle className="text-center mt-3">{symbol}</DrawerTitle>
       <div className="flex flex-col space-y-3 p-5">
         <div className="flex border-b">
