@@ -25,6 +25,8 @@ const setRfqRequest = async (
     const resolvedSymbol2 = await symbol2;
     const adjustedAmount = parseFloat(amount) === 0 ? "1" : amount;
 
+    console.log("leverage rfq", leverage);
+
     const adjustedQuantitiesResult = await adjustQuantities(
       parseFloat(entryPrice),
       parseFloat(entryPrice),

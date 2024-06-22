@@ -275,11 +275,12 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     }
   };
 
-  const isButtonDisabled =
+  const isButtonDisabled = false;
+  /*
     !sufficientBalance ||
     isBalanceZero ||
     isAmountMinAmount ||
-    noQuotesReceived;
+    noQuotesReceived;*/
 
   return (
     <Button

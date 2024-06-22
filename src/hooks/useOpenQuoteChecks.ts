@@ -42,7 +42,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     minAmount: 0,
     recommendedStep: 0,
     canBuyMinAmount: false,
-    selectedQuoteUserAddress: "0x0000000000000000000000000000000000000000",
+    selectedQuoteUserAddress: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
     lastValidBalance: "0",
     recommendedAmount: 0,
   });
@@ -115,15 +115,10 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
       return isNaN(parsed) ? 0 : parsed;
     };
 
-    const requiredBalance =
+    const collateralRequirement =
       currentMethod === "Buy"
         ? safeParseFloat(rfqRequest?.lImA) + safeParseFloat(rfqRequest?.lDfA)
         : safeParseFloat(rfqRequest?.sImB) + safeParseFloat(rfqRequest?.sDfB);
-
-    const maxAmountOpenable =
-      (safeParseFloat(balanceToUse) / safeParseFloat(entryPrice)) *
-      requiredBalance *
-      leverage;
 
     const minAmount =
       quotes.length > 0
@@ -132,12 +127,30 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
 
     const recommendedStep = minAmount > 0 ? minAmount : 0;
 
+    const calculateMaxAmountOpenable = (
+      balance: number,
+      entryPrice: number,
+      collateralRequirement: number,
+      step: number
+    ): number => {
+      const rawMaxAmount = balance / (collateralRequirement * entryPrice);
+      const stepsCount = Math.floor(rawMaxAmount / step);
+      return stepsCount * step;
+    };
+
+    const maxAmountOpenable = calculateMaxAmountOpenable(
+      safeParseFloat(balanceToUse),
+      safeParseFloat(entryPrice),
+      collateralRequirement,
+      recommendedStep
+    );
+
     const currentAmount = safeParseFloat(amount);
     const isAmountMinAmount = currentAmount < minAmount;
     const canBuyMinAmount =
       isAmountMinAmount &&
-      minAmount * safeParseFloat(entryPrice) <=
-        safeParseFloat(balanceToUse) * leverage;
+      minAmount * safeParseFloat(entryPrice) * collateralRequirement <=
+        safeParseFloat(balanceToUse);
 
     const calculateRecommendedAmount = (
       currentAmount: number,
@@ -171,7 +184,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
       canBuyMinAmount,
       selectedQuoteUserAddress:
         selectedQuote?.userAddress ||
-        "0x0000000000000000000000000000000000000000",
+        "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       lastValidBalance,
       recommendedAmount,
     };
