@@ -3,7 +3,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { useQuoteStore, QuoteResponse } from "@/store/quoteStore";
 import { useDepositedBalance } from "@/hooks/useDepositedBalance";
-import { debounce } from "lodash"; // Make sure to install lodash if not already present
+import { debounce } from "lodash";
 
 interface OpenQuoteCheckResults {
   quotes: QuoteResponse[];
@@ -15,6 +15,9 @@ interface OpenQuoteCheckResults {
   minAmount: number;
   recommendedStep: number;
   canBuyMinAmount: boolean;
+  selectedQuoteUserAddress: string;
+  lastValidBalance: string;
+  recommendedAmount: number;
 }
 
 export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
@@ -22,7 +25,12 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
   const currentMethod = useTradeStore((state) => state.currentMethod);
   const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
   const { quotes, cleanExpiredQuotes } = useQuoteStore();
-  const accountLeverage = useTradeStore((state) => state.accountLeverage);
+  const leverage = useTradeStore((state) => state.leverage);
+
+  const [selectedQuote, setSelectedQuote] = useState<QuoteResponse | null>(
+    null
+  );
+  const [lastValidBalance, setLastValidBalance] = useState("0");
 
   const [cachedResults, setCachedResults] = useState<OpenQuoteCheckResults>({
     quotes: [],
@@ -34,9 +42,10 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     minAmount: 0,
     recommendedStep: 0,
     canBuyMinAmount: false,
+    selectedQuoteUserAddress: "0x0000000000000000000000000000000000000000",
+    lastValidBalance: "0",
+    recommendedAmount: 0,
   });
-
-  const [lastValidBalance, setLastValidBalance] = useState("0");
 
   const updateResults = useCallback(
     debounce((newResults: OpenQuoteCheckResults) => {
@@ -62,6 +71,43 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     return depositedBalance === "0" ? lastValidBalance : depositedBalance;
   }, [depositedBalance, lastValidBalance]);
 
+  // Select the best quote every second
+  useEffect(() => {
+    const selectBestQuote = () => {
+      if (quotes.length > 0) {
+        const currentAmount = parseFloat(amount);
+        const sortedQuotes = [...quotes].sort((a, b) => {
+          const priceA =
+            currentMethod === "Buy"
+              ? parseFloat(a.sPrice)
+              : parseFloat(a.lPrice);
+          const priceB =
+            currentMethod === "Buy"
+              ? parseFloat(b.sPrice)
+              : parseFloat(b.lPrice);
+          return currentMethod === "Buy" ? priceA - priceB : priceB - priceA;
+        });
+
+        const bestPriceQuote = sortedQuotes[0];
+        const bestPriceMaxAmount = parseFloat(bestPriceQuote.maxAmount);
+
+        if (currentAmount <= bestPriceMaxAmount) {
+          setSelectedQuote(bestPriceQuote);
+        } else {
+          const sufficientQuote = sortedQuotes.find(
+            (q) => parseFloat(q.maxAmount) >= currentAmount
+          );
+          setSelectedQuote(sufficientQuote || bestPriceQuote);
+        }
+      } else {
+        setSelectedQuote(null);
+      }
+    };
+
+    const interval = setInterval(selectBestQuote, 1000);
+    return () => clearInterval(interval);
+  }, [quotes, amount, currentMethod]);
+
   useEffect(() => {
     const safeParseFloat = (value: string | undefined): number => {
       if (value === undefined || value === null) return 0;
@@ -77,21 +123,41 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     const maxAmountOpenable =
       (safeParseFloat(balanceToUse) / safeParseFloat(entryPrice)) *
       requiredBalance *
-      accountLeverage;
+      leverage;
 
     const minAmount =
       quotes.length > 0
         ? Math.min(...quotes.map((q) => safeParseFloat(q.minAmount)))
         : 0;
 
-    const recommendedStep = minAmount > 0 ? minAmount / 10 : 0;
+    const recommendedStep = minAmount > 0 ? minAmount : 0;
 
     const currentAmount = safeParseFloat(amount);
     const isAmountMinAmount = currentAmount < minAmount;
     const canBuyMinAmount =
       isAmountMinAmount &&
       minAmount * safeParseFloat(entryPrice) <=
-        safeParseFloat(balanceToUse) * accountLeverage;
+        safeParseFloat(balanceToUse) * leverage;
+
+    const calculateRecommendedAmount = (
+      currentAmount: number,
+      minAmount: number,
+      maxAmount: number,
+      step: number
+    ): number => {
+      if (currentAmount <= minAmount) return minAmount;
+      if (currentAmount >= maxAmount) return maxAmount;
+
+      const stepsAboveMin = Math.floor((currentAmount - minAmount) / step);
+      return Math.min(minAmount + stepsAboveMin * step, maxAmount);
+    };
+
+    const recommendedAmount = calculateRecommendedAmount(
+      currentAmount,
+      minAmount,
+      maxAmountOpenable,
+      recommendedStep
+    );
 
     const newResults: OpenQuoteCheckResults = {
       quotes,
@@ -103,6 +169,11 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
       minAmount,
       recommendedStep,
       canBuyMinAmount,
+      selectedQuoteUserAddress:
+        selectedQuote?.userAddress ||
+        "0x0000000000000000000000000000000000000000",
+      lastValidBalance,
+      recommendedAmount,
     };
 
     updateResults(newResults);
@@ -114,7 +185,9 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     balanceToUse,
     quotes,
     updateResults,
-    accountLeverage,
+    leverage,
+    selectedQuote,
+    lastValidBalance,
   ]);
 
   return cachedResults;

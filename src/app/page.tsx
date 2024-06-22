@@ -10,7 +10,6 @@ import { usePrivy } from "@privy-io/react-auth";
 
 // Import your tab content components
 import Landing from "./landing/page";
-import Markets from "./markets/page";
 import Trade from "./trade/page";
 import Wallet from "./wallet/page";
 import User from "./user/page";

@@ -22,7 +22,7 @@ const useFillOpenQuote = (token: string | null) => {
         new PionerWebsocketClient<WebSocketType.LiveWrappedOpenQuotes>(
           WebSocketType.LiveWrappedOpenQuotes,
           (message: signedWrappedOpenQuoteResponse) => {
-            console.log("Quote Message:", message);
+            //console.log("Quote Message:", message);
             if (message.messageState === 6) {
               toast(
                 `${convertFromBytes32(message.assetHex)} : ${

@@ -39,7 +39,7 @@ const SheetPlace: React.FC = () => {
     setAmount,
     setAmountUSD,
     setSliderValue,
-    accountLeverage,
+    leverage,
     balance,
     maxAmount,
   } = useTradeStore();
@@ -59,6 +59,8 @@ const SheetPlace: React.FC = () => {
     minAmount,
     recommendedStep,
     canBuyMinAmount,
+    selectedQuoteUserAddress,
+    lastValidBalance,
   } = useOpenQuoteChecks(amount, entryPrice);
 
   const color = useColorStore((state) => state.color);
@@ -197,7 +199,7 @@ const SheetPlace: React.FC = () => {
   const openQuoteRequest = useMemo(
     () => ({
       issuerAddress: "0x0000000000000000000000000000000000000000",
-      counterpartyAddress: "0x0000000000000000000000000000000000000000",
+      counterpartyAddress: selectedQuoteUserAddress,
       version: "1.0",
       chainId: 64165,
       verifyingContract: "",
@@ -223,18 +225,18 @@ const SheetPlace: React.FC = () => {
       isAPayingApr: false,
       frontEnd: "",
       affiliate: "",
-      authorized: "",
+      authorized: selectedQuoteUserAddress,
       nonceOpenQuote: "0",
       signatureOpenQuote: "",
       emitTime: "0",
       messageState: 0,
     }),
-    [currentMethod, entryPrice, roundedAmount]
+    [currentMethod, entryPrice, roundedAmount, selectedQuoteUserAddress]
   );
 
   const liquidationPrice = calculateLiquidationPrice(
     parseFloat(entryPrice),
-    accountLeverage,
+    leverage,
     currentMethod === "Buy"
   );
 
@@ -354,9 +356,7 @@ const SheetPlace: React.FC = () => {
             The amount is less than the minimum required.
           </p>
         ) : noQuotesReceived ? (
-          <p className="text-red-500 text-sm mt-1">
-            No quotes have been received. Please try again later.
-          </p>
+          <p className="text-red-500 text-sm mt-1">Waiting for quotes.</p>
         ) : null}
         {isAmountMinAmount && canBuyMinAmount && (
           <p className="text-yellow-500 text-sm mt-1">
@@ -384,9 +384,12 @@ const SheetPlace: React.FC = () => {
             </Button>
           ))}
         </div>
-        <h3 className="text-left text-card-foreground">
-          {accountLeverage}x Account Leverage
-        </h3>
+        <Link
+          href="/user"
+          className="text-left text-card-foreground hover:underline"
+        >
+          <h3>{leverage}x Account Leverage</h3>
+        </Link>
         <div className="flex items-center justify-between p-5 px-8 bg-card">
           <div className="flex flex-col items-center space-y-2 text-center">
             <h3>Min Amount Step</h3>

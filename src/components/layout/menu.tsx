@@ -61,13 +61,13 @@ export function Menu() {
           const currentChainId = await provider.request({
             method: "eth_chainId",
           });
-          console.log("Current chain ID:", currentChainId);
+          //console.log("Current chain ID:", currentChainId);
 
           if (currentChainId === "0xfaa5") {
-            console.log("Fantom Sonic Testnet is already added to MetaMask");
+            //console.log("Fantom Sonic Testnet is already added to MetaMask");
             setIsFantomSonicTestnet(true);
           } else {
-            console.log("Fantom Sonic Testnet is not added to MetaMask");
+            //console.log("Fantom Sonic Testnet is not added to MetaMask");
             setIsFantomSonicTestnet(false);
           }
         } catch (error) {
@@ -120,7 +120,7 @@ export function Menu() {
       localStorage.setItem("authenticated", "true");
     },
     onError: (error) => {
-      console.log(error);
+      console.error(error);
     },
   });
 
@@ -188,7 +188,7 @@ export function Menu() {
           account: wallet.address as `0x${string}`,
         });
 
-        console.log("meny walletClient", walletClient);
+        //console.log("menu walletClient", walletClient);
 
         const signature = await walletClient.signMessage({
           account: wallet.address as `0x${string}`,
@@ -201,7 +201,7 @@ export function Menu() {
           signature: signature,
         });
 
-        console.log("signature", signature, message, valid);
+        //console.log("signature", signature, message, valid);
 
         return { uuid, signature };
       } catch (error) {
@@ -222,7 +222,7 @@ export function Menu() {
           loginResponse.data.token
         ) {
           const token = loginResponse.data.token;
-          console.log(`Token: ${token} `);
+          //console.log(`Token: ${token} `);
           const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(wallet.address);
           if (isValidAddress) {
             setToken(token);

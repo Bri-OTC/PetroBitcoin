@@ -19,7 +19,7 @@ const useFillCloseQuote = (token: string | null) => {
         new PionerWebsocketClient<WebSocketType.LiveCloseQuotes>(
           WebSocketType.LiveCloseQuotes,
           (message: signedCloseQuoteResponse) => {
-            console.log("Quote Message:", message);
+            //console.log("Quote Message:", message);
             if (message.messageState === 3) {
               toast(
                 `${message.bcontractId} : ${message.amount} filled at ${message.price}`
