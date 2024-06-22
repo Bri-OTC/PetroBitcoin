@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { FaEquals } from "react-icons/fa";
-import { ChangeEvent, useEffect } from "react";
+import { ChangeEvent, useEffect, useCallback, useMemo } from "react";
 import SheetPlaceOrder from "@/components/sheet/place_open";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
@@ -12,6 +12,7 @@ import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
 import { useColorStore } from "@/store/colorStore";
 import { useMethodColor } from "@/hooks/useMethodColor";
+import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 
 function SectionTradeOrderTrades() {
   const {
@@ -31,30 +32,70 @@ function SectionTradeOrderTrades() {
     setAmountUSD,
     setCurrentTabIndex: setCurrentTabIndexStore,
     setCurrentTabIndex,
+    setSliderValue,
+    accountLeverage,
   } = useTradeStore();
-  const setSliderValue = useTradeStore((state) => state.setSliderValue);
+
   const blur = useBlurEffect();
   const isMarketOpen = useAuthStore((state) => state.isMarketOpen);
   const testBool = true;
   const color = useColorStore((state) => state.color) || "#E0AD0C";
   useMethodColor();
 
-  const handleAmountChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setAmount(e.target.value);
-    setAmountUSD(
-      (parseFloat(e.target.value) * parseFloat(entryPrice)).toString()
-    );
-  };
+  const {
+    quotes,
+    sufficientBalance,
+    maxAmountOpenable,
+    isBalanceZero,
+    isAmountMinAmount,
+    noQuotesReceived,
+    minAmount,
+    recommendedStep,
+    canBuyMinAmount,
+  } = useOpenQuoteChecks(amount, entryPrice);
 
-  const handleAmountUSDChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setAmountUSD(e.target.value);
-    setAmount((parseFloat(e.target.value) / parseFloat(entryPrice)).toString());
-  };
+  const handleAmountChange = useCallback(
+    (value: string) => {
+      setAmount(value);
+      setAmountUSD((parseFloat(value) * parseFloat(entryPrice)).toString());
+    },
+    [setAmount, setAmountUSD, entryPrice]
+  );
+
+  const handleAmountUSDChange = useCallback(
+    (value: string) => {
+      setAmountUSD(value);
+      setAmount((parseFloat(value) / parseFloat(entryPrice)).toString());
+    },
+    [setAmount, setAmountUSD, entryPrice]
+  );
+
+  const handlePercentageClick = useCallback(
+    (percentage: number) => {
+      const newValue = noQuotesReceived
+        ? (percentage / 100) * 100
+        : (percentage / 100) * maxAmountOpenable;
+      const roundedValue =
+        Math.round(newValue / recommendedStep) * recommendedStep;
+      setSliderValue(roundedValue);
+      setAmount(roundedValue.toString());
+      setAmountUSD((roundedValue * parseFloat(entryPrice)).toString());
+    },
+    [
+      noQuotesReceived,
+      maxAmountOpenable,
+      recommendedStep,
+      setSliderValue,
+      setAmount,
+      setAmountUSD,
+      entryPrice,
+    ]
+  );
 
   useEffect(() => {
     if (currentTabIndex === "Market") {
       setEntryPrice(
-        currentMethod === "Buy" ? bidPrice.toString() : askPrice.toString()
+        currentMethod === "Buy" ? askPrice.toString() : bidPrice.toString()
       );
     }
   }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
@@ -124,7 +165,7 @@ function SectionTradeOrderTrades() {
                     type="number"
                     className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
                     value={amount}
-                    onChange={handleAmountChange}
+                    onChange={(e) => handleAmountChange(e.target.value)}
                   />
                 </div>
                 <div className="mt-5">
@@ -136,7 +177,7 @@ function SectionTradeOrderTrades() {
                     type="number"
                     className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
                     value={amountUSD}
-                    onChange={handleAmountUSDChange}
+                    onChange={(e) => handleAmountUSDChange(e.target.value)}
                   />
                 </div>
               </div>
@@ -144,13 +185,42 @@ function SectionTradeOrderTrades() {
                 {[25, 50, 75, 100].map((x) => (
                   <button
                     key={x}
-                    onClick={() => setSliderValue(x)}
+                    onClick={() => handlePercentageClick(x)}
                     className={`w-full bg-card py-2 text-center hover:bg-[#e0ae0c86] rounded-lg cursor-pointer`}
                   >
                     {x}%
                   </button>
                 ))}
               </div>
+              {isBalanceZero && (
+                <p className="text-red-500 text-sm">
+                  Your balance is zero. Please deposit funds to continue
+                  trading.
+                </p>
+              )}
+              {!sufficientBalance && (
+                <p className="text-red-500 text-sm">
+                  Max amount allowed at this price:{" "}
+                  {maxAmountOpenable.toFixed(8)}
+                </p>
+              )}
+              {isAmountMinAmount && (
+                <p className="text-red-500 text-sm">
+                  The amount is less than the minimum required.
+                </p>
+              )}
+              {noQuotesReceived && (
+                <p className="text-red-500 text-sm">
+                  No quotes have been received. Please try again later.
+                </p>
+              )}
+              {isAmountMinAmount && canBuyMinAmount && (
+                <p className="text-yellow-500 text-sm">
+                  The amount is less than the minimum required, but you have
+                  sufficient balance to buy the minimum amount of {minAmount}{" "}
+                  contracts.
+                </p>
+              )}
               <div className="flex items-center space-x-2">
                 <p className="text-card-foreground">
                   {leverage}x Account Leverage

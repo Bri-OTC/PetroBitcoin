@@ -49,3 +49,16 @@ export function addCommas(number: number) {
   // Return the number with commas
   return integerWithCommas + decimalPart;
 }
+
+export const calculateLiquidationPrice = (
+  currentPrice: number,
+  leverage: number,
+  isLong: boolean
+) => {
+  const liquidationThreshold = 1 / leverage;
+  if (isLong) {
+    return currentPrice * (1 - liquidationThreshold);
+  } else {
+    return currentPrice * (1 + liquidationThreshold);
+  }
+};

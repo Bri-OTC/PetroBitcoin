@@ -111,6 +111,11 @@ function MintStep({
       const toastId = toast.loading("Minting tokens...");
 
       try {
+        const nonce = await provider.request({
+          method: "eth_getTransactionCount",
+          params: [wallet?.address, "latest"],
+        });
+
         const transaction = await provider.request({
           method: "eth_sendTransaction",
           params: [
@@ -119,6 +124,7 @@ function MintStep({
               to: networks[chainId as unknown as NetworkKey].contracts
                 .FakeUSD as Address,
               data: dataMint,
+              nonce: nonce,
             },
           ],
         });

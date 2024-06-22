@@ -1,5 +1,5 @@
 // openQuote.tsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { useTradeStore } from "@/store/tradeStore";
@@ -14,7 +14,6 @@ import {
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
 import {
-  convertToBytes32,
   parseDecimalValue,
   generateRandomNonce,
 } from "@/components/web3/utils";
@@ -25,21 +24,15 @@ interface OpenQuoteButtonProps {
 }
 
 const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
-  const { getBestQuotes } = useQuoteStore();
-  const { bestBid, bestAsk } = getBestQuotes();
-
+  const { quotes } = useQuoteStore();
   const chainId = String(64165);
 
   const [loading, setLoading] = useState(false);
   const walletClient = useAuthStore((state) => state.walletClient);
-  const { wallet, provider } = useWalletAndProvider();
+  const { wallet } = useWalletAndProvider();
 
   const token = useAuthStore((state) => state.token);
   const symbol: string = useTradeStore((state) => state.symbol);
-
-  const updateRfqRequest = useRfqRequestStore(
-    (state) => state.updateRfqRequest
-  );
 
   const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
 
@@ -49,18 +42,14 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
   const {
     sufficientBalance,
-    maxAmountAllowed,
     isBalanceZero,
     isAmountMinAmount,
-    minAmountFromQuote,
-    maxAmountFromQuote,
-    advisedAmount,
     noQuotesReceived,
   } = useOpenQuoteChecks(amount, entryPrice);
 
   const handleOpenQuote = async () => {
     if (!wallet || !token || !walletClient || !wallet.address) {
-      console.error(" Missing wallet, token, walletClient or wallet.address");
+      console.error("Missing wallet, token, walletClient or wallet.address");
       return;
     }
 
@@ -72,20 +61,17 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
     let counterparty;
     if (currentMethod === "Buy") {
-      if (!bestBid || !bestBid.counterpartyAddress) {
-        console.error("No best bid or counterparty address available");
-        setLoading(false);
-        return;
-      }
-      counterparty = bestBid.counterpartyAddress;
+      const bestAsk = quotes.reduce((best, current) =>
+        parseFloat(current.lPrice) < parseFloat(best.lPrice) ? current : best
+      );
+      counterparty = bestAsk.userAddress;
     } else {
-      if (!bestAsk || !bestAsk.counterpartyAddress) {
-        console.error("No best ask or counterparty address available");
-        setLoading(false);
-        return;
-      }
-      counterparty = bestAsk.counterpartyAddress;
+      const bestBid = quotes.reduce((best, current) =>
+        parseFloat(current.sPrice) > parseFloat(best.sPrice) ? current : best
+      );
+      counterparty = bestBid.userAddress;
     }
+
     const nonce = String(generateRandomNonce());
 
     const quote: SignedWrappedOpenQuoteRequest = {
@@ -147,20 +133,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     };
 
     console.log("quote", quote);
-    console.log("x", quote.x);
-    console.log("parity", quote.parity);
-    console.log("maxConfidence", quote.maxConfidence);
-    console.log("assetHex", quote.assetHex);
-    console.log("precision", quote.precision);
-    console.log("imA", quote.imA);
-    console.log("imB", quote.imB);
-    console.log("dfA", quote.dfA);
-    console.log("dfB", quote.dfB);
-    console.log("expiryA", quote.expiryA);
-    console.log("expiryB", quote.expiryB);
-    console.log("timeLock", quote.timeLock);
-    console.log("signatureHashOpenQuote", quote.signatureOpenQuote);
-    console.log("nonce", quote.nonceBoracle);
 
     const domainOpen = {
       name: "PionerV1Open",
@@ -185,8 +157,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       ],
     };
 
-    console.log("openQuoteSignType", openQuoteSignType);
-
     const openQuoteSignValue = {
       isLong: quote.isLong,
       bOracleId: 0,
@@ -200,8 +170,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       nonce: quote.nonceOpenQuote,
     };
 
-    console.log("openQuoteSignValue", openQuoteSignValue);
-
     const domainWrapper = {
       name: "PionerV1Wrapper",
       version: "1.0",
@@ -209,8 +177,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       verifyingContract:
         networks[chainId as unknown as NetworkKey].contracts.PionerV1Wrapper,
     };
-
-    console.log("domainWrapper", domainWrapper);
 
     const bOracleSignType = {
       bOracleSign: [
@@ -232,8 +198,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       ],
     };
 
-    console.log("bOracleSignType", bOracleSignType);
-
     const bOracleSignValue = {
       x: quote.x,
       parity: quote.parity,
@@ -251,8 +215,6 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       signatureHashOpenQuote: quote.signatureOpenQuote,
       nonce: quote.nonceBoracle,
     };
-
-    console.log("bOracleSignValue", bOracleSignValue);
 
     let signatureOpenQuote;
     try {
@@ -303,17 +265,19 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     setLoading(false);
   };
 
+  const isButtonDisabled =
+    loading ||
+    !sufficientBalance ||
+    isBalanceZero ||
+    isAmountMinAmount ||
+    noQuotesReceived ||
+    quotes.length === 0;
+
   return (
     <Button
       className="w-full py-6 border-none"
       onClick={handleOpenQuote}
-      disabled={
-        loading ||
-        !sufficientBalance ||
-        isBalanceZero ||
-        isAmountMinAmount ||
-        noQuotesReceived
-      }
+      disabled={isButtonDisabled}
     >
       {loading ? "Loading..." : "Open Quote"}
     </Button>

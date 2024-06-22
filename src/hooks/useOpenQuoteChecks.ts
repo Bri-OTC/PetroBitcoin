@@ -1,84 +1,121 @@
-// useOpenQuoteChecks.ts
-import { useEffect, useState, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
-import { useQuoteStore } from "@/store/quoteStore";
+import { useQuoteStore, QuoteResponse } from "@/store/quoteStore";
 import { useDepositedBalance } from "@/hooks/useDepositedBalance";
+import { debounce } from "lodash"; // Make sure to install lodash if not already present
+
+interface OpenQuoteCheckResults {
+  quotes: QuoteResponse[];
+  sufficientBalance: boolean;
+  maxAmountOpenable: number;
+  isBalanceZero: boolean;
+  isAmountMinAmount: boolean;
+  noQuotesReceived: boolean;
+  minAmount: number;
+  recommendedStep: number;
+  canBuyMinAmount: boolean;
+}
 
 export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
   const depositedBalance = useDepositedBalance();
   const currentMethod = useTradeStore((state) => state.currentMethod);
   const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
-  const { bids, asks, getBestQuotes, addQuote } = useQuoteStore();
+  const { quotes, cleanExpiredQuotes } = useQuoteStore();
+  const accountLeverage = useTradeStore((state) => state.accountLeverage);
 
-  const requiredBalance = useMemo(() => {
-    return currentMethod === "Buy"
-      ? parseFloat(rfqRequest.lImA) + parseFloat(rfqRequest.lDfA)
-      : parseFloat(rfqRequest.sImB) + parseFloat(rfqRequest.sDfB);
-  }, [currentMethod, rfqRequest]);
+  const [cachedResults, setCachedResults] = useState<OpenQuoteCheckResults>({
+    quotes: [],
+    sufficientBalance: false,
+    maxAmountOpenable: 0,
+    isBalanceZero: true,
+    isAmountMinAmount: true,
+    noQuotesReceived: true,
+    minAmount: 0,
+    recommendedStep: 0,
+    canBuyMinAmount: false,
+  });
 
-  const maxAmountOpenable = useMemo(() => {
-    return (
-      (Number(depositedBalance) / Number(entryPrice)) *
-      requiredBalance *
-      Number(amount)
-    );
-  }, [depositedBalance, entryPrice]);
+  const [lastValidBalance, setLastValidBalance] = useState("0");
 
-  const { bestBid, bestAsk } = useMemo(() => {
-    return getBestQuotes(amount);
-  }, [getBestQuotes, amount]);
-
-  const { minAmountFromQuote, maxAmountFromQuote, advisedAmount } =
-    useMemo(() => {
-      let min = "0";
-      let max = "0";
-      let advised = "0";
-
-      if (currentMethod === "Buy" && bestAsk) {
-        min = bestAsk.minAmount;
-        max = bestAsk.maxAmount;
-      } else if (currentMethod === "Sell" && bestBid) {
-        min = bestBid.minAmount;
-        max = bestBid.maxAmount;
-      }
-
-      if (min !== "0") {
-        const minAmountFloat = parseFloat(min);
-        const amountFloat = parseFloat(amount);
-
-        if (amountFloat % minAmountFloat !== 0) {
-          const lowerBoundAmount =
-            Math.floor(amountFloat / minAmountFloat) * minAmountFloat;
-          advised = lowerBoundAmount.toString();
-        } else {
-          advised = amount;
-        }
-      }
-
-      return {
-        minAmountFromQuote: min,
-        maxAmountFromQuote: max,
-        advisedAmount: advised,
-      };
-    }, [currentMethod, bestBid, bestAsk, amount]);
-
-  const noQuotesReceived = useMemo(() => {
-    return bids.length === 0 && asks.length === 0;
-  }, [bids, asks]);
+  const updateResults = useCallback(
+    debounce((newResults: OpenQuoteCheckResults) => {
+      setCachedResults(newResults);
+    }, 500),
+    []
+  );
 
   useEffect(() => {
-    addQuote(null);
-  }, [addQuote]);
+    const interval = setInterval(() => {
+      cleanExpiredQuotes();
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cleanExpiredQuotes]);
 
-  return {
-    sufficientBalance: Number(amount) <= maxAmountOpenable,
-    maxAmountOpenable,
-    isBalanceZero: Number(depositedBalance) === 0,
-    isAmountMinAmount: Number(amount) < requiredBalance,
-    minAmountFromQuote,
-    maxAmountFromQuote,
-    advisedAmount,
-    noQuotesReceived,
-  };
+  useEffect(() => {
+    if (depositedBalance !== "0") {
+      setLastValidBalance(depositedBalance);
+    }
+  }, [depositedBalance]);
+
+  const balanceToUse = useMemo(() => {
+    return depositedBalance === "0" ? lastValidBalance : depositedBalance;
+  }, [depositedBalance, lastValidBalance]);
+
+  useEffect(() => {
+    const safeParseFloat = (value: string | undefined): number => {
+      if (value === undefined || value === null) return 0;
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    };
+
+    const requiredBalance =
+      currentMethod === "Buy"
+        ? safeParseFloat(rfqRequest?.lImA) + safeParseFloat(rfqRequest?.lDfA)
+        : safeParseFloat(rfqRequest?.sImB) + safeParseFloat(rfqRequest?.sDfB);
+
+    const maxAmountOpenable =
+      (safeParseFloat(balanceToUse) / safeParseFloat(entryPrice)) *
+      requiredBalance *
+      accountLeverage;
+
+    const minAmount =
+      quotes.length > 0
+        ? Math.min(...quotes.map((q) => safeParseFloat(q.minAmount)))
+        : 0;
+
+    const recommendedStep = minAmount > 0 ? minAmount / 10 : 0;
+
+    const currentAmount = safeParseFloat(amount);
+    const isAmountMinAmount = currentAmount < minAmount;
+    const canBuyMinAmount =
+      isAmountMinAmount &&
+      minAmount * safeParseFloat(entryPrice) <=
+        safeParseFloat(balanceToUse) * accountLeverage;
+
+    const newResults: OpenQuoteCheckResults = {
+      quotes,
+      sufficientBalance: currentAmount <= maxAmountOpenable,
+      maxAmountOpenable,
+      isBalanceZero: safeParseFloat(balanceToUse) === 0,
+      isAmountMinAmount,
+      noQuotesReceived: quotes.length === 0,
+      minAmount,
+      recommendedStep,
+      canBuyMinAmount,
+    };
+
+    updateResults(newResults);
+  }, [
+    amount,
+    entryPrice,
+    currentMethod,
+    rfqRequest,
+    balanceToUse,
+    quotes,
+    updateResults,
+    accountLeverage,
+  ]);
+
+  return cachedResults;
 };

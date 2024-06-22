@@ -1,5 +1,4 @@
-// SheetPlaceOrder.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { DrawerClose, DrawerContent, DrawerTitle } from "../ui/drawer";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -12,21 +11,17 @@ import { useWalletAndProvider } from "@/components/layout/menu";
 import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 import Link from "next/link";
 import { useColorStore } from "@/store/colorStore";
+import { calculateLiquidationPrice } from "@/lib/utils";
 
-// Utility functions
-const calculateMaxAmountAllowed = (balance: number, maxAmount: number) => {
-  return Math.min(balance, maxAmount);
-};
+interface SliderProps {
+  min: number;
+  max: number;
+  step: number;
+  value: number[];
+  onValueChange: (value: number[]) => void;
+}
 
-const calculateStepSize = (minAmount: number, maxAmountAllowed: number) => {
-  return minAmount > maxAmountAllowed ? minAmount : maxAmountAllowed / 100;
-};
-
-const calculateNearestStep = (value: number, stepSize: number) => {
-  return Math.round(value / stepSize) * stepSize;
-};
-
-function SheetPlaceOrder() {
+const SheetPlace: React.FC = () => {
   const { wallet, provider } = useWalletAndProvider();
   const {
     currentMethod,
@@ -45,52 +40,52 @@ function SheetPlaceOrder() {
     setAmountUSD,
     setSliderValue,
     accountLeverage,
-    estimatedLiquidationPrice,
-    exitPnL,
-    stopPnL,
-    riskRewardPnL,
     balance,
     maxAmount,
   } = useTradeStore();
 
-  const [prevBidPrice, setPrevBidPrice] = useState(bidPrice);
-  const [prevAskPrice, setPrevAskPrice] = useState(askPrice);
-  const [userInteracted, setUserInteracted] = useState(false);
+  const [prevBidPrice, setPrevBidPrice] = useState<number>(bidPrice);
+  const [prevAskPrice, setPrevAskPrice] = useState<number>(askPrice);
+  const [userInteracted, setUserInteracted] = useState<boolean>(false);
+  const [firstQuoteReceived, setFirstQuoteReceived] = useState<boolean>(false);
 
   const {
+    quotes,
     sufficientBalance,
     maxAmountOpenable,
     isBalanceZero,
     isAmountMinAmount,
-    minAmountFromQuote,
-    maxAmountFromQuote,
-    advisedAmount,
     noQuotesReceived,
+    minAmount,
+    recommendedStep,
+    canBuyMinAmount,
   } = useOpenQuoteChecks(amount, entryPrice);
 
   const color = useColorStore((state) => state.color);
 
-  const maxAmountAllowed = calculateMaxAmountAllowed(balance, maxAmount);
-  const stepSize = calculateStepSize(
-    Number(minAmountFromQuote),
-    maxAmountOpenable
-  );
-
   useEffect(() => {
-    if (currentMethod === "Buy") {
-      setEntryPrice(askPrice.toString());
-    } else if (currentMethod === "Sell") {
-      setEntryPrice(bidPrice.toString());
-    }
-  }, [currentMethod, askPrice, bidPrice, setEntryPrice]);
-
-  useEffect(() => {
-    if (currentTabIndex === "Market") {
+    const updateEntryPrice = () => {
       if (currentMethod === "Buy") {
         setEntryPrice(askPrice.toString());
       } else if (currentMethod === "Sell") {
         setEntryPrice(bidPrice.toString());
       }
+    };
+
+    updateEntryPrice();
+  }, [currentMethod, askPrice, bidPrice, setEntryPrice]);
+
+  useEffect(() => {
+    if (currentTabIndex === "Market") {
+      const updateEntryPrice = () => {
+        if (currentMethod === "Buy") {
+          setEntryPrice(askPrice.toString());
+        } else if (currentMethod === "Sell") {
+          setEntryPrice(bidPrice.toString());
+        }
+      };
+
+      updateEntryPrice();
     }
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);
 
@@ -100,62 +95,167 @@ function SheetPlaceOrder() {
       setPrevAskPrice(askPrice);
     }, 1000);
 
-    return () => {
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, [bidPrice, askPrice]);
 
   useEffect(() => {
-    if (!userInteracted) {
-      setAmount(minAmountFromQuote.toString());
-      setAmountUSD(
-        (parseFloat(minAmountFromQuote) * parseFloat(entryPrice)).toString()
+    if (!userInteracted && quotes.length > 0 && !firstQuoteReceived) {
+      const minQuoteAmount = Math.min(
+        ...quotes.map((q) => parseFloat(q.minAmount))
       );
+      setAmount(minQuoteAmount.toString());
+      setAmountUSD((minQuoteAmount * parseFloat(entryPrice)).toString());
+      setFirstQuoteReceived(true);
     }
-  }, [minAmountFromQuote, entryPrice, userInteracted, setAmount, setAmountUSD]);
+  }, [
+    quotes,
+    entryPrice,
+    userInteracted,
+    setAmount,
+    setAmountUSD,
+    firstQuoteReceived,
+  ]);
 
-  const toggleTabIndex = () => {
+  useEffect(() => {
+    setFirstQuoteReceived(false);
+  }, [currentMethod, symbol]);
+
+  const toggleTabIndex = useCallback(() => {
     setCurrentTabIndex(currentTabIndex === "Market" ? "Limit" : "Market");
-  };
+  }, [currentTabIndex, setCurrentTabIndex]);
 
-  const handleAmountChange = (value: string) => {
-    setUserInteracted(true);
-    setAmount(value);
-    setAmountUSD((parseFloat(value) * parseFloat(entryPrice)).toString());
-  };
+  const handleAmountChange = useCallback(
+    (value: string) => {
+      setUserInteracted(true);
+      setAmount(value);
+      setAmountUSD((parseFloat(value) * parseFloat(entryPrice)).toString());
+    },
+    [setAmount, setAmountUSD, entryPrice]
+  );
 
-  const handleAmountUSDChange = (value: string) => {
-    setUserInteracted(true);
-    setAmountUSD(value);
-    setAmount((parseFloat(value) / parseFloat(entryPrice)).toString());
-  };
+  const handleAmountUSDChange = useCallback(
+    (value: string) => {
+      setUserInteracted(true);
+      setAmountUSD(value);
+      setAmount((parseFloat(value) / parseFloat(entryPrice)).toString());
+    },
+    [setAmount, setAmountUSD, entryPrice]
+  );
 
-  const handleSliderChange = (value: number) => {
-    setUserInteracted(true);
-    const newValue = calculateNearestStep(value, stepSize);
-    setSliderValue(newValue);
-    setAmount(newValue.toString());
-    setAmountUSD((newValue * parseFloat(entryPrice)).toString());
-  };
+  const handleSliderChange = useCallback(
+    (value: number) => {
+      setUserInteracted(true);
+      const newValue = noQuotesReceived
+        ? value
+        : Math.max(minAmount, Math.min(maxAmountOpenable, value));
+      setSliderValue(newValue);
+      setAmount(newValue.toString());
+      setAmountUSD((newValue * parseFloat(entryPrice)).toString());
+    },
+    [
+      noQuotesReceived,
+      minAmount,
+      maxAmountOpenable,
+      setSliderValue,
+      setAmount,
+      setAmountUSD,
+      entryPrice,
+    ]
+  );
+
+  const getSliderProps = useCallback((): SliderProps => {
+    if (noQuotesReceived) {
+      return {
+        min: 0,
+        max: 100,
+        step: 1,
+        value: [parseFloat(amount) || 0],
+        onValueChange: (value: number[]) => handleSliderChange(value[0]),
+      };
+    } else {
+      return {
+        min: minAmount,
+        max: maxAmountOpenable,
+        step: recommendedStep,
+        value: [parseFloat(amount) || minAmount],
+        onValueChange: (value: number[]) => handleSliderChange(value[0]),
+      };
+    }
+  }, [
+    noQuotesReceived,
+    amount,
+    minAmount,
+    maxAmountOpenable,
+    recommendedStep,
+    handleSliderChange,
+  ]);
+
+  const roundedAmount = useMemo(() => {
+    return Math.round(parseFloat(amount) / recommendedStep) * recommendedStep;
+  }, [amount, recommendedStep]);
+
+  const openQuoteRequest = useMemo(
+    () => ({
+      issuerAddress: "0x0000000000000000000000000000000000000000",
+      counterpartyAddress: "0x0000000000000000000000000000000000000000",
+      version: "1.0",
+      chainId: 64165,
+      verifyingContract: "",
+      x: "",
+      parity: "0",
+      maxConfidence: "",
+      assetHex: "",
+      maxDelay: "600",
+      precision: 5,
+      imA: "",
+      imB: "",
+      dfA: "",
+      dfB: "",
+      expiryA: "",
+      expiryB: "",
+      timeLock: "",
+      nonceBoracle: "0",
+      signatureBoracle: "",
+      isLong: currentMethod === "Buy",
+      price: entryPrice,
+      amount: roundedAmount.toString(),
+      interestRate: "",
+      isAPayingApr: false,
+      frontEnd: "",
+      affiliate: "",
+      authorized: "",
+      nonceOpenQuote: "0",
+      signatureOpenQuote: "",
+      emitTime: "0",
+      messageState: 0,
+    }),
+    [currentMethod, entryPrice, roundedAmount]
+  );
+
+  const liquidationPrice = calculateLiquidationPrice(
+    parseFloat(entryPrice),
+    accountLeverage,
+    currentMethod === "Buy"
+  );
 
   return (
     <DrawerContent className="transform scale-60 origin-bottom">
       <DrawerTitle className="text-center mt-3">{symbol}</DrawerTitle>
       <div className="flex flex-col space-y-3 p-5">
         <div className="flex border-b">
-          {["Buy", "Sell"].map((x) => (
+          {["Buy", "Sell"].map((method) => (
             <h2
-              key={x + "drawer"}
-              onClick={() => setCurrentMethod(x)}
+              key={`${method}-drawer`}
+              onClick={() => setCurrentMethod(method)}
               className={`w-full text-center pb-3 border-b-[3px] ${
-                currentMethod === x
-                  ? currentMethod === "Sell"
+                currentMethod === method
+                  ? method === "Sell"
                     ? "border-[#F23645] text-[#F23645]"
                     : "border-[#089981] text-[#089981]"
                   : "border-transparent"
               } font-medium transition-all cursor-pointer`}
             >
-              {x}
+              {method}
             </h2>
           ))}
         </div>
@@ -247,102 +347,73 @@ function SheetPlaceOrder() {
           </p>
         ) : !sufficientBalance ? (
           <p className="text-red-500 text-sm mt-1">
-            Max amount allowed at this price: {maxAmountAllowed.toFixed(8)}
+            Max amount allowed at this price: {maxAmountOpenable.toFixed(8)}
           </p>
-        ) : parseFloat(amount) < parseFloat(minAmountFromQuote) ? (
+        ) : isAmountMinAmount ? (
           <p className="text-red-500 text-sm mt-1">
-            Minimum amount: {minAmountFromQuote}. Advised amount:{" "}
-            {advisedAmount}.
-          </p>
-        ) : parseFloat(amount) > parseFloat(maxAmountFromQuote) ? (
-          <p className="text-red-500 text-sm mt-1">
-            Maximum amount: {maxAmountFromQuote}. Advised amount:{" "}
-            {advisedAmount}.
+            The amount is less than the minimum required.
           </p>
         ) : noQuotesReceived ? (
           <p className="text-red-500 text-sm mt-1">
             No quotes have been received. Please try again later.
           </p>
         ) : null}
+        {isAmountMinAmount && canBuyMinAmount && (
+          <p className="text-yellow-500 text-sm mt-1">
+            The amount is less than the minimum required, but you have
+            sufficient balance to buy the minimum amount of {minAmount}{" "}
+            contracts.
+          </p>
+        )}
         <div className="py-3">
-          <Slider
-            min={0}
-            max={maxAmountAllowed}
-            step={stepSize}
-            value={[parseFloat(amount)]}
-            onValueChange={(value) => handleSliderChange(value[0])}
-          />
+          <Slider {...getSliderProps()} />
         </div>
         <div className="flex items-center space-x-2">
-          {[25, 50, 75, 100].map((x) => (
+          {[25, 50, 75, 100].map((percentage) => (
             <Button
-              key={x}
-              onClick={() => handleSliderChange((x / 100) * maxAmountAllowed)}
+              key={percentage}
+              onClick={() =>
+                handleSliderChange(
+                  (percentage / 100) *
+                    (noQuotesReceived ? 100 : maxAmountOpenable)
+                )
+              }
               className="w-full bg-card py-2 text-center hover:bg-primary rounded-lg"
             >
-              {x}%
+              {percentage}%
             </Button>
           ))}
         </div>
         <h3 className="text-left text-card-foreground">
-          {accountLeverage}x Account Leverage | Estimated Liquidation Price:{" "}
-          {estimatedLiquidationPrice}
+          {accountLeverage}x Account Leverage
         </h3>
         <div className="flex items-center justify-between p-5 px-8 bg-card">
           <div className="flex flex-col items-center space-y-2 text-center">
+            <h3>Min Amount Step</h3>
+            <h3>
+              {quotes.length > 0
+                ? Math.min(
+                    ...quotes.map((q) => parseFloat(q.minAmount))
+                  ).toFixed(5)
+                : "N/A"}{" "}
+              Contracts
+            </h3>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-center">
+            <h3>Max Amount</h3>
+            <h3>{maxAmountOpenable.toFixed(5)} Contracts</h3>
+          </div>
+          <div className="flex flex-col items-center space-y-2 text-center">
             <h3>Liquidation Price</h3>
-            <h3>{exitPnL} USD</h3>
-          </div>
-          <div className="flex flex-col items-center space-y-2 text-center">
-            <h3>Liquidation PnL</h3>
-            <h3>{stopPnL} USD</h3>
-          </div>
-          <div className="flex flex-col items-center space-y-2 text-center">
-            <h3>Risk Reward</h3>
-            <h3>{riskRewardPnL} USD</h3>
+            <h3>{liquidationPrice.toFixed(5)} USD</h3>
           </div>
         </div>
         <DrawerClose>
-          <OpenQuoteButton
-            request={{
-              issuerAddress: "0x0000000000000000000000000000000000000000",
-              counterpartyAddress: "0x0000000000000000000000000000000000000000",
-              version: "1.0",
-              chainId: 64165,
-              verifyingContract: "",
-              x: "",
-              parity: "0",
-              maxConfidence: "",
-              assetHex: "",
-              maxDelay: "600",
-              precision: 5,
-              imA: "",
-              imB: "",
-              dfA: "",
-              dfB: "",
-              expiryA: "",
-              expiryB: "",
-              timeLock: "",
-              nonceBoracle: "0",
-              signatureBoracle: "",
-              isLong: currentMethod === "Buy",
-              price: entryPrice,
-              amount: amount,
-              interestRate: "",
-              isAPayingApr: false,
-              frontEnd: "",
-              affiliate: "",
-              authorized: "",
-              nonceOpenQuote: "0",
-              signatureOpenQuote: "",
-              emitTime: "0",
-              messageState: 0,
-            }}
-          />
+          <OpenQuoteButton request={openQuoteRequest} />
         </DrawerClose>
       </div>
     </DrawerContent>
   );
-}
+};
 
-export default SheetPlaceOrder;
+export default SheetPlace;
