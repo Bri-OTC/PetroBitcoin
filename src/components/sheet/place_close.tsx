@@ -1,166 +1,352 @@
-// SheetPlaceOrder.tsx
+import React, { useCallback, useState, useEffect } from "react";
 import { DrawerClose, DrawerContent, DrawerTitle } from "../ui/drawer";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Checkbox } from "../ui/checkbox";
-import { FaEquals } from "react-icons/fa";
-import { Dialog, DialogTrigger } from "../ui/dialog";
 import { Card } from "../ui/card";
-import { Slider } from "../ui/slider";
-import PopupModify from "../popup/modify";
-import { useTradeStore } from "@/store/tradeStore";
-import OpenQuoteButton from "@/components/sections/trade/utils/openQuote";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import { useEffect } from "react";
+import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
+import { parseUnits } from "viem";
+import {
+  sendSignedCloseQuote,
+  SignedCloseQuoteRequest,
+} from "@pionerfriends/api-client";
+import { removePrefix } from "@/components/web3/utils";
 
-function SheetPlaceOrder() {
-  const token = useAuthStore().token;
+interface SheetPlaceOrderProps {
+  position: {
+    id: string;
+    size: string;
+    market: string;
+    icon: string;
+    mark: string;
+    entryPrice: string;
+    pnl: string;
+    amount: string;
+    amountContract: string;
+    type: string;
+    estLiq: string;
+    entryTime: string;
+    mtm: string;
+    imA: string;
+    dfA: string;
+    imB: string;
+    dfB: string;
+    openTime: string;
+    isAPayingAPR: boolean;
+    interestRate: string;
+    bContractId: number;
+  };
+  onClose: () => void;
+}
+
+const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
+  position,
+  onClose,
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [takeProfit, setTakeProfit] = useState("");
+  const [takeProfitPercentage, setTakeProfitPercentage] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
+  const [stopLossPercentage, setStopLossPercentage] = useState("");
+  const [isReduceTP, setIsReduceTP] = useState(false);
+  const [isReduceSL, setIsReduceSL] = useState(false);
+  const [exitPnL, setExitPnL] = useState(0);
+  const [stopPnL, setStopPnL] = useState(0);
+  const [riskRewardPnL, setRiskRewardPnL] = useState(0);
+
+  const { token, walletClient, chainId } = useAuthStore();
   const { wallet, provider } = useWalletAndProvider();
 
-  const handleOpenQuote = async () => {
-    if (!wallet || !provider || !token) {
+  const isLong = parseFloat(position.size) > 0;
+  const entryPrice = parseFloat(position.entryPrice);
+  const markPrice = parseFloat(position.mark);
+
+  useEffect(() => {
+    computePnL(takeProfit, stopLoss);
+  }, []);
+
+  const handleTakeProfitChange = useCallback(
+    (value: string) => {
+      setTakeProfit(value);
+      if (!isReduceTP) {
+        const percentage =
+          ((parseFloat(value) - entryPrice) / entryPrice) * 100;
+        setTakeProfitPercentage(percentage.toFixed(2));
+      }
+      computePnL(value, stopLoss);
+    },
+    [isReduceTP, stopLoss, entryPrice]
+  );
+
+  const handleStopLossChange = useCallback(
+    (value: string) => {
+      setStopLoss(value);
+      if (!isReduceSL) {
+        const percentage =
+          ((entryPrice - parseFloat(value)) / entryPrice) * 100;
+        setStopLossPercentage(percentage.toFixed(2));
+      }
+      computePnL(takeProfit, value);
+    },
+    [isReduceSL, takeProfit, entryPrice]
+  );
+
+  const handleTakeProfitPercentageChange = useCallback(
+    (value: string) => {
+      setTakeProfitPercentage(value);
+      const price = entryPrice * (1 + parseFloat(value) / 100);
+      setTakeProfit(price.toFixed(2));
+      computePnL(price.toString(), stopLoss);
+    },
+    [stopLoss, entryPrice]
+  );
+
+  const handleStopLossPercentageChange = useCallback(
+    (value: string) => {
+      setStopLossPercentage(value);
+      const price = entryPrice * (1 - parseFloat(value) / 100);
+      setStopLoss(price.toFixed(2));
+      computePnL(takeProfit, price.toString());
+    },
+    [takeProfit, entryPrice]
+  );
+
+  const handleTPCheckboxChange = useCallback(
+    (checked: boolean) => {
+      setIsReduceTP(checked);
+      if (checked) {
+        setTakeProfitPercentage("10");
+        handleTakeProfitPercentageChange("10");
+      } else {
+        setTakeProfitPercentage("");
+        setTakeProfit("");
+      }
+    },
+    [handleTakeProfitPercentageChange]
+  );
+
+  const handleSLCheckboxChange = useCallback(
+    (checked: boolean) => {
+      setIsReduceSL(checked);
+      if (checked) {
+        setStopLossPercentage("10");
+        handleStopLossPercentageChange("10");
+      } else {
+        setStopLossPercentage("");
+        setStopLoss("");
+      }
+    },
+    [handleStopLossPercentageChange]
+  );
+
+  const handleLastPrice = useCallback(() => {
+    setTakeProfit(markPrice.toString());
+    setStopLoss(markPrice.toString());
+    computePnL(markPrice.toString(), markPrice.toString());
+  }, [markPrice]);
+
+  const computePnL = useCallback(
+    (tp: string, sl: string) => {
+      const takeProfitValue = parseFloat(tp);
+      const stopLossValue = parseFloat(sl);
+
+      if (isNaN(takeProfitValue) || isNaN(stopLossValue)) {
+        setExitPnL(0);
+        setStopPnL(0);
+        setRiskRewardPnL(0);
+        return;
+      }
+
+      const exitPnLValue = isLong
+        ? ((takeProfitValue - entryPrice) / entryPrice) * 100
+        : ((entryPrice - takeProfitValue) / entryPrice) * 100;
+
+      const stopPnLValue = isLong
+        ? ((stopLossValue - entryPrice) / entryPrice) * 100
+        : ((entryPrice - stopLossValue) / entryPrice) * 100;
+
+      const riskRewardRatio = Math.abs(exitPnLValue / stopPnLValue);
+
+      setExitPnL(exitPnLValue);
+      setStopPnL(stopPnLValue);
+      setRiskRewardPnL(riskRewardRatio);
+    },
+    [isLong, entryPrice]
+  );
+
+  const handleCloseQuote = async (price: string) => {
+    if (!wallet || !wallet.address || !token || !walletClient) {
+      console.error(
+        "Wallet, wallet address, token, or walletClient is missing"
+      );
       return;
     }
-  };
 
-  const currentMethod = useTradeStore((state) => state.currentMethod);
-  const takeProfit = useTradeStore((state) => state.takeProfit);
-  const takeProfitPercentage = useTradeStore(
-    (state) => state.takeProfitPercentage
-  );
-  const stopLoss = useTradeStore((state) => state.stopLoss);
-  const stopLossPercentage = useTradeStore((state) => state.stopLossPercentage);
+    setLoading(true);
 
-  const isReduceTP = useTradeStore((state) => state.isReduceTP);
-  const isReduceSL = useTradeStore((state) => state.isReduceSL);
-  const bidPrice = useTradeStore((state) => state.bidPrice);
-  const askPrice = useTradeStore((state) => state.askPrice);
-  const symbol = useTradeStore((state) => state.symbol);
-  const currentTabIndex = useTradeStore((state) => state.currentTabIndex);
+    try {
+      const ethersProvider = wallet.getEthersProvider();
 
-  const setCurrentMethod = useTradeStore((state) => state.setCurrentMethod);
-  const setCurrentTabIndex = useTradeStore((state) => state.setCurrentTabIndex);
+      const domainClose = {
+        name: "PionerV1Close",
+        version: "1.0",
+        chainId: 64165,
+        verifyingContract:
+          networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
+      };
 
-  const setTakeProfit = useTradeStore((state) => state.setTakeProfit);
-  const setTakeProfitPercentage = useTradeStore(
-    (state) => state.setTakeProfitPercentage
-  );
-  const setStopLoss = useTradeStore((state) => state.setStopLoss);
-  const setStopLossPercentage = useTradeStore(
-    (state) => state.setStopLossPercentage
-  );
+      const OpenCloseQuoteType = {
+        OpenCloseQuote: [
+          { name: "bContractId", type: "uint256" },
+          { name: "price", type: "uint256" },
+          { name: "amount", type: "uint256" },
+          { name: "limitOrStop", type: "uint256" },
+          { name: "expiry", type: "uint256" },
+          { name: "authorized", type: "address" },
+          { name: "nonce", type: "uint256" },
+        ],
+      };
 
-  const setIsReduceTP = useTradeStore((state) => state.setIsReduceTP);
-  const setIsReduceSL = useTradeStore((state) => state.setIsReduceSL);
+      const nonce = Date.now().toString();
+      const openCloseQuoteValue = {
+        bContractId: position.bContractId,
+        price: parseUnits(price, 18).toString(),
+        amount: position.amountContract,
+        limitOrStop: parseUnits(price, 18).toString(),
+        expiry: 171398843400000,
+        authorized: wallet.address,
+        nonce: nonce,
+      };
 
-  const accountLeverage = useTradeStore((state) => state.accountLeverage);
-  const estimatedLiquidationPrice = useTradeStore(
-    (state) => state.estimatedLiquidationPrice
-  );
-  const exitPnL = useTradeStore((state) => state.exitPnL);
-  const stopPnL = useTradeStore((state) => state.stopPnL);
-  const riskRewardPnL = useTradeStore((state) => state.riskRewardPnL);
+      const signatureClose = await ethersProvider.signTypedData(
+        domainClose,
+        OpenCloseQuoteType,
+        openCloseQuoteValue
+      );
 
-  const handleTakeProfitChange = (value: string) => {
-    setTakeProfit(value);
-    if (!isReduceTP) {
-      setTakeProfitPercentage("10");
+      const closeQuote: SignedCloseQuoteRequest = {
+        issuerAddress: wallet.address,
+        counterpartyAddress: wallet.address,
+        version: "1.0",
+        chainId: Number(chainId),
+        verifyingContract:
+          networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
+        bcontractId: position.bContractId,
+        price: parseUnits(price, 18).toString(),
+        amount: position.amountContract,
+        limitOrStop: Number(parseUnits(price, 18)),
+        expiry: String(171398843400000),
+        authorized: wallet.address,
+        nonce: nonce,
+        signatureClose: signatureClose,
+        emitTime: Date.now().toString(),
+        messageState: 0,
+      };
+
+      await sendSignedCloseQuote(closeQuote, token);
+    } catch (error) {
+      console.error("Error in handleCloseQuote:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleStopLossChange = (value: string) => {
-    setStopLoss(value);
-    if (!isReduceSL) {
-      setStopLossPercentage("10");
-    }
-  };
+  const renderPriceInput = useCallback(
+    (
+      label: string,
+      value: string,
+      onChange: (value: string) => void,
+      isDisabled: boolean
+    ) => (
+      <div className="flex flex-col space-y-2 w-full">
+        <h3 className="text-left text-card-foreground">{label}</h3>
+        <div className="flex items-center space-x-5 border-b">
+          <Input
+            className={`pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)] ${
+              parseFloat(value) <= 0 ? "text-red-500" : ""
+            }`}
+            placeholder="Input Price"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={isDisabled}
+          />
+          <p>USD</p>
+        </div>
+      </div>
+    ),
+    []
+  );
 
-  const handleTPCheckboxChange = (checked: boolean) => {
-    setIsReduceTP(checked);
-    if (checked) {
-      setTakeProfitPercentage("10");
-    } else {
-      setTakeProfitPercentage("");
-    }
-  };
+  const renderPercentageInput = useCallback(
+    (
+      label: string,
+      value: string,
+      onChange: (value: string) => void,
+      isDisabled: boolean
+    ) => (
+      <div className="flex flex-col space-y-2 w-full">
+        <h3 className="text-left text-card-foreground">{label}</h3>
+        <div className="flex items-center space-x-5 border-b">
+          <Input
+            className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
+            placeholder="Input Percentage"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={isDisabled}
+          />
+          <p>%</p>
+        </div>
+      </div>
+    ),
+    []
+  );
 
-  const handleSLCheckboxChange = (checked: boolean) => {
-    setIsReduceSL(checked);
-    if (checked) {
-      setStopLossPercentage("10");
-    } else {
-      setStopLossPercentage("");
-    }
+  const canCloseQuote = isReduceTP || isReduceSL;
+
+  const formattedMarket = removePrefix(position.market);
+
+  const handleDrawerClose = () => {
+    setLoading(false);
+    onClose();
   };
 
   return (
     <DrawerContent>
-      <DrawerTitle className="text-center mt-3">{symbol}</DrawerTitle>
+      <DrawerTitle className="text-center mt-3">{formattedMarket}</DrawerTitle>
       <div className="flex flex-col space-y-3 p-5">
-        <div className="flex border-b">
-          {["Buy", "Sell"].map((x) => {
-            return (
-              <h2
-                key={x + "drawer"}
-                onClick={() => setCurrentMethod(x)}
-                className={`w-full text-center pb-3 border-b-[3px] ${
-                  currentMethod === x
-                    ? `${
-                        currentMethod === "Sell"
-                          ? "border-[#F23645] text-[#F23645]"
-                          : "border-[#089981] text-[#089981]"
-                      }`
-                    : "border-transparent"
-                } font-medium transition-all cursor-pointer`}
-              >
-                {x}
-              </h2>
-            );
-          })}
-        </div>
         <div className="flex items-center justify-center mt-5 space-x-5">
           <Card className="py-4">
-            <p className="text-white">Bid price : {bidPrice}</p>
+            <p className="text-white">Entry Price: {position.entryPrice}</p>
           </Card>
           <Card className="py-4">
-            <p className="text-white">Ask price : {askPrice}</p>
+            <p className="text-white">Mark Price: {position.mark}</p>
           </Card>
         </div>
 
         <div className="flex space-x-5 justify-between items-end">
-          <Dialog>
-            <DialogTrigger className="w-full bg-card">Limit</DialogTrigger>
-            <PopupModify />
-          </Dialog>
+          <Button
+            onClick={handleLastPrice}
+            className="w-full bg-card text-[rgba(256,200,52,1)] hover:bg-card hover:text-white"
+          >
+            Last Price
+          </Button>
         </div>
+
         <div className="flex space-x-5 justify-between items-end">
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">Take profit exit</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={takeProfit}
-                onChange={(e) => handleTakeProfitChange(e.target.value)}
-                disabled={!isReduceTP}
-              />
-              <p>USD</p>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">% Gain</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={takeProfitPercentage}
-                onChange={(e) => setTakeProfitPercentage(e.target.value)}
-                disabled={!isReduceTP}
-              />
-              <p>%</p>
-            </div>
-          </div>
+          {renderPriceInput(
+            "Take profit exit",
+            takeProfit,
+            handleTakeProfitChange,
+            !isReduceTP
+          )}
+          {renderPercentageInput(
+            "% Gain",
+            takeProfitPercentage,
+            setTakeProfitPercentage,
+            !isReduceTP
+          )}
           <div className="flex flex-col items-center space-y-1">
             <p>TP</p>
             <Checkbox
@@ -169,33 +355,20 @@ function SheetPlaceOrder() {
             />
           </div>
         </div>
+
         <div className="flex space-x-5 justify-between items-end">
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">Stop loss</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={stopLoss}
-                onChange={(e) => handleStopLossChange(e.target.value)}
-                disabled={!isReduceSL}
-              />
-              <p>USD</p>
-            </div>
-          </div>
-          <div className="flex flex-col space-y-2 w-full">
-            <h3 className="text-left text-card-foreground">% Loss</h3>
-            <div className="flex items-center space-x-5 border-b">
-              <Input
-                className="pb-3 outline-none w-full border-b-[0px] bg-transparent hover:shadow-[0_0_0_2px_rgba(256,200,52,1)]"
-                placeholder="Input Price"
-                value={stopLossPercentage}
-                onChange={(e) => setStopLossPercentage(e.target.value)}
-                disabled={!isReduceSL}
-              />
-              <p>%</p>
-            </div>
-          </div>
+          {renderPriceInput(
+            "Stop loss",
+            stopLoss,
+            handleStopLossChange,
+            !isReduceSL
+          )}
+          {renderPercentageInput(
+            "% Loss",
+            stopLossPercentage,
+            setStopLossPercentage,
+            !isReduceSL
+          )}
           <div className="flex flex-col items-center space-y-1">
             <p>SL</p>
             <Checkbox
@@ -206,64 +379,62 @@ function SheetPlaceOrder() {
         </div>
 
         <h3 className="text-left text-card-foreground">
-          {accountLeverage}x Account Leverage | Estimated Liquidation Price:{" "}
-          {estimatedLiquidationPrice}
+          Est. Liquidation Price: {position.estLiq}
         </h3>
+
         <div className="flex items-center justify-between p-5 px-8 bg-card">
           <div className="flex flex-col items-center space-y-2 text-center">
             <h3>Exit PnL</h3>
-            <h3>{exitPnL} USD</h3>
+            <h3>{exitPnL.toFixed(2)} %</h3>
           </div>
           <div className="flex flex-col items-center space-y-2 text-center">
             <h3>Stop PnL</h3>
-            <h3>{stopPnL} USD</h3>
+            <h3>{stopPnL.toFixed(2)} %</h3>
           </div>
           <div className="flex flex-col items-center space-y-2 text-center">
             <h3>Risk Reward</h3>
-            <h3>{riskRewardPnL} </h3>
+            <h3>{riskRewardPnL.toFixed(2)}</h3>
           </div>
         </div>
-        <DrawerClose>
-          <OpenQuoteButton
-            request={{
-              issuerAddress: "0x0000000000000000000000000000000000000000",
-              counterpartyAddress: "0x0000000000000000000000000000000000000000",
-              version: "1.0",
-              chainId: 64165,
-              verifyingContract: "",
-              x: "",
-              parity: "0",
-              maxConfidence: "",
-              assetHex: "",
-              maxDelay: "600",
-              precision: 5,
-              imA: "",
-              imB: "",
-              dfA: "",
-              dfB: "",
-              expiryA: "",
-              expiryB: "",
-              timeLock: "",
-              nonceBoracle: "0",
-              signatureBoracle: "",
-              isLong: currentMethod === "Buy",
-              price: "0",
-              amount: "0",
-              interestRate: "",
-              isAPayingApr: false,
-              frontEnd: "",
-              affiliate: "",
-              authorized: "",
-              nonceOpenQuote: "0",
-              signatureOpenQuote: "",
-              emitTime: "0",
-              messageState: 0,
+
+        {canCloseQuote && (
+          <div className="flex space-x-3">
+            {isReduceTP && (
+              <Button
+                className="w-full"
+                onClick={() => handleCloseQuote(takeProfit)}
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Close TP"}
+              </Button>
+            )}
+            {isReduceSL && (
+              <Button
+                className="w-full"
+                onClick={() => handleCloseQuote(stopLoss)}
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Close SL"}
+              </Button>
+            )}
+          </div>
+        )}
+
+        <DrawerClose onClick={handleDrawerClose}>
+          <Button
+            className="w-full"
+            disabled={!canCloseQuote || loading}
+            onClick={() => {
+              if (isReduceTP) handleCloseQuote(takeProfit);
+              else if (isReduceSL) handleCloseQuote(stopLoss);
             }}
-          />
+          >
+            {loading ? "Loading..." : "Close Quote"}
+          </Button>
         </DrawerClose>
       </div>
     </DrawerContent>
   );
-}
+};
 
-export default SheetPlaceOrder;
+export default SheetPlaceClose;

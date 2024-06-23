@@ -11,7 +11,6 @@ import {
   PositionResponse,
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
-
 export const getPositionss = async (
   chainId: number,
   token: string,
@@ -64,9 +63,19 @@ export const getPositionss = async (
             entryPrice: entryPrice,
             pnl: pnl,
             amount: amount,
+            amountContract: position.amount,
             type: type,
             estLiq: estLiq,
             entryTime: formattedEntryTime,
+            mtm: position.mtm,
+            imA: position.imA,
+            dfA: position.dfA,
+            imB: position.imB,
+            dfB: position.dfB,
+            openTime: position.openTime,
+            isAPayingAPR: position.isAPayingAPR,
+            interestRate: position.interestRate,
+            bContractId: position.bContractId,
           };
         }
       );
