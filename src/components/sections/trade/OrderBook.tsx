@@ -122,8 +122,14 @@ const useWebSocket = (url: string, isOn: boolean) => {
   return data;
 };
 
-const generateAmount = (previousAmount: number, maxAmount: number): number => {
+const generateAmount = (
+  previousAmount: number,
+  maxAmount: number,
+  minPercentage: number
+): number => {
   if (maxAmount <= 0) return 0;
+
+  const minAmount = maxAmount * minPercentage;
 
   // Generate a random deviation with high tails
   const deviation =
@@ -132,10 +138,47 @@ const generateAmount = (previousAmount: number, maxAmount: number): number => {
   // Apply the deviation to the previous amount
   let newAmount = previousAmount + deviation;
 
-  // Ensure the new amount is within bounds
-  newAmount = Math.max(0, Math.min(newAmount, maxAmount));
+  // Ensure the new amount is within bounds and not less than the minimum
+  newAmount = Math.max(minAmount, Math.min(newAmount, maxAmount));
 
   return newAmount;
+};
+
+const distributeAmounts = (
+  totalAmount: number,
+  count: number,
+  minPercentage: number
+): number[] => {
+  const minAmount = totalAmount * minPercentage;
+  let amounts = Array(count).fill(minAmount);
+  let remainingAmount = totalAmount - minAmount * count;
+
+  for (let i = 0; i < count && remainingAmount > 0; i++) {
+    const additionalAmount = Math.random() * remainingAmount;
+    amounts[i] += additionalAmount;
+    remainingAmount -= additionalAmount;
+  }
+
+  // If there's still remaining amount, distribute it equally
+  if (remainingAmount > 0) {
+    const extraPerAmount = remainingAmount / count;
+    amounts = amounts.map((amount) => amount + extraPerAmount);
+  }
+
+  return amounts;
+};
+
+const scalePrice = (
+  price: number,
+  referenceMin: number,
+  referenceMax: number,
+  targetMin: number,
+  targetMax: number
+): number => {
+  const referenceRange = referenceMax - referenceMin;
+  const targetRange = targetMax - targetMin;
+  const scaleFactor = targetRange / referenceRange;
+  return targetMin + (price - referenceMin) * scaleFactor;
 };
 
 export const OrderBook: React.FC<OrderBookProps> = React.memo(
@@ -180,8 +223,27 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
       let bidPrices = [];
 
       if (orders && orders.asks.length && orders.bids.length) {
-        askPrices = orders.asks.map(([price]) => price);
-        bidPrices = orders.bids.map(([price]) => price);
+        const wssBidPrice = orders.bids[0][0];
+        const wssAskPrice = orders.asks[0][0];
+
+        askPrices = orders.asks.map(([price]) =>
+          scalePrice(
+            price,
+            wssAskPrice,
+            wssAskPrice * 1.01,
+            effectiveAskPrice,
+            effectiveAskPrice * 1.01
+          )
+        );
+        bidPrices = orders.bids.map(([price]) =>
+          scalePrice(
+            price,
+            wssBidPrice * 0.99,
+            wssBidPrice,
+            effectiveBidPrice * 0.99,
+            effectiveBidPrice
+          )
+        );
       } else {
         const spread = effectiveAskPrice - effectiveBidPrice;
         const step = spread / (maxRows * 2);
@@ -195,28 +257,32 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
         ).reverse();
       }
 
-      if (previousAmounts.current.length !== maxRows * 2) {
-        previousAmounts.current = Array(maxRows * 2).fill(
-          effectiveMaxAmount / (maxRows * 2)
+      const totalRows = maxRows * 2;
+      const minPercentage = 0.01; // 1%
+
+      if (previousAmounts.current.length !== totalRows) {
+        previousAmounts.current = distributeAmounts(
+          effectiveMaxAmount,
+          totalRows,
+          minPercentage
+        );
+      } else {
+        previousAmounts.current = previousAmounts.current.map((prevAmount) =>
+          generateAmount(prevAmount, effectiveMaxAmount, minPercentage)
         );
       }
-
-      const newAmounts = previousAmounts.current.map((prevAmount) =>
-        generateAmount(prevAmount, effectiveMaxAmount)
-      );
-      previousAmounts.current = newAmounts;
 
       const asksToDisplay = askPrices
         .slice(0, maxRows)
         .map((price, i) => ({
-          price: parseFloat(price.toString()),
-          amount: -newAmounts[i],
+          price,
+          amount: -previousAmounts.current[i],
         }))
         .reverse();
 
       const bidsToDisplay = bidPrices.slice(-maxRows).map((price, i) => ({
-        price: parseFloat(price.toString()),
-        amount: newAmounts[i + maxRows],
+        price,
+        amount: previousAmounts.current[i + maxRows],
       }));
 
       return {
