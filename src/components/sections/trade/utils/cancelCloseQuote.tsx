@@ -1,13 +1,10 @@
-//cancelO
+//cancelCloseQuote
 import {
-  sendSignedCancelOpenQuote,
-  SignedCancelOpenQuoteRequest,
   sendSignedCancelCloseQuote,
-  signedCancelCloseQuoteResponse,
+  SignedCancelCloseQuoteRequest,
 } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import { parseUnits } from "viem";
 import {
   networks,
   contracts,
@@ -17,7 +14,7 @@ import { Order } from "@/components/sections/trade/SectionOrders";
 import { generateRandomNonce } from "@/components/web3/utils";
 import { toast } from "react-toastify";
 
-export async function cancelOrder(
+export async function cancelCloseQuote(
   order: Order,
   wallet: any,
   token: string,
@@ -25,10 +22,10 @@ export async function cancelOrder(
 ) {
   if (!wallet || !token || !wallet.address) {
     console.error("Missing wallet, token, walletClient or wallet.address");
-    toast.error("Failed to cancel order: Invalid wallet or token");
+    toast.error("Failed to cancel close quote: Invalid wallet or token");
     return false;
   }
-  console.log("cancelOrder", order);
+  console.log("cancelCloseQuote", order);
 
   try {
     const ethersProvider = await wallet.getEthersProvider();
@@ -37,12 +34,12 @@ export async function cancelOrder(
 
     console.log("ethersSigner", ethersSigner);
 
-    const domainOpen = {
-      name: "PionerV1Open",
+    const domainClose = {
+      name: "PionerV1Close",
       version: "1.0",
       chainId: Number(chainId),
       verifyingContract:
-        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
     };
 
     const cancelSignType = {
@@ -60,36 +57,36 @@ export async function cancelOrder(
     console.log("cancelSignValue", cancelSignValue);
 
     const signatureCancel = await ethersSigner._signTypedData(
-      domainOpen,
+      domainClose,
       cancelSignType,
       cancelSignValue
     );
-    let success;
-    const cancel: SignedCancelOpenQuoteRequest = {
+
+    const cancel: SignedCancelCloseQuoteRequest = {
       issuerAddress: wallet.address,
       counterpartyAddress: order.counterpartyAddress,
       version: "1.0",
       chainId: Number(chainId),
       verifyingContract:
-        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+        networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
       targetHash: order.targetHash,
       nonceCancel: cancelSignValue.nonce,
-      signatureCancel: signatureCancel,
+      signature: signatureCancel,
       emitTime: Date.now().toString(),
-      messageState: 0,
+      messageState: 1,
     };
 
-    success = await sendSignedCancelOpenQuote(cancel, token);
+    const success = await sendSignedCancelCloseQuote(cancel, token);
 
     if (!success) {
-      toast.error("Failed to cancel order");
+      toast.error("Failed to cancel close quote");
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("Error canceling order:", error);
-    toast.error("An error occurred while canceling the order");
+    console.error("Error canceling close quote:", error);
+    toast.error("An error occurred while canceling the close quote");
     return false;
   }
 }
