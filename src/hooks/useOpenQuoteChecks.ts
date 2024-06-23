@@ -18,6 +18,9 @@ interface OpenQuoteCheckResults {
   selectedQuoteUserAddress: string;
   lastValidBalance: string;
   recommendedAmount: number;
+  bestBid: string | null;
+  bestAsk: string | null;
+  maxAmount: number;
 }
 
 export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
@@ -45,6 +48,9 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     selectedQuoteUserAddress: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
     lastValidBalance: "0",
     recommendedAmount: 0,
+    bestBid: null,
+    bestAsk: null,
+    maxAmount: 0,
   });
 
   const updateResults = useCallback(
@@ -172,6 +178,17 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
       recommendedStep
     );
 
+    // Calculate best bid, best ask, and max amount
+    const sortedQuotes = [...quotes].sort(
+      (a, b) => parseFloat(b.sPrice) - parseFloat(a.sPrice)
+    );
+    const bestBid = sortedQuotes.length > 0 ? sortedQuotes[0].sPrice : null;
+    const bestAsk = sortedQuotes.length > 0 ? sortedQuotes[0].lPrice : null;
+    const maxAmount =
+      quotes.length > 0
+        ? Math.max(...quotes.map((q) => parseFloat(q.maxAmount)))
+        : 0;
+
     const newResults: OpenQuoteCheckResults = {
       quotes,
       sufficientBalance: currentAmount <= maxAmountOpenable,
@@ -187,6 +204,9 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
       lastValidBalance,
       recommendedAmount,
+      bestBid,
+      bestAsk,
+      maxAmount,
     };
 
     updateResults(newResults);
