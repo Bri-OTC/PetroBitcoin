@@ -59,7 +59,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
   const { token, walletClient, chainId } = useAuthStore();
   const { wallet, provider } = useWalletAndProvider();
 
-  const isLong = parseFloat(position.size) > 0;
+  const isLong = position.type === "Long";
   const entryPrice = parseFloat(position.entryPrice);
   const markPrice = parseFloat(position.mark);
 
@@ -71,46 +71,52 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
     (value: string) => {
       setTakeProfit(value);
       if (!isReduceTP) {
-        const percentage =
-          ((parseFloat(value) - entryPrice) / entryPrice) * 100;
+        const percentage = isLong
+          ? ((parseFloat(value) - entryPrice) / entryPrice) * 100
+          : ((entryPrice - parseFloat(value)) / entryPrice) * 100;
         setTakeProfitPercentage(percentage.toFixed(2));
       }
       computePnL(value, stopLoss);
     },
-    [isReduceTP, stopLoss, entryPrice]
+    [isReduceTP, stopLoss, entryPrice, isLong]
   );
 
   const handleStopLossChange = useCallback(
     (value: string) => {
       setStopLoss(value);
       if (!isReduceSL) {
-        const percentage =
-          ((entryPrice - parseFloat(value)) / entryPrice) * 100;
+        const percentage = isLong
+          ? ((entryPrice - parseFloat(value)) / entryPrice) * 100
+          : ((parseFloat(value) - entryPrice) / entryPrice) * 100;
         setStopLossPercentage(percentage.toFixed(2));
       }
       computePnL(takeProfit, value);
     },
-    [isReduceSL, takeProfit, entryPrice]
+    [isReduceSL, takeProfit, entryPrice, isLong]
   );
 
   const handleTakeProfitPercentageChange = useCallback(
     (value: string) => {
       setTakeProfitPercentage(value);
-      const price = entryPrice * (1 + parseFloat(value) / 100);
+      const price = isLong
+        ? entryPrice * (1 + parseFloat(value) / 100)
+        : entryPrice * (1 - parseFloat(value) / 100);
       setTakeProfit(price.toFixed(2));
       computePnL(price.toString(), stopLoss);
     },
-    [stopLoss, entryPrice]
+    [stopLoss, entryPrice, isLong]
   );
 
   const handleStopLossPercentageChange = useCallback(
     (value: string) => {
       setStopLossPercentage(value);
-      const price = entryPrice * (1 - parseFloat(value) / 100);
+      const price = isLong
+        ? entryPrice * (1 - parseFloat(value) / 100)
+        : entryPrice * (1 + parseFloat(value) / 100);
       setStopLoss(price.toFixed(2));
       computePnL(takeProfit, price.toString());
     },
-    [takeProfit, entryPrice]
+    [takeProfit, entryPrice, isLong]
   );
 
   const handleTPCheckboxChange = useCallback(
@@ -164,8 +170,8 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         : ((entryPrice - takeProfitValue) / entryPrice) * 100;
 
       const stopPnLValue = isLong
-        ? ((stopLossValue - entryPrice) / entryPrice) * 100
-        : ((entryPrice - stopLossValue) / entryPrice) * 100;
+        ? ((entryPrice - stopLossValue) / entryPrice) * 100
+        : ((stopLossValue - entryPrice) / entryPrice) * 100;
 
       const riskRewardRatio = Math.abs(exitPnLValue / stopPnLValue);
 
@@ -176,7 +182,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
     [isLong, entryPrice]
   );
 
-  const handleCloseQuote = async (price: string) => {
+  const handleCloseQuote = async (price: string, isTP: boolean) => {
     if (!wallet || !wallet.address || !token || !walletClient) {
       console.error(
         "Wallet, wallet address, token, or walletClient is missing"
@@ -187,7 +193,8 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
     setLoading(true);
 
     try {
-      const ethersProvider = wallet.getEthersProvider();
+      const ethersProvider = await (wallet as any).getEthersProvider();
+      const ethersSigner = await ethersProvider.getSigner();
 
       const domainClose = {
         name: "PionerV1Close",
@@ -210,17 +217,19 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       };
 
       const nonce = Date.now().toString();
+      const limitOrStop = isTP ? 0 : parseUnits(price, 18).toString();
       const openCloseQuoteValue = {
         bContractId: position.bContractId,
         price: parseUnits(price, 18).toString(),
         amount: position.amountContract,
-        limitOrStop: parseUnits(price, 18).toString(),
-        expiry: 171398843400000,
+        limitOrStop: limitOrStop,
+        expiry: 315350000000,
         authorized: wallet.address,
         nonce: nonce,
       };
+      console.log("openCloseQuoteValue", openCloseQuoteValue);
 
-      const signatureClose = await ethersProvider.signTypedData(
+      const signatureClose = await ethersSigner._signTypedData(
         domainClose,
         OpenCloseQuoteType,
         openCloseQuoteValue
@@ -234,16 +243,18 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         verifyingContract:
           networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
         bcontractId: position.bContractId,
+        isLong: isLong,
         price: parseUnits(price, 18).toString(),
         amount: position.amountContract,
-        limitOrStop: Number(parseUnits(price, 18)),
-        expiry: String(171398843400000),
+        limitOrStop: Number(limitOrStop),
+        expiry: String(315350000000),
         authorized: wallet.address,
         nonce: nonce,
         signatureClose: signatureClose,
         emitTime: Date.now().toString(),
         messageState: 0,
       };
+      console.log("closeQuote", closeQuote);
 
       await sendSignedCloseQuote(closeQuote, token);
     } catch (error) {
@@ -258,7 +269,8 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       label: string,
       value: string,
       onChange: (value: string) => void,
-      isDisabled: boolean
+      isDisabled: boolean,
+      onActivate: () => void
     ) => (
       <div className="flex flex-col space-y-2 w-full">
         <h3 className="text-left text-card-foreground">{label}</h3>
@@ -271,6 +283,9 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             disabled={isDisabled}
+            onClick={() => {
+              if (isDisabled) onActivate();
+            }}
           />
           <p>USD</p>
         </div>
@@ -339,12 +354,13 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             "Take profit exit",
             takeProfit,
             handleTakeProfitChange,
-            !isReduceTP
+            !isReduceTP,
+            () => handleTPCheckboxChange(true)
           )}
           {renderPercentageInput(
             "% Gain",
             takeProfitPercentage,
-            setTakeProfitPercentage,
+            handleTakeProfitPercentageChange,
             !isReduceTP
           )}
           <div className="flex flex-col items-center space-y-1">
@@ -361,12 +377,13 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             "Stop loss",
             stopLoss,
             handleStopLossChange,
-            !isReduceSL
+            !isReduceSL,
+            () => handleSLCheckboxChange(true)
           )}
           {renderPercentageInput(
             "% Loss",
             stopLossPercentage,
-            setStopLossPercentage,
+            handleStopLossPercentageChange,
             !isReduceSL
           )}
           <div className="flex flex-col items-center space-y-1">
@@ -402,7 +419,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             {isReduceTP && (
               <Button
                 className="w-full"
-                onClick={() => handleCloseQuote(takeProfit)}
+                onClick={() => handleCloseQuote(takeProfit, true)}
                 disabled={loading}
               >
                 {loading ? "Loading..." : "Close TP"}
@@ -411,7 +428,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             {isReduceSL && (
               <Button
                 className="w-full"
-                onClick={() => handleCloseQuote(stopLoss)}
+                onClick={() => handleCloseQuote(stopLoss, false)}
                 disabled={loading}
               >
                 {loading ? "Loading..." : "Close SL"}
@@ -425,8 +442,8 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             className="w-full"
             disabled={!canCloseQuote || loading}
             onClick={() => {
-              if (isReduceTP) handleCloseQuote(takeProfit);
-              else if (isReduceSL) handleCloseQuote(stopLoss);
+              if (isReduceTP) handleCloseQuote(takeProfit, true);
+              else if (isReduceSL) handleCloseQuote(stopLoss, false);
             }}
           >
             {loading ? "Loading..." : "Close Quote"}
