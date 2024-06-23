@@ -22,7 +22,7 @@ export const getCloseOrders = async (
     });
     if (response && response.data) {
       const orders: Order[] = response.data.map(
-        (quote: signedWrappedOpenQuoteResponse) => {
+        (quote: signedCloseQuoteResponse) => {
           const size = (parseFloat(quote.amount) / 1e18).toFixed(4);
           const trigger = (parseFloat(quote.price) / 1e18).toFixed(4);
           const amount = (Number(size) * Number(trigger)).toFixed(4);
@@ -56,7 +56,7 @@ export const getCloseOrders = async (
             .toString()
             .padStart(2, "0")}`;
           return {
-            id: String(quote.nonceOpenQuote),
+            id: String(quote.bcontractId),
             size: size,
             market: asset,
             icon: "/$.svg",

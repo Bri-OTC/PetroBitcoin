@@ -20,7 +20,6 @@ import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
-import { useRfqRequestStore } from "@/store/quoteStore";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
@@ -28,8 +27,6 @@ function SectionTradeChart() {
   const activePrice = useActivePrice();
   const blur = useBlurEffect();
   const symbol = useTradeStore((state) => state.symbol);
-  const token = useAuthStore((state) => state.token);
-  const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
 
   useEffect(() => {
     activePrice();

@@ -54,11 +54,14 @@ function SectionPositions({
   toggleActiveRow,
   hideRow,
 }: SectionPositionsProps) {
+  const setSelectedMarket = useTradeStore((state) => state.setSymbol);
+
   if (!positions || !Array.isArray(positions)) {
     return null;
   }
-
-  const setSelectedMarket = useTradeStore((state) => state.setSymbol);
+  const handleSheetClose = (positionId: string) => {
+    toggleActiveRow(positionId); // Close the expanded row
+  };
 
   const handleToggleActiveRow = (positionId: string) => {
     const isActive = currentActiveRowPositions[positionId];
@@ -201,7 +204,10 @@ function SectionPositions({
                               <span>TP/SL</span>
                             </Button>
                           </DrawerTrigger>
-                          <SheetPlaceClose position={position} />
+                          <SheetPlaceClose
+                            position={position}
+                            onClose={() => handleSheetClose(position.id)}
+                          />
                         </Drawer>
                         <Button
                           onClick={() => handleHideRow(position.id)}

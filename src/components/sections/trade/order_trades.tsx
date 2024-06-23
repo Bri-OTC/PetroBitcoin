@@ -39,9 +39,9 @@ function SectionTradeOrderTrades() {
   } = useTradeStore();
 
   const blur = useBlurEffect();
-  const isMarketOpen = config.devMode
-    ? true
-    : useAuthStore((state) => state.isMarketOpen);
+  const isDevMode = config.devMode;
+  const marketOpenState = useAuthStore((state) => state.isMarketOpen);
+  const isMarketOpen = isDevMode ? true : marketOpenState;
 
   const testBool = true;
   const color = useColorStore((state) => state.color) || "#E0AD0C";

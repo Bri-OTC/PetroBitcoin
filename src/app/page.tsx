@@ -26,8 +26,6 @@ function Global() {
     switch (selectedTab) {
       case "Landing":
         return <Landing />;
-      case "Markets":
-        return <Markets />;
       case "Trade":
         return <Trade />;
       case "Wallet":

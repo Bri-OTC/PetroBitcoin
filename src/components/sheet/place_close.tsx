@@ -13,6 +13,7 @@ import {
   SignedCloseQuoteRequest,
 } from "@pionerfriends/api-client";
 import { removePrefix } from "@/components/web3/utils";
+import { toast } from "react-toastify";
 
 interface SheetPlaceOrderProps {
   position: {
@@ -257,8 +258,26 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       console.log("closeQuote", closeQuote);
 
       await sendSignedCloseQuote(closeQuote, token);
+      toast.success("Close quote sent successfully", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+      onClose();
     } catch (error) {
       console.error("Error in handleCloseQuote:", error);
+
+      toast.error("Failed to send close quote", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setLoading(false);
     }
