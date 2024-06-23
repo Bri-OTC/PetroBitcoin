@@ -7,21 +7,22 @@ import {
   getSignedWrappedOpenQuotes,
   getSignedCloseQuotes,
   signedCloseQuoteResponse,
-  getPositions as getPositionsFromAPI,
+  getPositions,
   PositionResponse,
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
 
-export const getPositions = async (
+export const getPositionss = async (
   chainId: number,
   token: string,
   issuerAddress: string | undefined = undefined
 ): Promise<Position[]> => {
   try {
-    const response = await getPositionsFromAPI(chainId, token, {
+    const response = await getPositions(chainId, token, {
       onlyActive: true,
-      issuerAddress: issuerAddress,
+      address: issuerAddress,
     });
+
     if (response && response.data) {
       const positions: Position[] = response.data.map(
         (position: PositionResponse) => {
@@ -31,9 +32,9 @@ export const getPositions = async (
           );
           const amount = (Number(size) * Number(entryPrice)).toFixed(4);
           const pnl = (parseFloat(position.mtm) / 1e18).toFixed(4);
-          const estLiq = "0"; // You may need to calculate this based on available data
+          const estLiq = "0";
           const type = position.isAPayingAPR ? "Long" : "Short";
-          const market = convertFromBytes32(position.symbol);
+          const market = position.symbol;
 
           const entryTime = new Date(parseInt(position.openTime, 10));
           const formattedEntryTime = `${entryTime.getFullYear()}/${(

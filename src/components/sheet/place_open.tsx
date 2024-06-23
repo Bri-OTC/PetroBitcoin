@@ -81,9 +81,9 @@ const SheetPlace: React.FC = () => {
     if (currentTabIndex === "Market") {
       const updateEntryPrice = () => {
         if (currentMethod === "Buy") {
-          setEntryPrice(askPrice.toString());
+          setEntryPrice((bidPrice * 0.999).toString());
         } else if (currentMethod === "Sell") {
-          setEntryPrice(bidPrice.toString());
+          setEntryPrice((askPrice * 1.001).toString());
         }
       };
 
@@ -204,7 +204,7 @@ const SheetPlace: React.FC = () => {
       chainId: 64165,
       verifyingContract: "",
       x: "",
-      parity: "0",
+      parity: currentTabIndex,
       maxConfidence: "",
       assetHex: "",
       maxDelay: "600",

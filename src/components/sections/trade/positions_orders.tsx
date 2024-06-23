@@ -15,7 +15,7 @@ import {
 import { convertFromBytes32 } from "@/components/web3/utils";
 import { useWalletAndProvider } from "@/components/layout/menu";
 import { getOrders } from "./get/getOrders";
-import { getPositions } from "./get/getPositions";
+import { getPositionss } from "./get/getPositions";
 import { getCloseOrders } from "./get/getCloseOrders";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
@@ -52,7 +52,7 @@ function SectionTradePositionsOrders() {
         const [openOrders, closeOrders, positionsData] = await Promise.all([
           getOrders(64165, wallet.address, token),
           getCloseOrders(64165, wallet.address, token),
-          getPositions(Number(chainId), token, wallet.address),
+          getPositionss(Number(chainId), token, wallet.address),
         ]);
         setOrders([...openOrders, ...closeOrders]);
         setPositions(positionsData);

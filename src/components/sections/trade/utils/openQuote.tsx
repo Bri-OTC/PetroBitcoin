@@ -33,8 +33,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const symbol: string = useTradeStore((state) => state.symbol);
   const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
   const currentMethod: string = useTradeStore((state) => state.currentMethod);
-  const entryPrice: string = useTradeStore((state) => state.entryPrice);
-  const amount: string = useTradeStore((state) => state.amount);
+  const entryPrice: string = request.price;
+  const amount: string = request.amount;
 
   const {
     sufficientBalance,
