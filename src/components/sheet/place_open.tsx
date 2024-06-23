@@ -12,6 +12,7 @@ import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 import Link from "next/link";
 import { useColorStore } from "@/store/colorStore";
 import { calculateLiquidationPrice } from "@/lib/utils";
+import { config } from "@/config";
 
 interface SliderProps {
   min: number;
@@ -201,7 +202,7 @@ const SheetPlace: React.FC = () => {
       issuerAddress: "0x0000000000000000000000000000000000000000",
       counterpartyAddress: selectedQuoteUserAddress,
       version: "1.0",
-      chainId: 64165,
+      chainId: config.activeChainId,
       verifyingContract: "",
       x: "",
       parity: currentTabIndex,

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { config } from "@/config";
 
 export interface RfqRequest {
   chainId: number;
@@ -37,7 +38,7 @@ interface RfqRequestStore {
 }
 
 const initialRfqRequest: RfqRequest = {
-  chainId: 64165,
+  chainId: config.activeChainId,
   expiration: "600",
   assetAId: "forex.GBPUSD",
   assetBId: "forex.EURUSD",

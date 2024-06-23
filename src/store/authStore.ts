@@ -5,6 +5,7 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { createWalletClient, custom, JsonRpcAccount } from "viem";
 import { EIP1193Provider } from "@privy-io/react-auth";
 import { Wallet } from "ethers";
+import { config } from "@/config";
 
 interface AuthState {
   token: string | null;
@@ -12,7 +13,6 @@ interface AuthState {
   provider: EIP1193Provider | null;
   walletClient: ReturnType<typeof createWalletClient> | null;
   wallet: Wallet | null;
-  chainId: string | "64165";
 
   setToken: (token: string | null) => void;
   setIsMarketOpen: (isOpen: boolean) => void;
@@ -21,7 +21,6 @@ interface AuthState {
     walletClient: ReturnType<typeof createWalletClient> | null
   ) => void;
   setWallet: (wallet: Wallet | null) => void;
-  setChainId: (chainId: string | "64165") => void;
 }
 
 const useAuthStore = create<AuthState>((set) => ({
@@ -30,7 +29,6 @@ const useAuthStore = create<AuthState>((set) => ({
   provider: null,
   walletClient: null,
   wallet: null,
-  chainId: "64165",
   setToken: (token) => {
     if (token) {
       const decodedToken = jwt.decode(token) as JwtPayload;
@@ -63,7 +61,6 @@ const useAuthStore = create<AuthState>((set) => ({
       Cookies.remove("token");
     }
   },
-  setChainId: (chainId) => set({ chainId }),
 }));
 
 export { useAuthStore };

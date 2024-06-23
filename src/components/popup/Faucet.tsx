@@ -18,30 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
 import { AiOutlineClose } from "react-icons/ai";
 import { Toaster, toast } from "sonner";
-
-export const fantomSonicTestnet = defineChain({
-  id: 64165,
-  name: "Fantom Sonic Testnet",
-  network: "fantom-sonic-testnet",
-  nativeCurrency: {
-    name: "Fantom",
-    symbol: "FTM",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://rpcapi.sonic.fantom.network/"],
-    },
-    public: {
-      http: ["https://rpcapi.sonic.fantom.network/"],
-    },
-  },
-});
-
-export const sonicClient = createPublicClient({
-  chain: fantomSonicTestnet,
-  transport: http(),
-});
+import { config } from "@/config";
 
 interface FaucetProps {
   open: boolean;
@@ -66,16 +43,16 @@ function Faucet({ open, onClose }: FaucetProps) {
       const address = wallets[0].address as `0x${string}`;
       console.log("Recipient address:", address);
 
-      const chainId = await sonicClient.getChainId();
+      const chainId = await config.viemClient.getChainId();
       console.log("Connected chain ID:", chainId);
 
-      if (chainId !== fantomSonicTestnet.id) {
+      if (chainId !== config.viemChain.id) {
         setError("Please switch to the Fantom Sonic Testnet in your wallet.");
         setLoading(false);
         return;
       }
 
-      const balance = await sonicClient.getBalance({ address });
+      const balance = await config.viemClient.getBalance({ address });
       console.log("Recipient balance:", balance);
 
       if (balance >= parseEther("0.05")) {
@@ -91,7 +68,7 @@ function Faucet({ open, onClose }: FaucetProps) {
         }
 
         const faucetAccount = privateKeyToAccount(privateKey);
-        const faucetBalance = await sonicClient.getBalance({
+        const faucetBalance = await config.viemClient.getBalance({
           address: getAddress(faucetAccount.address), // Convert the address to a consistent format
         });
         console.log("Faucet address:", faucetAccount.address);

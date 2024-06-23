@@ -18,6 +18,7 @@ import {
   generateRandomNonce,
 } from "@/components/web3/utils";
 import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
+import { config } from "@/config";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
@@ -25,7 +26,7 @@ interface OpenQuoteButtonProps {
 
 const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
   const { quotes } = useQuoteStore();
-  const chainId = String(64165);
+  const chainId = String(config.activeChainId);
   const [loading, setLoading] = useState(false);
   const walletClient = useAuthStore((state) => state.walletClient);
   const { wallet } = useWalletAndProvider();
@@ -67,7 +68,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         issuerAddress: wallet.address,
         counterpartyAddress: request.counterpartyAddress,
         version: "1.0",
-        chainId: 64165,
+        chainId: config.activeChainId,
         verifyingContract:
           networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
         x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
@@ -128,7 +129,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       const domainOpen = {
         name: "PionerV1Open",
         version: "1.0",
-        chainId: 64165,
+        chainId: config.activeChainId,
         verifyingContract:
           networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
       };
@@ -164,7 +165,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       const domainWrapper = {
         name: "PionerV1Wrapper",
         version: "1.0",
-        chainId: 64165,
+        chainId: config.activeChainId,
         verifyingContract:
           networks[chainId as unknown as NetworkKey].contracts.PionerV1Wrapper,
       };

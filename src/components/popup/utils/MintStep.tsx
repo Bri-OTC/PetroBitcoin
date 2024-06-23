@@ -13,7 +13,7 @@ import {
   decodeFunctionResult,
 } from "viem";
 import { toast } from "react-toastify";
-import { useAuthStore } from "@/store/authStore";
+import { config } from "@/config";
 
 interface MintStepProps {
   amount: string;
@@ -36,7 +36,6 @@ function MintStep({
   wallet,
   onMint,
 }: MintStepProps) {
-  const chainId = useAuthStore((state) => state.chainId);
   const [mintedAmount, setMintedAmount] = useState(0);
 
   useEffect(() => {
@@ -56,8 +55,8 @@ function MintStep({
           method: "eth_call",
           params: [
             {
-              to: networks[chainId as unknown as NetworkKey].contracts
-                .FakeUSD as Address,
+              to: networks[config.activeChainId as unknown as NetworkKey]
+                .contracts.FakeUSD as Address,
               data,
             },
             "latest",
@@ -79,7 +78,7 @@ function MintStep({
     };
 
     fetchMintedAmount();
-  }, [provider, wallet, chainId]);
+  }, [provider, wallet]);
 
   async function handleMint() {
     setLoading(true);
@@ -92,10 +91,10 @@ function MintStep({
       }
 
       //const targetChainId = `0x${networks[chainId as unknown as NetworkKey].chainHex}`;
-      const targetChainId = "0xFAA5";
+      const targetChainId = config.activeChainHex;
       const currentChainId = await provider.request({ method: "eth_chainId" });
 
-      if (currentChainId !== chainId) {
+      if (currentChainId !== config.activeChainId) {
         await provider.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: targetChainId }],
@@ -121,8 +120,8 @@ function MintStep({
           params: [
             {
               from: wallet?.address,
-              to: networks[chainId as unknown as NetworkKey].contracts
-                .FakeUSD as Address,
+              to: networks[config.activeChainId as unknown as NetworkKey]
+                .contracts.FakeUSD as Address,
               data: dataMint,
               nonce: nonce,
             },

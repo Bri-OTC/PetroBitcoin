@@ -6,7 +6,7 @@ import {
 } from "@pionerfriends/blockchain-client";
 import { Address, encodeFunctionData, parseUnits } from "viem";
 import { toast } from "react-toastify";
-import { useAuthStore } from "@/store/authStore";
+import { config } from "@/config";
 
 interface DepositStepProps {
   amount: string;
@@ -29,8 +29,6 @@ function ClaimWithdraw({
   wallet,
   onEvent,
 }: DepositStepProps) {
-  const chainId = useAuthStore((state) => state.chainId);
-
   async function handleDeposit() {
     setLoading(true);
     setError(null);
@@ -42,10 +40,10 @@ function ClaimWithdraw({
       }
 
       //const targetChainId = `0x${networks[chainId as unknown as NetworkKey].chainHex}`;
-      const targetChainId = "0xFAA5";
+      const targetChainId = config.activeChainHex;
       const currentChainId = await provider.request({ method: "eth_chainId" });
 
-      if (currentChainId !== chainId) {
+      if (currentChainId !== config.activeChainId) {
         await provider.request({
           method: "wallet_switchEthereumChain",
           params: [{ chainId: targetChainId }],
@@ -66,8 +64,8 @@ function ClaimWithdraw({
           params: [
             {
               from: wallet?.address,
-              to: networks[chainId as unknown as NetworkKey].contracts
-                .PionerV1Compliance as Address,
+              to: networks[config.activeChainId as unknown as NetworkKey]
+                .contracts.PionerV1Compliance as Address,
               data: dataDeposit,
             },
           ],

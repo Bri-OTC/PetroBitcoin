@@ -8,12 +8,13 @@ import {
 } from "@pionerfriends/blockchain-client";
 import { encodeFunctionData, Address, formatUnits } from "viem";
 import { useEffect, useState, useMemo } from "react";
+import { config } from "@/config";
 
 // Refactored to a hook
 export function useDepositedBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
+
   const { ready, authenticated, user, logout } = usePrivy();
 
   useEffect(() => {
@@ -30,8 +31,8 @@ export function useDepositedBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as unknown as NetworkKey].contracts
-                  .PionerV1 as Address,
+                to: networks[config.activeChainId as unknown as NetworkKey]
+                  .contracts.PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest",
@@ -56,7 +57,7 @@ export function useDepositedBalance() {
     fetchDepositedBalance();
     const interval = setInterval(fetchDepositedBalance, 2500);
     return () => clearInterval(interval);
-  }, [wallet, provider, chainId, logout]);
+  }, [wallet, provider, logout]);
 
   return depositedBalance;
 }

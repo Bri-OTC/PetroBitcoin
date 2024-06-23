@@ -1,22 +1,8 @@
 "use client";
 import { PrivyProvider } from "@privy-io/react-auth";
-import { avalancheFuji } from "viem/chains";
+import { avalancheFuji, fantomTestnet } from "viem/chains";
 import { defineChain } from "viem";
-
-export const fantomSonicTestnet = defineChain({
-  id: 64165,
-  name: "Fantom Sonic Testnet",
-  network: "fantom-sonic-testnet",
-  nativeCurrency: {
-    name: "Fantom",
-    symbol: "FTM",
-    decimals: 18,
-  },
-  rpcUrls: {
-    default: { http: ["https://rpcapi.sonic.fantom.network/"] },
-    public: { http: ["https://rpcapi.sonic.fantom.network/"] },
-  },
-});
+import { config } from "@/config";
 
 export default function PrivyProviderWrapper({
   children,
@@ -42,8 +28,8 @@ export default function PrivyProviderWrapper({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: fantomSonicTestnet,
-        supportedChains: [fantomSonicTestnet],
+        defaultChain: fantomTestnet,
+        supportedChains: [fantomTestnet],
       }}
     >
       {children}

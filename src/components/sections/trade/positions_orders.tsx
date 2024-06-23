@@ -19,6 +19,7 @@ import { getPositionss } from "./get/getPositions";
 import { getCloseOrders } from "./get/getCloseOrders";
 import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
+import { config } from "@/config";
 
 const menu = ["Positions", "Orders"];
 
@@ -29,7 +30,6 @@ interface activeMenu {
 function SectionTradePositionsOrders() {
   const { wallet, provider } = useWalletAndProvider();
   const token = useAuthStore((state) => state.token);
-  const chainId = useAuthStore((state) => state.chainId);
 
   const [currentTab, setCurrentTab] = useState(menu[0]);
   const blur = useBlurEffect();
@@ -50,9 +50,9 @@ function SectionTradePositionsOrders() {
 
       try {
         const [openOrders, closeOrders, positionsData] = await Promise.all([
-          getOrders(64165, wallet.address, token),
-          getCloseOrders(64165, wallet.address, token),
-          getPositionss(Number(chainId), token, wallet.address),
+          getOrders(config.activeChainId, wallet.address, token),
+          getCloseOrders(config.activeChainId, wallet.address, token),
+          getPositionss(Number(config.activeChainId), token, wallet.address),
         ]);
         setOrders([...openOrders, ...closeOrders]);
         setPositions(positionsData);
@@ -70,7 +70,7 @@ function SectionTradePositionsOrders() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [wallet, token, chainId]);
+  }, [wallet, token]);
 
   const toggleActiveRow = (label: string) => {
     if (currentTab === "Positions") {

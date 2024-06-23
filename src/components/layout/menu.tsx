@@ -16,7 +16,6 @@ import { FaTimes } from "react-icons/fa";
 import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, useCallback } from "react";
-import { fantomSonicTestnet } from "@/app/privy-provider";
 import { MarketDrawer } from "@/components/sections/markets/MarketDrawer";
 import { createWalletClient, custom, verifyMessage } from "viem";
 import { useQuoteStore } from "@/store/quoteStore";
@@ -27,6 +26,7 @@ import useFillCloseQuote from "@/hooks/useFillCloseQuote";
 import { useTradeStore } from "@/store/tradeStore";
 import { useColorStore } from "@/store/colorStore";
 import { useMethodColor } from "@/hooks/useMethodColor";
+import { config } from "@/config";
 
 export function Menu() {
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
@@ -49,7 +49,6 @@ export function Menu() {
   const [loginError, setLoginError] = useState(false);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
   const { addQuote } = useQuoteStore();
-  const chainId = wallet?.chainId;
 
   const disableLogin = !!(authenticated && token);
   const [isFantomSonicTestnet, setIsFantomSonicTestnet] = useState(false);
@@ -63,7 +62,9 @@ export function Menu() {
           });
           //console.log("Current chain ID:", currentChainId);
 
-          if (currentChainId === "0xfaa5") {
+          if (currentChainId === config.activeChainHex) {
+            //0xfaa5
+
             //console.log("Fantom Sonic Testnet is already added to MetaMask");
             setIsFantomSonicTestnet(true);
           } else {
@@ -86,12 +87,12 @@ export function Menu() {
           method: "wallet_addEthereumChain",
           params: [
             {
-              chainId: "0xFAA5",
-              chainName: fantomSonicTestnet.name,
-              nativeCurrency: fantomSonicTestnet.nativeCurrency,
-              rpcUrls: fantomSonicTestnet.rpcUrls.default.http,
-              blockExplorerUrls: fantomSonicTestnet.blockExplorers?.default.url
-                ? [fantomSonicTestnet.blockExplorers.default.url]
+              chainId: config.activeChainHex, ////0xfaa5
+              chainName: config.viemChain.name,
+              nativeCurrency: config.viemChain.nativeCurrency,
+              rpcUrls: config.viemChain.rpcUrls.default.http,
+              blockExplorerUrls: config.viemChain.blockExplorers?.default.url
+                ? [config.viemChain.blockExplorers.default.url]
                 : [],
             },
           ],

@@ -28,11 +28,11 @@ import useBlurEffect from "@/hooks/blur";
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
 import { usePrivy, useLogin } from "@privy-io/react-auth";
+import { config } from "@/config";
 
 function GasBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [gasBalance, setGasBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchGasBalance = async () => {
@@ -67,7 +67,6 @@ function GasBalance() {
 export function DepositedBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
 
   const { ready, authenticated, user, logout } = usePrivy();
 
@@ -85,8 +84,8 @@ export function DepositedBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as unknown as NetworkKey].contracts
-                  .PionerV1 as Address,
+                to: networks[config.activeChainId as unknown as NetworkKey]
+                  .contracts.PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest" as const,
@@ -114,7 +113,7 @@ export function DepositedBalance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider, chainId, logout]);
+  }, [wallet, provider, logout]);
 
   return depositedBalance;
 }
@@ -122,7 +121,6 @@ export function DepositedBalance() {
 export function ClaimableBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchDepositedBalance = async () => {
@@ -138,8 +136,8 @@ export function ClaimableBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as unknown as NetworkKey].contracts
-                  .PionerV1 as Address,
+                to: networks[config.activeChainId as unknown as NetworkKey]
+                  .contracts.PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest",
@@ -166,7 +164,7 @@ export function ClaimableBalance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider, chainId]);
+  }, [wallet, provider]);
 
   return depositedBalance;
 }
@@ -174,7 +172,6 @@ export function ClaimableBalance() {
 export function TimeToClaim() {
   const { wallet, provider } = useWalletAndProvider();
   const [depositedBalance, setDepositedBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchDepositedBalance = async () => {
@@ -190,8 +187,8 @@ export function TimeToClaim() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as unknown as NetworkKey].contracts
-                  .PionerV1 as Address,
+                to: networks[config.activeChainId as unknown as NetworkKey]
+                  .contracts.PionerV1 as Address,
                 data: dataDeposited,
               },
               "latest",
@@ -218,7 +215,7 @@ export function TimeToClaim() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider, chainId]);
+  }, [wallet, provider]);
 
   return depositedBalance;
 }
@@ -226,7 +223,6 @@ export function TimeToClaim() {
 export function USDCBalance() {
   const { wallet, provider } = useWalletAndProvider();
   const [usdcBalance, setUsdcBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchUSDCBalance = async () => {
@@ -241,8 +237,8 @@ export function USDCBalance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as unknown as NetworkKey].contracts
-                  .FakeUSD as Address,
+                to: networks[config.activeChainId as unknown as NetworkKey]
+                  .contracts.FakeUSD as Address,
                 data: dataUSDC,
               },
               "latest",
@@ -269,7 +265,7 @@ export function USDCBalance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider, chainId]);
+  }, [wallet, provider]);
 
   return usdcBalance;
 }
@@ -277,7 +273,6 @@ export function USDCBalance() {
 export function USDCAllowance() {
   const { wallet, provider } = useWalletAndProvider();
   const [usdcBalance, setUsdcBalance] = useState("0");
-  const chainId = useAuthStore((state) => state.chainId);
 
   useEffect(() => {
     const fetchUSDCBalance = async () => {
@@ -288,7 +283,7 @@ export function USDCAllowance() {
             functionName: "allowance",
             args: [
               wallet.address,
-              networks[chainId as unknown as NetworkKey].contracts
+              networks[config.activeChainId as unknown as NetworkKey].contracts
                 .PionerV1Compliance,
             ],
           });
@@ -296,8 +291,8 @@ export function USDCAllowance() {
             method: "eth_call",
             params: [
               {
-                to: networks[chainId as unknown as NetworkKey].contracts
-                  .FakeUSD as Address,
+                to: networks[config.activeChainId as unknown as NetworkKey]
+                  .contracts.FakeUSD as Address,
                 data: dataUSDC,
               },
               "latest",
@@ -324,7 +319,7 @@ export function USDCAllowance() {
     return () => {
       clearInterval(interval);
     };
-  }, [wallet, provider, chainId]);
+  }, [wallet, provider]);
 
   return usdcBalance;
 }

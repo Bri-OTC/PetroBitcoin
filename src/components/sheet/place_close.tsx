@@ -14,6 +14,7 @@ import {
 } from "@pionerfriends/api-client";
 import { removePrefix } from "@/components/web3/utils";
 import { toast } from "react-toastify";
+import { config } from "@/config";
 
 interface SheetPlaceOrderProps {
   position: {
@@ -38,6 +39,8 @@ interface SheetPlaceOrderProps {
     isAPayingAPR: boolean;
     interestRate: string;
     bContractId: number;
+    pA: string;
+    pB: string;
   };
   onClose: () => void;
 }
@@ -200,7 +203,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       const domainClose = {
         name: "PionerV1Close",
         version: "1.0",
-        chainId: 64165,
+        chainId: config.activeChainId,
         verifyingContract:
           networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
       };
@@ -238,7 +241,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
 
       const closeQuote: SignedCloseQuoteRequest = {
         issuerAddress: wallet.address,
-        counterpartyAddress: wallet.address,
+        counterpartyAddress: isLong ? position.pB : position.pA,
         version: "1.0",
         chainId: Number(chainId),
         verifyingContract:
@@ -247,7 +250,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         isLong: isLong,
         price: parseUnits(price, 18).toString(),
         amount: position.amountContract,
-        limitOrStop: Number(limitOrStop),
+        limitOrStop: String(limitOrStop),
         expiry: String(315350000000),
         authorized: wallet.address,
         nonce: nonce,

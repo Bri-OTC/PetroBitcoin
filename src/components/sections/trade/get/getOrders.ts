@@ -9,6 +9,7 @@ import {
   signedCloseQuoteResponse,
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
+import { config } from "@/config";
 
 export const getOrders = async (
   chainId: number,
@@ -16,10 +17,15 @@ export const getOrders = async (
   token: string
 ): Promise<Order[]> => {
   try {
-    const response = await getSignedWrappedOpenQuotes("1.0", 64165, token, {
-      onlyActive: true,
-      issuerAddress: issuerAddress,
-    });
+    const response = await getSignedWrappedOpenQuotes(
+      "1.0",
+      config.activeChainId,
+      token,
+      {
+        onlyActive: true,
+        issuerAddress: issuerAddress,
+      }
+    );
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {

@@ -118,7 +118,7 @@ function SectionTradeOrderTrades() {
         </p>
       );
     }
-    if (!sufficientBalance && !isBalanceZero) {
+    if (!sufficientBalance && !isBalanceZero && !noQuotesReceived) {
       return (
         <p className="text-red-500 text-sm">
           Max amount allowed at this price: {maxAmountOpenable.toFixed(8)}

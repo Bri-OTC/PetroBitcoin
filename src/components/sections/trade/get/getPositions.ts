@@ -76,6 +76,8 @@ export const getPositionss = async (
             isAPayingAPR: position.isAPayingAPR,
             interestRate: position.interestRate,
             bContractId: position.bContractId,
+            pA: position.pA,
+            pB: position.pB,
           };
         }
       );

@@ -39,6 +39,8 @@ export interface Position {
   isAPayingAPR: boolean;
   interestRate: string;
   bContractId: number;
+  pA: string;
+  pB: string;
 }
 
 interface SectionPositionsProps {
