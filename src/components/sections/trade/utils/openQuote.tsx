@@ -70,7 +70,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         version: "1.0",
         chainId: config.activeChainId,
         verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+          networks[config.activeChainId as unknown as NetworkKey].contracts
+            .PionerV1Open,
         x: "0x20568a84796e6ade0446adfd2d8c4bba2c798c2af0e8375cc3b734f71b17f5fd",
         parity: String(0),
         maxConfidence: "5",
@@ -131,7 +132,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         version: "1.0",
         chainId: config.activeChainId,
         verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+          networks[config.activeChainId as unknown as NetworkKey].contracts
+            .PionerV1Open,
       };
 
       const openQuoteSignType = {
@@ -167,7 +169,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
         version: "1.0",
         chainId: config.activeChainId,
         verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Wrapper,
+          networks[config.activeChainId as unknown as NetworkKey].contracts
+            .PionerV1Wrapper,
       };
 
       const bOracleSignType = {

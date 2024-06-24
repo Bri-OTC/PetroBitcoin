@@ -78,7 +78,7 @@ function SectionHomeHero() {
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <section className="flex flex-col space-y-5 w-full">
-        <Link href="/markets">
+        <Link href="/trade">
           <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5 py-3 transition-colors duration-200 ease-in-out hover:bg-card-foreground hover:text-card">
             <FaSearch className="text-card-foreground" />
             <span className="text-card-foreground">Search Something...</span>

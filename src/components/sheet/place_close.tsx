@@ -205,7 +205,8 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         version: "1.0",
         chainId: config.activeChainId,
         verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
+          networks[config.activeChainId as unknown as NetworkKey].contracts
+            .PionerV1Close,
       };
 
       const OpenCloseQuoteType = {
@@ -243,9 +244,10 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         issuerAddress: wallet.address,
         counterpartyAddress: isLong ? position.pB : position.pA,
         version: "1.0",
-        chainId: Number(chainId),
+        chainId: Number(config.activeChainId),
         verifyingContract:
-          networks[chainId as unknown as NetworkKey].contracts.PionerV1Close,
+          networks[config.activeChainId as unknown as NetworkKey].contracts
+            .PionerV1Close,
         bcontractId: position.bContractId,
         isLong: isLong,
         price: parseUnits(price, 18).toString(),

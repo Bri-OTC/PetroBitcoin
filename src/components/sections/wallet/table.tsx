@@ -388,7 +388,7 @@ function SectionWalletTable() {
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="mt-5 flex flex-col space-y-5">
-        <Link href="/markets">
+        <Link href="/trade">
           <div className="flex items-center space-x-1 w-full bg-card rounded-lg px-5 py-3 transition-colors duration-200 ease-in-out ">
             <FaSearch className="text-card-foreground" />
             <span className="text-card-foreground">Search Something...</span>

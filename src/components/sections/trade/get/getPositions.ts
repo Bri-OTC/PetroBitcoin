@@ -11,6 +11,8 @@ import {
   PositionResponse,
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
+import { parseUnits, formatUnits } from "viem";
+
 export const getPositionss = async (
   chainId: number,
   token: string,
@@ -25,14 +27,28 @@ export const getPositionss = async (
     if (response && response.data) {
       const positions: Position[] = response.data.map(
         (position: PositionResponse) => {
+          console.log("position", position);
+
           const size = (parseFloat(position.amount) / 1e18).toFixed(4);
           const entryPrice = (parseFloat(position.entryPrice) / 1e18).toFixed(
             4
           );
+          const currentPrice = parseFloat(position.mtm);
           const amount = (Number(size) * Number(entryPrice)).toFixed(4);
-          const pnl = (parseFloat(position.mtm) / 1e18).toFixed(4);
+          const isLong =
+            position.pA == issuerAddress
+              ? true
+              : position.pB == issuerAddress
+              ? false
+              : true;
+
+          // Calculate PNL based on current price (mtm) and entry price
+          const pnl = isLong
+            ? (currentPrice - parseFloat(entryPrice)) * parseFloat(size)
+            : (parseFloat(entryPrice) - currentPrice) * parseFloat(size);
+
           const estLiq = "0";
-          const type = position.isAPayingAPR ? "Long" : "Short";
+          const type = isLong ? "Long" : "Short";
           const market = position.symbol;
 
           const entryTime = new Date(parseInt(position.openTime, 10));
@@ -59,9 +75,9 @@ export const getPositionss = async (
             size: size,
             market: market,
             icon: "/$.svg",
-            mark: entryPrice,
+            mark: currentPrice.toFixed(4),
             entryPrice: entryPrice,
-            pnl: pnl,
+            pnl: pnl.toFixed(4),
             amount: amount,
             amountContract: position.amount,
             type: type,

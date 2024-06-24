@@ -16,6 +16,7 @@ import {
 import { Order } from "@/components/sections/trade/SectionOrders";
 import { generateRandomNonce } from "@/components/web3/utils";
 import { toast } from "react-toastify";
+import { config } from "@/config";
 
 export async function cancelOrder(
   order: Order,
@@ -33,16 +34,16 @@ export async function cancelOrder(
   try {
     const ethersProvider = await wallet.getEthersProvider();
     const ethersSigner = await ethersProvider.getSigner();
-    const chainId = useAuthStore.getState().chainId;
 
     console.log("ethersSigner", ethersSigner);
 
     const domainOpen = {
       name: "PionerV1Open",
       version: "1.0",
-      chainId: Number(chainId),
+      chainId: Number(config.activeChainId),
       verifyingContract:
-        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+        networks[config.activeChainId as unknown as NetworkKey].contracts
+          .PionerV1Open,
     };
 
     const cancelSignType = {
@@ -69,9 +70,10 @@ export async function cancelOrder(
       issuerAddress: wallet.address,
       counterpartyAddress: order.counterpartyAddress,
       version: "1.0",
-      chainId: Number(chainId),
+      chainId: Number(config.activeChainId),
       verifyingContract:
-        networks[chainId as unknown as NetworkKey].contracts.PionerV1Open,
+        networks[config.activeChainId as unknown as NetworkKey].contracts
+          .PionerV1Open,
       targetHash: order.targetHash,
       nonceCancel: cancelSignValue.nonce,
       signatureCancel: signatureCancel,

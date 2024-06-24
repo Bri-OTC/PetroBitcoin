@@ -49,6 +49,7 @@ function SectionTradePositionsOrders() {
       }
 
       try {
+        console.log("fetching data");
         const [openOrders, closeOrders, positionsData] = await Promise.all([
           getOrders(config.activeChainId, wallet.address, token),
           getCloseOrders(config.activeChainId, wallet.address, token),
@@ -65,7 +66,7 @@ function SectionTradePositionsOrders() {
 
     const intervalId = setInterval(() => {
       fetchData();
-    }, 1000); // Re-fetch every second
+    }, 7000); // Re-fetch every second
 
     return () => {
       clearInterval(intervalId);

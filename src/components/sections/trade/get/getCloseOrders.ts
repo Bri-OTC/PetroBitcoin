@@ -29,7 +29,7 @@ export const getCloseOrders = async (
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedCloseQuoteResponse) => {
-          console.log("quote", quote);
+          console.log("close quote", quote);
 
           const size = (parseFloat(quote.amount) / 1e18).toFixed(4);
           const trigger = (parseFloat(quote.price) / 1e18).toFixed(4);
@@ -80,6 +80,7 @@ export const getCloseOrders = async (
             entryTime: entryTime,
             targetHash: quote.signatureOpenQuote,
             counterpartyAddress: quote.counterpartyAddress,
+            isLong: quote.isLong,
           };
         }
       );

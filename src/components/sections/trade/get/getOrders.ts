@@ -17,6 +17,7 @@ export const getOrders = async (
   token: string
 ): Promise<Order[]> => {
   try {
+    console.log("getOrders");
     const response = await getSignedWrappedOpenQuotes(
       "1.0",
       config.activeChainId,
@@ -26,9 +27,13 @@ export const getOrders = async (
         issuerAddress: issuerAddress,
       }
     );
+    console.log("response", response);
+
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
+          console.log("quote", quote);
+
           const size = (parseFloat(quote.amount) / 1e18).toFixed(4);
           const trigger = (parseFloat(quote.price) / 1e18).toFixed(4);
           const amount = (Number(size) * Number(trigger)).toFixed(4);
@@ -38,7 +43,8 @@ export const getOrders = async (
           const limitPrice = String(
             (parseFloat(quote.price) / 1e18).toFixed(4)
           );
-          const status = quote.messageState === 0 ? "Open" : "Closed";
+          const status = quote.messageState === 0 ? "Limit" : "Reduce Only";
+
           const reduceOnly = "No";
           const fillAmount = "No";
           const asset = convertFromBytes32(quote.assetHex);
@@ -78,6 +84,7 @@ export const getOrders = async (
             entryTime: entryTime,
             targetHash: quote.signatureOpenQuote,
             counterpartyAddress: quote.counterpartyAddress,
+            isLong: quote.isLong,
           };
         }
       );

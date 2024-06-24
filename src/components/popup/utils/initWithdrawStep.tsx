@@ -39,7 +39,7 @@ function InitWithdraw({
         return;
       }
 
-      //const targetChainId = `0x${networks[chainId as unknown as NetworkKey].chainHex}`;
+      //const targetChainId = `0x${networks[config.activeChainId as unknown as NetworkKey].chainHex}`;
       const targetChainId = "config.activeChainHex";
       const currentChainId = await provider.request({ method: "eth_chainId" });
 
