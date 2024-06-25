@@ -16,7 +16,8 @@ import Link from "next/link";
 import { useTradeStore } from "@/store/tradeStore";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import { cancelOrder as cancelOrderUtil } from "@/components/sections/trade/utils/cancelOpenQuote";
+import { cancelOrder as cancelOpenOrder } from "@/components/sections/trade/utils/cancelOpenQuote";
+import { cancelCloseQuote } from "@/components/sections/trade/utils/cancelCloseQuote";
 import { removePrefix } from "@/components/web3/utils";
 
 export interface Order {
@@ -61,7 +62,17 @@ function SectionOrders({
         return;
       }
 
-      const success = await cancelOrderUtil(order, wallet, token, provider);
+      let success;
+      if (order.status === "Close Quote") {
+        success = await cancelCloseQuote(order, wallet, token, provider);
+      } else if (order.status === "Open Quote") {
+        success = await cancelOpenOrder(order, wallet, token, provider);
+      } else {
+        console.error("Unknown order status:", order.status);
+        toast.error("Failed to cancel order: Unknown order status");
+        return;
+      }
+
       if (success) {
         toast.success("Order canceled successfully");
         hideRow(order.targetHash);
@@ -83,7 +94,19 @@ function SectionOrders({
           continue;
         }
 
-        const success = await cancelOrderUtil(order, wallet, token, provider);
+        let success;
+        if (order.status === "Close Quote") {
+          success = await cancelCloseQuote(order, wallet, token, provider);
+        } else if (order.status === "Open Quote") {
+          success = await cancelOpenOrder(order, wallet, token, provider);
+        } else {
+          console.error("Unknown order status:", order.status);
+          toast.error(
+            `Failed to cancel order ${order.id}: Unknown order status`
+          );
+          continue;
+        }
+
         if (success) {
           toast.success(`Order ${order.id} canceled successfully`);
           hideRow(order.targetHash);

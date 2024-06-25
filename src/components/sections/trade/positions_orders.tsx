@@ -66,7 +66,7 @@ function SectionTradePositionsOrders() {
 
     const intervalId = setInterval(() => {
       fetchData();
-    }, 7000); // Re-fetch every second
+    }, config.apiRefreshRate);
 
     return () => {
       clearInterval(intervalId);

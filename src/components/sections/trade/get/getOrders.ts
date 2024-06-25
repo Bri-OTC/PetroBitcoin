@@ -27,7 +27,6 @@ export const getOrders = async (
         issuerAddress: issuerAddress,
       }
     );
-    console.log("response", response);
 
     if (response && response.data) {
       const orders: Order[] = response.data.map(
@@ -43,7 +42,7 @@ export const getOrders = async (
           const limitPrice = String(
             (parseFloat(quote.price) / 1e18).toFixed(4)
           );
-          const status = quote.messageState === 0 ? "Limit" : "Reduce Only";
+          const status = "Open Quote";
 
           const reduceOnly = "No";
           const fillAmount = "No";

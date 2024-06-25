@@ -13,10 +13,7 @@ import {
   SignedWrappedOpenQuoteRequest,
 } from "@pionerfriends/api-client";
 import { Button } from "@/components/ui/button";
-import {
-  parseDecimalValue,
-  generateRandomNonce,
-} from "@/components/web3/utils";
+import { parseDecimalValue } from "@/components/web3/utils";
 import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 import { config } from "@/config";
 
@@ -62,7 +59,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
       const ethersSigner = await ethersProvider.getSigner();
       const formatedSymbol = await formatPair(symbol);
 
-      const nonce = String(generateRandomNonce());
+      const nonce = String(Date.now());
       recommendedAmount;
       const quote: SignedWrappedOpenQuoteRequest = {
         issuerAddress: wallet.address,
@@ -153,13 +150,13 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
       const openQuoteSignValue = {
         isLong: quote.isLong,
-        bOracleId: 0,
+        bOracleId: "0",
         price: quote.price,
         amount: quote.amount,
         interestRate: quote.interestRate,
         isAPayingAPR: quote.isAPayingApr,
-        frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
-        affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
+        frontEnd: quote.frontEnd,
+        affiliate: quote.affiliate,
         authorized: quote.authorized,
         nonce: quote.nonceOpenQuote,
       };
@@ -260,7 +257,18 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
       console.log("Both signatures obtained. Sending Open Quote...");
 
+      console.log("quote", quote);
+      console.log(
+        "token",
+        domainOpen,
+        openQuoteSignType,
+        domainWrapper,
+        bOracleSignType
+      );
+      console.log("quote", quote);
+
       await sendSignedWrappedOpenQuote(quote, token);
+
       console.log("Open Quote sent successfully");
       toast.success("Open Quote sent successfully");
     } catch (error) {

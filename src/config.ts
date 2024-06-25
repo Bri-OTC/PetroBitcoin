@@ -46,4 +46,5 @@ export const config = {
   activeChainHex: "0xfa2",
   viemChain: fantomTestnet,
   viemClient: viemClient,
+  apiRefreshRate: 20000,
 };

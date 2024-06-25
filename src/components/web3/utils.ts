@@ -9,9 +9,21 @@ export const convertToBytes32 = (str: string): string => {
 };
 
 /// @dev to set in the sdk
-export const convertFromBytes32 = (bytes32: string): string => {
-  const str = ethers.utils.parseBytes32String(bytes32);
-  return str;
+export const convertFromBytes32 = (input: string): string => {
+  if (!input || input === "") {
+    return "";
+  }
+
+  try {
+    // Check if the input is a valid bytes32 string
+    if (input.startsWith("0x") && input.length === 66) {
+      return ethers.utils.parseBytes32String(input).replace(/\0/g, "");
+    } else {
+      return input;
+    }
+  } catch (error) {
+    return input; // Return the original input if conversion fails
+  }
 };
 
 /// @dev to set in the sdk
@@ -30,22 +42,30 @@ export const parseDecimalValue = (value: string): string => {
   }
 };
 
-export function generateRandomNonce() {
-  const randomNumber = Math.floor(Math.random() * 1000000) + 1;
-  return randomNumber;
-}
-
 const prefixList = ["forex", "crypto", "nasdaq"];
 
 export function removePrefix(market: string): string {
-  const [base, quote] = market.split("/");
-  const baseWithoutPrefix = prefixList.reduce(
-    (acc, prefix) => acc.replace(`${prefix}.`, ""),
-    base
-  );
-  const quoteWithoutPrefix = prefixList.reduce(
-    (acc, prefix) => acc.replace(`${prefix}.`, ""),
-    quote
-  );
+  if (!market || typeof market !== "string") {
+    return "";
+  }
+
+  const parts = market.split("/");
+  if (parts.length !== 2) {
+    return market; // Return original if it doesn't contain exactly one '/'
+  }
+
+  const [base, quote] = parts;
+
+  const removePrefixtFromPart = (part: string) => {
+    if (!part) return "";
+    return prefixList.reduce(
+      (acc, prefix) => acc.replace(new RegExp(`^${prefix}\\.`, "i"), ""),
+      part
+    );
+  };
+
+  const baseWithoutPrefix = removePrefixtFromPart(base);
+  const quoteWithoutPrefix = removePrefixtFromPart(quote);
+
   return `${baseWithoutPrefix}/${quoteWithoutPrefix}`;
 }

@@ -11,9 +11,9 @@ import {
   NetworkKey,
 } from "@pionerfriends/blockchain-client";
 import { Order } from "@/components/sections/trade/SectionOrders";
-import { generateRandomNonce } from "@/components/web3/utils";
 import { toast } from "react-toastify";
 import { config } from "@/config";
+import { ethers } from "ethers";
 
 export async function cancelCloseQuote(
   order: Order,
@@ -31,6 +31,7 @@ export async function cancelCloseQuote(
   try {
     const ethersProvider = await wallet.getEthersProvider();
     const ethersSigner = await ethersProvider.getSigner();
+    const nonce = Date.now().toString();
 
     console.log("ethersSigner", ethersSigner);
 
@@ -52,7 +53,7 @@ export async function cancelCloseQuote(
 
     const cancelSignValue = {
       orderHash: order.targetHash,
-      nonce: Date.now().toString(),
+      nonce: nonce,
     };
 
     console.log("cancelSignValue", cancelSignValue);
@@ -71,11 +72,11 @@ export async function cancelCloseQuote(
       verifyingContract:
         networks[config.activeChainId as unknown as NetworkKey].contracts
           .PionerV1Close,
-      targetHash: order.targetHash,
-      nonceCancel: cancelSignValue.nonce,
+      targetHash: cancelSignValue.orderHash,
+      nonceCancel: nonce,
       signature: signatureCancel,
-      emitTime: Date.now().toString(),
-      messageState: 1,
+      emitTime: nonce,
+      messageState: 0,
     };
 
     const success = await sendSignedCancelCloseQuote(cancel, token);

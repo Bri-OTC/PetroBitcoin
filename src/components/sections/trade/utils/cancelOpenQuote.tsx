@@ -14,9 +14,9 @@ import {
   NetworkKey,
 } from "@pionerfriends/blockchain-client";
 import { Order } from "@/components/sections/trade/SectionOrders";
-import { generateRandomNonce } from "@/components/web3/utils";
 import { toast } from "react-toastify";
 import { config } from "@/config";
+import { ethers } from "ethers";
 
 export async function cancelOrder(
   order: Order,
@@ -24,18 +24,27 @@ export async function cancelOrder(
   token: string,
   provider: any
 ) {
+  console.log("Attempting to cancel order:", order);
+
   if (!wallet || !token || !wallet.address) {
     console.error("Missing wallet, token, walletClient or wallet.address");
     toast.error("Failed to cancel order: Invalid wallet or token");
     return false;
   }
-  console.log("cancelOrder", order);
+
+  if (!order.targetHash) {
+    console.warn(
+      "Order targetHash is empty. Attempting to proceed with available data."
+    );
+    // You might want to consider returning false here if targetHash is absolutely required
+  }
 
   try {
     const ethersProvider = await wallet.getEthersProvider();
     const ethersSigner = await ethersProvider.getSigner();
+    const nonce = Date.now();
 
-    console.log("ethersSigner", ethersSigner);
+    console.log("ethersSigner:", ethersSigner);
 
     const domainOpen = {
       name: "PionerV1Open",
@@ -48,46 +57,53 @@ export async function cancelOrder(
 
     const cancelSignType = {
       CancelRequestSign: [
-        { name: "orderHash", type: "bytes" },
+        { name: "orderHash", type: "bytes32" },
         { name: "nonce", type: "uint256" },
       ],
     };
 
     const cancelSignValue = {
-      orderHash: order.targetHash,
-      nonce: Date.now().toString(),
+      orderHash:
+        ethers.utils.keccak256(order.targetHash) || ethers.constants.HashZero, // Use a zero hash if targetHash is empty
+      nonce: nonce,
     };
 
-    console.log("cancelSignValue", cancelSignValue);
+    console.log("cancelSignValue:", cancelSignValue);
 
     const signatureCancel = await ethersSigner._signTypedData(
       domainOpen,
       cancelSignType,
       cancelSignValue
     );
-    let success;
+
     const cancel: SignedCancelOpenQuoteRequest = {
       issuerAddress: wallet.address,
-      counterpartyAddress: order.counterpartyAddress,
+      counterpartyAddress:
+        order.counterpartyAddress || ethers.constants.AddressZero,
       version: "1.0",
       chainId: Number(config.activeChainId),
       verifyingContract:
         networks[config.activeChainId as unknown as NetworkKey].contracts
           .PionerV1Open,
       targetHash: order.targetHash,
-      nonceCancel: cancelSignValue.nonce,
+      nonceCancel: cancelSignValue.nonce.toString(),
       signatureCancel: signatureCancel,
       emitTime: Date.now().toString(),
       messageState: 0,
     };
 
-    success = await sendSignedCancelOpenQuote(cancel, token);
+    console.log("Sending cancel request:", cancel);
+
+    const success = await sendSignedCancelCloseQuote(cancel, token);
 
     if (!success) {
+      console.error("Failed to cancel order");
       toast.error("Failed to cancel order");
       return false;
     }
 
+    console.log("Order cancelled successfully");
+    toast.success("Order cancelled successfully");
     return true;
   } catch (error) {
     console.error("Error canceling order:", error);

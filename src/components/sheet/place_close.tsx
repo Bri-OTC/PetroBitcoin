@@ -240,9 +240,13 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         openCloseQuoteValue
       );
 
+      console.log("signatureClose", isLong === true);
+      console.log("signatureClose", isLong == true);
+      console.log("signatureClose", isLong);
+
       const closeQuote: SignedCloseQuoteRequest = {
         issuerAddress: wallet.address,
-        counterpartyAddress: isLong ? position.pB : position.pA,
+        counterpartyAddress: isLong === true ? position.pB : position.pA,
         version: "1.0",
         chainId: Number(config.activeChainId),
         verifyingContract:

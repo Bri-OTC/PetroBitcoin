@@ -26,61 +26,64 @@ export const getCloseOrders = async (
         issuerAddress: issuerAddress,
       }
     );
-    if (response && response.data) {
+    console.log("close orders", response);
+
+    if (response && response.data && Array.isArray(response.data)) {
       const orders: Order[] = response.data.map(
         (quote: signedCloseQuoteResponse) => {
           console.log("close quote", quote);
 
-          const size = (parseFloat(quote.amount) / 1e18).toFixed(4);
-          const trigger = (parseFloat(quote.price) / 1e18).toFixed(4);
+          const size = (parseFloat(quote.amount || "0") / 1e18).toFixed(4);
+          const trigger = (parseFloat(quote.price || "0") / 1e18).toFixed(4);
           const amount = (Number(size) * Number(trigger)).toFixed(4);
-          const filled = "0";
-          const remainingSize = size;
-          const breakEvenPrice = trigger;
-          const limitPrice = String(
-            (parseFloat(quote.price) / 1e18).toFixed(4)
-          );
-          const status = "Open";
-          const reduceOnly = "Yes";
-          const fillAmount = "0";
-          const asset = convertFromBytes32(quote.assetHex);
+          const limitPrice = (parseFloat(quote.price || "0") / 1e18).toFixed(4);
 
-          const emitTime = new Date(parseInt(quote.emitTime, 10));
-          const entryTime = `${emitTime.getFullYear()}/${(
-            emitTime.getMonth() + 1
-          )
-            .toString()
-            .padStart(2, "0")}/${emitTime
-            .getDate()
-            .toString()
-            .padStart(2, "0")} ${emitTime
-            .getHours()
-            .toString()
-            .padStart(2, "0")}:${emitTime
-            .getMinutes()
-            .toString()
-            .padStart(2, "0")}:${emitTime
-            .getSeconds()
-            .toString()
-            .padStart(2, "0")}`;
+          let asset = "";
+          if (quote.assetHex && quote.assetHex !== "") {
+            try {
+              asset = convertFromBytes32(quote.assetHex);
+            } catch (error) {
+              console.warn("Error converting assetHex:", error);
+            }
+          }
+
+          const emitTime = new Date(parseInt(quote.emitTime || "0", 10));
+          const entryTime = !isNaN(emitTime.getTime())
+            ? `${emitTime.getFullYear()}/${(emitTime.getMonth() + 1)
+                .toString()
+                .padStart(2, "0")}/${emitTime
+                .getDate()
+                .toString()
+                .padStart(2, "0")} ${emitTime
+                .getHours()
+                .toString()
+                .padStart(2, "0")}:${emitTime
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}:${emitTime
+                .getSeconds()
+                .toString()
+                .padStart(2, "0")}`
+            : "";
+
           return {
-            id: String(quote.bcontractId),
-            size: size,
+            id: String(quote.bcontractId || ""),
+            size,
             market: asset,
             icon: "/$.svg",
-            trigger: trigger,
-            amount: amount,
-            filled: filled,
-            remainingSize: remainingSize,
-            breakEvenPrice: breakEvenPrice,
-            limitPrice: limitPrice,
-            status: status,
-            reduceOnly: reduceOnly,
-            fillAmount: fillAmount,
-            entryTime: entryTime,
-            targetHash: quote.signatureOpenQuote,
-            counterpartyAddress: quote.counterpartyAddress,
-            isLong: quote.isLong,
+            trigger,
+            amount,
+            filled: "0",
+            remainingSize: size,
+            breakEvenPrice: trigger,
+            limitPrice,
+            status: "Close Quote",
+            reduceOnly: "Yes",
+            fillAmount: "0",
+            entryTime,
+            targetHash: quote.signatureCloseHash || "",
+            counterpartyAddress: quote.counterpartyAddress || "",
+            isLong: Boolean(quote.isLong),
           };
         }
       );
