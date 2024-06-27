@@ -42,9 +42,9 @@ export const config = {
   serverAddress: "api.pio.finance",
   serverPort: "2096",
   devMode: true,
-  activeChainId: 4002,
-  activeChainHex: "0xfa2",
-  viemChain: fantomTestnet,
+  activeChainId: 64165,
+  activeChainHex: "0xfaa5", // oxfa2,
+  viemChain: viemChain,
   viemClient: viemClient,
   apiRefreshRate: 20000,
 };

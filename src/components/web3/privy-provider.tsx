@@ -2,6 +2,7 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import { avalancheFuji, fantomTestnet } from "viem/chains";
 import { defineChain } from "viem";
+import { config } from "@/config";
 
 export default function PrivyProviderWrapper({
   children,
@@ -27,8 +28,8 @@ export default function PrivyProviderWrapper({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: fantomTestnet,
-        supportedChains: [fantomTestnet, avalancheFuji],
+        defaultChain: config.viemChain,
+        supportedChains: [config.viemChain, avalancheFuji],
       }}
     >
       {children}

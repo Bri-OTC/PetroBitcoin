@@ -247,7 +247,7 @@ function SectionTradeOrderTrades() {
                   <span className="text-red-500">12.25%</span> APR
                 </p>
                 <p className="text-card-foreground">
-                  Balance: {lastValidBalance} USD
+                  Balance: {Number(lastValidBalance).toFixed(2)} USDP
                 </p>
               </div>
               <div>

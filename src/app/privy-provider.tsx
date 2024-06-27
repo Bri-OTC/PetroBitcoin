@@ -28,8 +28,8 @@ export default function PrivyProviderWrapper({
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },
-        defaultChain: fantomTestnet,
-        supportedChains: [fantomTestnet],
+        defaultChain: config.viemChain,
+        supportedChains: [config.viemChain],
       }}
     >
       {children}

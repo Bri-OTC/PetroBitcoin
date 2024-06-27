@@ -7,6 +7,7 @@ import {
 } from "@pionerfriends/api-client";
 import { convertFromBytes32 } from "@/components/web3/utils";
 import { useWalletAndProvider } from "@/components/layout/menu";
+import { parseUnits, formatUnits } from "viem";
 
 const useFillOpenQuote = (token: string | null) => {
   const { wallet, provider } = useWalletAndProvider();
@@ -23,13 +24,13 @@ const useFillOpenQuote = (token: string | null) => {
           WebSocketType.LiveWrappedOpenQuotes,
           (message: signedWrappedOpenQuoteResponse) => {
             //console.log("Quote Message:", message);
-            if (message.messageState === 6) {
-              toast(
-                `${convertFromBytes32(message.assetHex)} : ${
-                  message.amount
-                } filled at ${message.price}`
-              );
-            }
+            //if (message.messageState === 6) {
+            toast.success(
+              `${convertFromBytes32(message.assetHex)} : ${
+                Number(message.amount) / 1e18
+              } filled at ${Number(message.price) / 1e18}`
+            );
+            //}
           },
           () => console.log("Quote Open"),
           () => console.log("Quote Closed"),

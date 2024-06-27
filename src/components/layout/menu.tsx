@@ -324,14 +324,16 @@ export function Menu() {
         {ready ? (
           ready && authenticated && token ? (
             <div className="text-center text-white p-3 flex items-center">
-              {!isFantomSonicTestnet && (
-                <button
-                  onClick={addChain}
-                  className="text-white hover:text-gray-200 mr-2"
-                >
-                  Switch to Fantom Sonic Testnet
-                </button>
-              )}
+              <div className="mr-2">
+                {!isFantomSonicTestnet && (
+                  <button
+                    onClick={addChain}
+                    className="text-white hover:text-gray-200 mr-2"
+                  >
+                    Click to add Testnet to your wallet
+                  </button>
+                )}
+              </div>
               <h3 className="mr-2">Account: {wallet?.address}</h3>
               <button
                 onClick={() => {

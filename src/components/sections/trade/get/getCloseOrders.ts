@@ -26,7 +26,6 @@ export const getCloseOrders = async (
         issuerAddress: issuerAddress,
       }
     );
-    console.log("close orders", response);
 
     if (response && response.data && Array.isArray(response.data)) {
       const orders: Order[] = response.data.map(
@@ -68,7 +67,7 @@ export const getCloseOrders = async (
 
           return {
             id: String(quote.bcontractId || ""),
-            size,
+            size: size,
             market: asset,
             icon: "/$.svg",
             trigger,

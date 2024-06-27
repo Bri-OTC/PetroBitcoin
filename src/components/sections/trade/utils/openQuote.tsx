@@ -19,9 +19,13 @@ import { config } from "@/config";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
+  disabled: boolean;
 }
 
-const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
+const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
+  request,
+  disabled,
+}) => {
   const { quotes } = useQuoteStore();
   const chainId = String(config.activeChainId);
   const [loading, setLoading] = useState(false);
@@ -61,6 +65,11 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
 
       const nonce = String(Date.now());
       recommendedAmount;
+      if (recommendedAmount === 0) {
+        toast.error("Amount must be greater than 0");
+        return;
+      }
+
       const quote: SignedWrappedOpenQuoteRequest = {
         issuerAddress: wallet.address,
         counterpartyAddress: request.counterpartyAddress,
@@ -287,18 +296,11 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({ request }) => {
     }
   };
 
-  const isButtonDisabled = false;
-  /*
-    !sufficientBalance ||
-    isBalanceZero ||
-    isAmountMinAmount ||
-    noQuotesReceived;*/
-
   return (
     <Button
-      className="w-full py-6 border-none"
       onClick={handleOpenQuote}
-      disabled={isButtonDisabled}
+      disabled={disabled}
+      className={`w-full ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
     >
       {loading ? "Loading..." : "Open Quote"}
     </Button>

@@ -35,12 +35,7 @@ export const getPositionss = async (
           );
           const currentPrice = parseFloat(position.mtm);
           const amount = (Number(size) * Number(entryPrice)).toFixed(4);
-          const isLong =
-            position.pA == issuerAddress
-              ? true
-              : position.pB == issuerAddress
-              ? false
-              : true;
+          const isLong = position.pA == issuerAddress ? true : false;
 
           // Calculate PNL based on current price (mtm) and entry price
           const pnl = isLong

@@ -20,11 +20,11 @@ const useFillCloseQuote = (token: string | null) => {
           WebSocketType.LiveCloseQuotes,
           (message: signedCloseQuoteResponse) => {
             //console.log("Quote Message:", message);
-            if (message.messageState === 3) {
-              toast(
-                `${message.bcontractId} : ${message.amount} filled at ${message.price}`
-              );
-            }
+            toast.success(
+              `${message.bcontractId} : ${
+                Number(message.amount) / 1e18
+              } filled at ${Number(message.price) / 1e18}`
+            );
           },
           () => console.log("Quote Close"),
           () => console.log("Quote Closed"),

@@ -184,7 +184,7 @@ function SectionOrders({
                   <div>
                     <h3
                       className={`${
-                        Number(x.size) >= 0 ? "text-green-400" : "text-red-400"
+                        Number(x.size) > 0 ? "text-green-400" : "text-red-400"
                       }`}
                     >
                       {x.size}

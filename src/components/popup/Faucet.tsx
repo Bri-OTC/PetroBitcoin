@@ -11,7 +11,6 @@ import {
   getAddress,
   Address,
   signatureToCompactSignature,
-  compactSignatureToHex,
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { Button } from "@/components/ui/button";

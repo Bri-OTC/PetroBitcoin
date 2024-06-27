@@ -94,7 +94,7 @@ export async function cancelOrder(
 
     console.log("Sending cancel request:", cancel);
 
-    const success = await sendSignedCancelCloseQuote(cancel, token);
+    const success = await sendSignedCancelOpenQuote(cancel, token);
 
     if (!success) {
       console.error("Failed to cancel order");

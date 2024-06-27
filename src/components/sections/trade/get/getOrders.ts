@@ -81,7 +81,7 @@ export const getOrders = async (
             reduceOnly: reduceOnly,
             fillAmount: fillAmount,
             entryTime: entryTime,
-            targetHash: quote.signatureOpenQuote,
+            targetHash: quote.signatureOpenQuoteHash,
             counterpartyAddress: quote.counterpartyAddress,
             isLong: quote.isLong,
           };

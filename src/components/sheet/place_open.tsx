@@ -68,28 +68,16 @@ const SheetPlace: React.FC = () => {
 
   useEffect(() => {
     const updateEntryPrice = () => {
-      if (currentMethod === "Buy") {
-        setEntryPrice(askPrice.toString());
-      } else if (currentMethod === "Sell") {
-        setEntryPrice(bidPrice.toString());
+      if (currentTabIndex === "Market") {
+        if (currentMethod === "Buy") {
+          setEntryPrice((askPrice * 1.01).toFixed(5));
+        } else if (currentMethod === "Sell") {
+          setEntryPrice((bidPrice * 0.99).toFixed(5));
+        }
       }
     };
 
     updateEntryPrice();
-  }, [currentMethod, askPrice, bidPrice, setEntryPrice]);
-
-  useEffect(() => {
-    if (currentTabIndex === "Market") {
-      const updateEntryPrice = () => {
-        if (currentMethod === "Buy") {
-          setEntryPrice((bidPrice * 0.999).toString());
-        } else if (currentMethod === "Sell") {
-          setEntryPrice((askPrice * 1.001).toString());
-        }
-      };
-
-      updateEntryPrice();
-    }
   }, [currentTabIndex, currentMethod, askPrice, bidPrice, setEntryPrice]);
 
   useEffect(() => {
@@ -241,6 +229,14 @@ const SheetPlace: React.FC = () => {
     currentMethod === "Buy"
   );
 
+  const isError =
+    isBalanceZero ||
+    !sufficientBalance ||
+    isAmountMinAmount ||
+    noQuotesReceived ||
+    parseFloat(amount) <= 0 ||
+    parseFloat(entryPrice) <= 0;
+
   return (
     <DrawerContent className="transform scale-60 origin-bottom">
       <DrawerTitle className="text-center mt-3">{symbol}</DrawerTitle>
@@ -295,7 +291,9 @@ const SheetPlace: React.FC = () => {
                 }`}
                 placeholder="Input Price"
                 value={entryPrice}
-                onChange={(e) => setEntryPrice(e.target.value)}
+                onChange={(e) =>
+                  currentTabIndex === "Limit" && setEntryPrice(e.target.value)
+                }
                 disabled={currentTabIndex === "Market"}
               />
               <p>USD</p>
@@ -358,6 +356,10 @@ const SheetPlace: React.FC = () => {
           </p>
         ) : noQuotesReceived ? (
           <p className="text-red-500 text-sm mt-1">Waiting for quotes.</p>
+        ) : parseFloat(amount) <= 0 || parseFloat(entryPrice) <= 0 ? (
+          <p className="text-red-500 text-sm mt-1">
+            Amount and Entry Price must be greater than 0
+          </p>
         ) : null}
         {isAmountMinAmount && canBuyMinAmount && (
           <p className="text-yellow-500 text-sm mt-1">
@@ -413,7 +415,7 @@ const SheetPlace: React.FC = () => {
           </div>
         </div>
         <DrawerClose>
-          <OpenQuoteButton request={openQuoteRequest} />
+          <OpenQuoteButton request={openQuoteRequest} disabled={isError} />{" "}
         </DrawerClose>
       </div>
     </DrawerContent>
