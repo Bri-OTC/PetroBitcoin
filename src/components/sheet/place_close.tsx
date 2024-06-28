@@ -6,7 +6,6 @@ import { Checkbox } from "../ui/checkbox";
 import { Card } from "../ui/card";
 import { useAuthStore } from "@/store/authStore";
 import { useWalletAndProvider } from "@/components/layout/menu";
-import { networks, NetworkKey } from "@pionerfriends/blockchain-client";
 import { parseUnits } from "viem";
 import {
   sendSignedCloseQuote,
@@ -15,6 +14,10 @@ import {
 import { removePrefix } from "@/components/web3/utils";
 import { toast } from "react-toastify";
 import { config } from "@/config";
+import {
+  handleCloseQuote,
+  CloseQuoteParams,
+} from "@/components/sections/trade/utils/closeQuote";
 
 interface SheetPlaceOrderProps {
   position: {
@@ -41,6 +44,7 @@ interface SheetPlaceOrderProps {
     bContractId: number;
     pA: string;
     pB: string;
+    isLong: boolean;
   };
   onClose: () => void;
 }
@@ -59,11 +63,11 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
   const [exitPnL, setExitPnL] = useState(0);
   const [stopPnL, setStopPnL] = useState(0);
   const [riskRewardPnL, setRiskRewardPnL] = useState(0);
+  const { bContractId, amountContract, pA, pB, isLong } = position;
 
-  const { token, walletClient, chainId } = useAuthStore();
+  const { token, walletClient } = useAuthStore();
   const { wallet, provider } = useWalletAndProvider();
 
-  const isLong = position.type === "Long";
   const entryPrice = parseFloat(position.entryPrice);
   const markPrice = parseFloat(position.mark);
 
@@ -186,112 +190,56 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
     [isLong, entryPrice]
   );
 
-  const handleCloseQuote = async (price: string, isTP: boolean) => {
-    if (!wallet || !wallet.address || !token || !walletClient) {
-      console.error(
-        "Wallet, wallet address, token, or walletClient is missing"
-      );
-      return;
+  // New function to handle both TP and SL
+  const handleBothCloseQuotes = async (
+    tpParams: CloseQuoteParams,
+    slParams: CloseQuoteParams
+  ) => {
+    const tpResult = await handleCloseQuote(tpParams);
+    if (tpResult) {
+      await handleCloseQuote(slParams);
     }
+  };
 
+  const onCloseButtonClick = async () => {
     setLoading(true);
-
     try {
-      const ethersProvider = await (wallet as any).getEthersProvider();
-      const ethersSigner = await ethersProvider.getSigner();
-
-      const domainClose = {
-        name: "PionerV1Close",
-        version: "1.0",
-        chainId: config.activeChainId,
-        verifyingContract:
-          networks[config.activeChainId as unknown as NetworkKey].contracts
-            .PionerV1Close,
+      if (!token) {
+        return;
+      }
+      const commonParams = {
+        wallet,
+        token,
+        walletClient,
+        activeChainId: config.activeChainId,
+        bContractId,
+        amountContract,
+        pA,
+        pB,
+        isLong,
       };
 
-      const OpenCloseQuoteType = {
-        OpenCloseQuote: [
-          { name: "bContractId", type: "uint256" },
-          { name: "price", type: "uint256" },
-          { name: "amount", type: "uint256" },
-          { name: "limitOrStop", type: "uint256" },
-          { name: "expiry", type: "uint256" },
-          { name: "authorized", type: "address" },
-          { name: "nonce", type: "uint256" },
-        ],
-      };
-
-      const nonce = Date.now().toString();
-      const limitOrStop = isTP ? 0 : parseUnits(price, 18).toString();
-      const expiry = 315350000000;
-      const counterpartyAddress =
-        wallet.address.toLowerCase() === position.pA.toLowerCase()
-          ? position.pB
-          : position.pA;
-      const openCloseQuoteValue = {
-        bContractId: position.bContractId,
-        price: parseUnits(price, 18).toString(),
-        amount: position.amountContract,
-        limitOrStop: limitOrStop.toString(),
-        expiry: expiry.toString(),
-        authorized: wallet.address,
-        nonce: nonce,
-      };
-      console.log("openCloseQuoteValue", openCloseQuoteValue);
-
-      const signatureClose = await ethersSigner._signTypedData(
-        domainClose,
-        OpenCloseQuoteType,
-        openCloseQuoteValue
-      );
-
-      console.log("counterpartyAddress", counterpartyAddress);
-
-      const closeQuote: SignedCloseQuoteRequest = {
-        issuerAddress: wallet.address,
-        counterpartyAddress: counterpartyAddress,
-        version: "1.0",
-        chainId: Number(config.activeChainId),
-        verifyingContract:
-          networks[config.activeChainId as unknown as NetworkKey].contracts
-            .PionerV1Close,
-        bcontractId: openCloseQuoteValue.bContractId,
-        isLong: isLong,
-        price: openCloseQuoteValue.price,
-        amount: openCloseQuoteValue.amount,
-        limitOrStop: openCloseQuoteValue.limitOrStop,
-        expiry: openCloseQuoteValue.expiry,
-        authorized: openCloseQuoteValue.authorized,
-        nonce: openCloseQuoteValue.nonce,
-        signatureClose: signatureClose,
-        emitTime: Date.now().toString(),
-        messageState: 0,
-      };
-      console.log("closeQuote", closeQuote);
-
-      await sendSignedCloseQuote(closeQuote, token);
-      toast.success("Close quote sent successfully", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
-      onClose();
-    } catch (error) {
-      console.error("Error in handleCloseQuote:", error);
-
-      toast.error("Failed to send close quote", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      if (isReduceTP && isReduceSL) {
+        await handleBothCloseQuotes(
+          { ...commonParams, price: takeProfit, isTP: true },
+          { ...commonParams, price: stopLoss, isTP: false }
+        );
+      } else if (isReduceTP) {
+        await handleCloseQuote({
+          ...commonParams,
+          price: takeProfit,
+          isTP: true,
+        });
+      } else if (isReduceSL) {
+        await handleCloseQuote({
+          ...commonParams,
+          price: stopLoss,
+          isTP: false,
+        });
+      }
     } finally {
       setLoading(false);
+      onClose();
     }
   };
 

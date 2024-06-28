@@ -17,6 +17,13 @@ import Link from "next/link";
 import { useTradeStore } from "@/store/tradeStore";
 import { removePrefix } from "@/components/web3/utils";
 import { walletActions } from "viem";
+import {
+  handleCloseQuote,
+  CloseQuoteParams,
+} from "@/components/sections/trade/utils/closeQuote";
+import { useWalletAndProvider } from "@/components/layout/menu";
+import { useAuthStore } from "@/store/authStore";
+import { config } from "@/config";
 
 export interface Position {
   id: string;
@@ -42,6 +49,7 @@ export interface Position {
   bContractId: number;
   pA: string;
   pB: string;
+  isLong: boolean;
 }
 
 interface SectionPositionsProps {
@@ -58,12 +66,35 @@ function SectionPositions({
   hideRow,
 }: SectionPositionsProps) {
   const setSelectedMarket = useTradeStore((state) => state.setSymbol);
+  const { token, walletClient, chainId } = useAuthStore();
+  const { wallet, provider } = useWalletAndProvider();
+  const {
+    currentMethod,
+    entryPrice,
+    amount,
+    amountUSD,
+    sliderValue,
+    bidPrice,
+    askPrice,
+    symbol,
+    currentTabIndex,
+    setCurrentMethod,
+    setCurrentTabIndex,
+    setEntryPrice,
+    setAmount,
+    setAmountUSD,
+    setSliderValue,
+    leverage,
+    balance,
+    maxAmount,
+  } = useTradeStore();
 
   if (!positions || !Array.isArray(positions)) {
     return null;
   }
+
   const handleSheetClose = (positionId: string) => {
-    toggleActiveRow(positionId); // Close the expanded row
+    toggleActiveRow(positionId);
   };
 
   const handleToggleActiveRow = (positionId: string) => {
@@ -80,11 +111,40 @@ function SectionPositions({
     }
   };
 
-  const handleHideRow = (positionId: string) => {
-    hideRow(positionId);
-    toast.success("Position closed successfully");
-  };
+  const handleMarketClose = async (position: Position) => {
+    if (!wallet || !wallet.address || !token || !walletClient) {
+      console.error(
+        "Wallet, wallet address, token, or walletClient is missing"
+      );
+      return;
+    }
 
+    try {
+      const closePrice = position.isLong ? bidPrice : askPrice;
+
+      const closeQuoteParams: CloseQuoteParams = {
+        price: closePrice.toString(),
+        isTP: true,
+        wallet,
+        token,
+        walletClient,
+        activeChainId: config.activeChainId,
+        bContractId: position.bContractId,
+        amountContract: position.amountContract,
+        pA: position.pA,
+        pB: position.pB,
+        isLong: position.isLong,
+      };
+
+      await handleCloseQuote(closeQuoteParams);
+
+      hideRow(position.id);
+      toast.success("Position closed successfully");
+    } catch (error) {
+      console.error("Error closing position:", error);
+      toast.error("Failed to close position");
+    }
+  };
   const handleMarketClick = (marketName: string) => {
     setSelectedMarket(marketName);
   };
@@ -213,7 +273,7 @@ function SectionPositions({
                           />
                         </Drawer>
                         <Button
-                          onClick={() => handleHideRow(position.id)}
+                          onClick={() => handleMarketClose(position)}
                           variant="destructive"
                         >
                           <span>Market</span>

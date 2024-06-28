@@ -93,6 +93,7 @@ export const getPositionss = async (
             bContractId: position.bContractId,
             pA: position.pA,
             pB: position.pB,
+            isLong: isLong,
           };
         }
       );
