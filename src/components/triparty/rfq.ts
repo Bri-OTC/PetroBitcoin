@@ -137,6 +137,7 @@ export const useRfqRequest = () => {
         try {
           await memoizedSetRfqRequest();
           //console.log("RFQ request updated successfully", rfqRequest);
+
           await sendRfq(rfqRequest, token);
           //console.log("RFQ request sent successfully");
         } catch (error) {

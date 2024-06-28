@@ -223,12 +223,17 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
 
       const nonce = Date.now().toString();
       const limitOrStop = isTP ? 0 : parseUnits(price, 18).toString();
+      const expiry = 315350000000;
+      const counterpartyAddress =
+        wallet.address.toLowerCase() === position.pA.toLowerCase()
+          ? position.pB
+          : position.pA;
       const openCloseQuoteValue = {
         bContractId: position.bContractId,
         price: parseUnits(price, 18).toString(),
         amount: position.amountContract,
-        limitOrStop: limitOrStop,
-        expiry: 315350000000,
+        limitOrStop: limitOrStop.toString(),
+        expiry: expiry.toString(),
         authorized: wallet.address,
         nonce: nonce,
       };
@@ -240,26 +245,24 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         openCloseQuoteValue
       );
 
-      console.log("signatureClose", isLong === true);
-      console.log("signatureClose", isLong == true);
-      console.log("signatureClose", isLong);
+      console.log("counterpartyAddress", counterpartyAddress);
 
       const closeQuote: SignedCloseQuoteRequest = {
         issuerAddress: wallet.address,
-        counterpartyAddress: isLong === true ? position.pB : position.pA,
+        counterpartyAddress: counterpartyAddress,
         version: "1.0",
         chainId: Number(config.activeChainId),
         verifyingContract:
           networks[config.activeChainId as unknown as NetworkKey].contracts
             .PionerV1Close,
-        bcontractId: position.bContractId,
+        bcontractId: openCloseQuoteValue.bContractId,
         isLong: isLong,
-        price: parseUnits(price, 18).toString(),
-        amount: position.amountContract,
-        limitOrStop: String(limitOrStop),
-        expiry: String(315350000000),
-        authorized: wallet.address,
-        nonce: nonce,
+        price: openCloseQuoteValue.price,
+        amount: openCloseQuoteValue.amount,
+        limitOrStop: openCloseQuoteValue.limitOrStop,
+        expiry: openCloseQuoteValue.expiry,
+        authorized: openCloseQuoteValue.authorized,
+        nonce: openCloseQuoteValue.nonce,
         signatureClose: signatureClose,
         emitTime: Date.now().toString(),
         messageState: 0,

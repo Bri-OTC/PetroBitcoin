@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import Link from "next/link";
 import { useTradeStore } from "@/store/tradeStore";
 import { removePrefix } from "@/components/web3/utils";
+import { walletActions } from "viem";
 
 export interface Position {
   id: string;
@@ -138,7 +139,7 @@ function SectionPositions({
                   <div>
                     <p
                       className={`${
-                        Number(position.size) >= 0
+                        position.type.toLowerCase() === "long"
                           ? "text-green-400"
                           : "text-red-400"
                       }`}
@@ -215,7 +216,7 @@ function SectionPositions({
                           onClick={() => handleHideRow(position.id)}
                           variant="destructive"
                         >
-                          <span>Close Market</span>
+                          <span>Market</span>
                         </Button>
                         <Link
                           href="/trade"
