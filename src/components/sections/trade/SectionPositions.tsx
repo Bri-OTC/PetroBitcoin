@@ -120,7 +120,9 @@ function SectionPositions({
     }
 
     try {
-      const closePrice = position.isLong ? bidPrice : askPrice;
+      const closePrice = position.isLong
+        ? askPrice * (1 + 0.01)
+        : bidPrice * (1 - 0.01);
 
       const closeQuoteParams: CloseQuoteParams = {
         price: closePrice.toString(),

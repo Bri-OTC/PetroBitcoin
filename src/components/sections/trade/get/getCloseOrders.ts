@@ -30,7 +30,7 @@ export const getCloseOrders = async (
     if (response && response.data && Array.isArray(response.data)) {
       const orders: Order[] = response.data.map(
         (quote: signedCloseQuoteResponse) => {
-          console.log("close quote", quote);
+          //console.log("close quote", quote);
 
           const size = (parseFloat(quote.amount || "0") / 1e18).toFixed(4);
           const trigger = (parseFloat(quote.price || "0") / 1e18).toFixed(4);

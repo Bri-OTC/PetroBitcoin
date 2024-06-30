@@ -66,6 +66,7 @@ export const handleCloseQuote = async ({
     const nonce = Date.now().toString();
     const limitOrStop = isTP ? 0 : parseUnits(price, 18).toString();
     const expiry = 315350000000;
+
     const counterpartyAddress =
       wallet.address.toLowerCase() === pA.toLowerCase() ? pB : pA;
 
@@ -80,7 +81,7 @@ export const handleCloseQuote = async ({
       amount: amountContract,
       limitOrStop: limitOrStop.toString(),
       expiry: expiry.toString(),
-      authorized: wallet.address,
+      authorized: counterpartyAddress,
       nonce: nonce,
     };
 
@@ -110,6 +111,7 @@ export const handleCloseQuote = async ({
       emitTime: Date.now().toString(),
       messageState: 0,
     };
+    console.log("closeQuote", closeQuote);
 
     await sendSignedCloseQuote(closeQuote, token);
     toast.success(

@@ -74,7 +74,6 @@ function SectionOrders({
       }
 
       if (success) {
-        toast.success("Order canceled successfully");
         hideRow(order.targetHash);
       } else {
         toast.error("Failed to cancel order");

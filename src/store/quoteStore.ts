@@ -23,6 +23,7 @@ interface QuoteStore {
   quotes: QuoteResponse[];
   addQuote: (quote: QuoteResponse) => void;
   cleanExpiredQuotes: () => void;
+  flushStore: () => void;
 }
 
 const isQuoteValid = (quote: QuoteResponse): boolean => {
@@ -44,5 +45,9 @@ export const useQuoteStore = create<QuoteStore>((set) => ({
     set((state) => ({
       quotes: state.quotes.filter(isQuoteValid),
     }));
+  },
+
+  flushStore: () => {
+    set({ quotes: [] });
   },
 }));

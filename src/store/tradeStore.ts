@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { useQuoteStore } from "./quoteStore";
 
 export const leverageValues = [1, 10, 25, 50, 100, 500];
 
@@ -78,7 +79,7 @@ export const initialState: StoreState = {
   askPrice: 1,
   symbol: "GBPUSD/EURUSD",
   leverage: 500,
-  currentTabIndex: "Limit",
+  currentTabIndex: "Market",
   estimatedLiquidationPrice: 0,
   entryPriceModified: false,
   setBalance: () => {},
@@ -143,51 +144,25 @@ export const useTradeStore = create<StoreState>((set) => ({
       };
     }),
 
-  setBalance: (balance) =>
-    set((state) => ({
-      balance: balance,
-      estimatedLiquidationPrice:
-        parseFloat(state.entryPrice) /
-        (1 - parseFloat(state.amount) / state.balance),
-    })),
+  setBalance: (balance) => set({ balance }),
 
   setCurrentMethod: (method) => set({ currentMethod: method }),
+
   setEntryPrice: (price) =>
-    set((state) => ({
-      entryPrice: price,
-      maxAmount: parseFloat(
-        (
-          (state.balance * state.leverage) /
-          parseFloat(state.entryPrice)
-        ).toFixed(2)
-      ),
-      estimatedLiquidationPrice:
-        parseFloat(state.entryPrice) /
-        (1 - parseFloat(state.amount) / state.balance),
-    })),
-
-  setTakeProfit: (price) =>
     set((state) => {
-      const entryPrice = parseFloat(state.entryPrice);
-      const takeProfit = parseFloat(price);
-      const amount = parseFloat(state.amount);
-
-      const takeProfitPercentage = (
-        ((takeProfit - entryPrice) / entryPrice) *
-        100
-      ).toFixed(2);
-
-      const exitPnL = (takeProfit - entryPrice) * amount;
-      const riskRewardPnL =
-        parseFloat(takeProfitPercentage) / parseFloat(state.stopLossPercentage);
+      useQuoteStore.getState().flushStore();
 
       return {
-        takeProfit: price,
-        takeProfitPercentage,
-        exitPnL,
-        riskRewardPnL,
+        entryPrice: price,
+        maxAmount: parseFloat(
+          ((state.balance * state.leverage) / parseFloat(price)).toFixed(2)
+        ),
+        estimatedLiquidationPrice:
+          parseFloat(price) / (1 - parseFloat(state.amount) / state.balance),
       };
     }),
+
+  setTakeProfit: (price) => set({ takeProfit: price }),
 
   setTakeProfitPercentage: (percentage) =>
     set((state) => {
@@ -211,6 +186,7 @@ export const useTradeStore = create<StoreState>((set) => ({
         riskRewardPnL,
       };
     }),
+
   setStopLoss: (price) =>
     set((state) => {
       const entryPrice = parseFloat(state.entryPrice);
@@ -233,6 +209,7 @@ export const useTradeStore = create<StoreState>((set) => ({
         riskRewardPnL,
       };
     }),
+
   setStopLossPercentage: (percentage) =>
     set((state) => {
       const entryPrice = parseFloat(state.entryPrice);
@@ -252,38 +229,11 @@ export const useTradeStore = create<StoreState>((set) => ({
         riskRewardPnL,
       };
     }),
-  setAmount: (amount) =>
-    set((state) => {
-      const entryPrice = parseFloat(state.entryPrice);
-      const takeProfit = parseFloat(state.takeProfit);
-      const stopLoss = parseFloat(state.stopLoss);
 
-      const exitPnL = (takeProfit - entryPrice) * parseFloat(amount);
-      const stopPnL = (entryPrice - stopLoss) * parseFloat(amount);
+  setAmount: (amount) => set({ amount }),
 
-      return {
-        amount: amount.toString(),
-        exitPnL,
-        stopPnL,
-      };
-    }),
-  setAmountUSD: (amountUSD) =>
-    set((state) => {
-      const entryPrice = parseFloat(state.entryPrice);
-      const takeProfit = parseFloat(state.takeProfit);
-      const stopLoss = parseFloat(state.stopLoss);
+  setAmountUSD: (amountUSD) => set({ amountUSD }),
 
-      const exitPnL =
-        ((takeProfit - entryPrice) * parseFloat(amountUSD)) / entryPrice;
-      const stopPnL =
-        ((entryPrice - stopLoss) * parseFloat(amountUSD)) / entryPrice;
-
-      return {
-        amountUSD: amountUSD.toString(),
-        exitPnL,
-        stopPnL,
-      };
-    }),
   setIsReduceTP: (reduce) => set({ isReduceTP: reduce }),
   setIsReduceSL: (reduce) => set({ isReduceSL: reduce }),
   setSliderValue: (value) =>
@@ -306,6 +256,7 @@ export const useTradeStore = create<StoreState>((set) => ({
         amountUSD,
       };
     }),
+
   setAccountLeverage: (leverage) => set({ accountLeverage: leverage }),
   setBidPrice: (price) => set({ bidPrice: price }),
   setAskPrice: (price) => set({ askPrice: price }),

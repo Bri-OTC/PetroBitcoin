@@ -17,7 +17,6 @@ export const getOrders = async (
   token: string
 ): Promise<Order[]> => {
   try {
-    console.log("getOrders");
     const response = await getSignedWrappedOpenQuotes(
       "1.0",
       config.activeChainId,
@@ -31,7 +30,7 @@ export const getOrders = async (
     if (response && response.data) {
       const orders: Order[] = response.data.map(
         (quote: signedWrappedOpenQuoteResponse) => {
-          console.log("quote", quote);
+          //console.log("quote", quote);
 
           const size = (parseFloat(quote.amount) / 1e18).toFixed(4);
           const trigger = (parseFloat(quote.price) / 1e18).toFixed(4);
