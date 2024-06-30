@@ -137,6 +137,10 @@ export const useRfqRequest = () => {
         try {
           await memoizedSetRfqRequest();
           //console.log("RFQ request updated successfully", rfqRequest);
+          rfqRequest.lPrice =
+            rfqRequest.lPrice == "0" ? "1" : rfqRequest.lPrice;
+          rfqRequest.sPrice =
+            rfqRequest.sPrice == "0" ? "1" : rfqRequest.sPrice;
 
           await sendRfq(rfqRequest, token);
           //console.log("RFQ request sent successfully");

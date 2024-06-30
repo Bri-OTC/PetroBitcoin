@@ -48,6 +48,7 @@ export const useQuoteStore = create<QuoteStore>((set) => ({
   },
 
   flushStore: () => {
+    console.log("flushing store");
     set({ quotes: [] });
   },
 }));

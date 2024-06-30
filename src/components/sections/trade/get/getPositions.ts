@@ -27,7 +27,7 @@ export const getPositionss = async (
     if (response && response.data) {
       const positions: Position[] = response.data.map(
         (position: PositionResponse) => {
-          console.log("position", position);
+          //console.log("position", position);
 
           const size = (parseFloat(position.amount) / 1e18).toFixed(4);
           const entryPrice = (parseFloat(position.entryPrice) / 1e18).toFixed(
