@@ -46,5 +46,5 @@ export const config = {
   activeChainHex: "0xfaa5", // oxfa2,
   viemChain: viemChain,
   viemClient: viemClient,
-  apiRefreshRate: 20000,
+  apiRefreshRate: 1000,
 };

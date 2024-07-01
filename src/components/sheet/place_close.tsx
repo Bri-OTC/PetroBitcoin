@@ -425,14 +425,14 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
             onClick={() => handleCloseQuote({ price: takeProfit, isTP: true })}
             disabled={!isReduceTP || takeProfit === "" || loading}
           >
-            {loading ? "Submitting..." : "Close TP Only"}
+            {loading ? "Submitting..." : "TP"}
           </Button>
           <Button
             className="w-full"
             onClick={() => handleCloseQuote({ price: stopLoss, isTP: false })}
             disabled={!isReduceSL || stopLoss === "" || loading}
           >
-            {loading ? "Submitting..." : "Close SL Only"}
+            {loading ? "Submitting..." : "SL"}
           </Button>
           <Button
             className="w-full"
@@ -445,13 +445,9 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
               loading
             }
           >
-            {loading ? "Submitting..." : "Close Both TP and SL"}
+            {loading ? "Submitting..." : "Close"}
           </Button>
         </div>
-
-        <DrawerClose onClick={handleDrawerClose}>
-          <Button className="w-full">Cancel</Button>
-        </DrawerClose>
       </div>
     </DrawerContent>
   );
