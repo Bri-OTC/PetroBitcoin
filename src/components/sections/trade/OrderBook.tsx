@@ -60,6 +60,8 @@ const OrderRow: React.FC<Order & { type: "ask" | "bid"; index: number }> =
     );
   });
 
+OrderRow.displayName = "OrderRow";
+
 const useWebSocket = (url: string, isOn: boolean) => {
   const [data, setData] = useState<{
     bids: number[][];

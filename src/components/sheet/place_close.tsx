@@ -71,9 +71,38 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
   const entryPrice = parseFloat(position.entryPrice);
   const markPrice = parseFloat(position.mark);
 
+  const computePnL = useCallback(
+    (tp: string, sl: string) => {
+      const takeProfitValue = parseFloat(tp);
+      const stopLossValue = parseFloat(sl);
+
+      if (isNaN(takeProfitValue) || isNaN(stopLossValue)) {
+        setExitPnL(0);
+        setStopPnL(0);
+        setRiskRewardPnL(0);
+        return;
+      }
+
+      const exitPnLValue = isLong
+        ? ((takeProfitValue - entryPrice) / entryPrice) * 100
+        : ((entryPrice - takeProfitValue) / entryPrice) * 100;
+
+      const stopPnLValue = isLong
+        ? ((entryPrice - stopLossValue) / entryPrice) * 100
+        : ((stopLossValue - entryPrice) / entryPrice) * 100;
+
+      const riskRewardRatio = Math.abs(exitPnLValue / stopPnLValue);
+
+      setExitPnL(exitPnLValue);
+      setStopPnL(stopPnLValue);
+      setRiskRewardPnL(riskRewardRatio);
+    },
+    [isLong, entryPrice]
+  );
+
   useEffect(() => {
     computePnL(takeProfit, stopLoss);
-  }, []);
+  }, [computePnL, stopLoss, takeProfit]);
 
   const handleTakeProfitChange = useCallback(
     (value: string) => {
@@ -86,7 +115,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       }
       computePnL(value, stopLoss);
     },
-    [isReduceTP, stopLoss, entryPrice, isLong]
+    [isReduceTP, stopLoss, entryPrice, isLong, computePnL]
   );
 
   const handleStopLossChange = useCallback(
@@ -100,7 +129,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       }
       computePnL(takeProfit, value);
     },
-    [isReduceSL, takeProfit, entryPrice, isLong]
+    [isReduceSL, takeProfit, entryPrice, isLong, computePnL]
   );
 
   const handleTakeProfitPercentageChange = useCallback(
@@ -112,7 +141,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       setTakeProfit(price.toFixed(2));
       computePnL(price.toString(), stopLoss);
     },
-    [stopLoss, entryPrice, isLong]
+    [stopLoss, entryPrice, isLong, computePnL]
   );
 
   const handleStopLossPercentageChange = useCallback(
@@ -124,7 +153,7 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
       setStopLoss(price.toFixed(2));
       computePnL(takeProfit, price.toString());
     },
-    [takeProfit, entryPrice, isLong]
+    [takeProfit, entryPrice, isLong, computePnL]
   );
 
   const handleTPCheckboxChange = useCallback(
@@ -159,52 +188,54 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
     setTakeProfit(markPrice.toString());
     setStopLoss(markPrice.toString());
     computePnL(markPrice.toString(), markPrice.toString());
-  }, [markPrice]);
+  }, [markPrice, computePnL]);
 
-  const computePnL = useCallback(
-    (tp: string, sl: string) => {
-      const takeProfitValue = parseFloat(tp);
-      const stopLossValue = parseFloat(sl);
-
-      if (isNaN(takeProfitValue) || isNaN(stopLossValue)) {
-        setExitPnL(0);
-        setStopPnL(0);
-        setRiskRewardPnL(0);
+  const handleCloseQuote = async ({
+    price,
+    isTP,
+  }: {
+    price: string;
+    isTP: boolean;
+  }) => {
+    setLoading(true);
+    try {
+      if (!token || !wallet || !walletClient) {
+        console.error("Missing required data");
         return;
       }
-
-      const exitPnLValue = isLong
-        ? ((takeProfitValue - entryPrice) / entryPrice) * 100
-        : ((entryPrice - takeProfitValue) / entryPrice) * 100;
-
-      const stopPnLValue = isLong
-        ? ((entryPrice - stopLossValue) / entryPrice) * 100
-        : ((stopLossValue - entryPrice) / entryPrice) * 100;
-
-      const riskRewardRatio = Math.abs(exitPnLValue / stopPnLValue);
-
-      setExitPnL(exitPnLValue);
-      setStopPnL(stopPnLValue);
-      setRiskRewardPnL(riskRewardRatio);
-    },
-    [isLong, entryPrice]
-  );
-
-  // New function to handle both TP and SL
-  const handleBothCloseQuotes = async (
-    tpParams: CloseQuoteParams,
-    slParams: CloseQuoteParams
-  ) => {
-    const tpResult = await handleCloseQuote(tpParams);
-    if (tpResult) {
-      await handleCloseQuote(slParams);
+      const params: CloseQuoteParams = {
+        wallet,
+        token,
+        walletClient,
+        activeChainId: config.activeChainId,
+        bContractId,
+        amountContract,
+        pA,
+        pB,
+        isLong,
+        price,
+        isTP,
+      };
+      await handleCloseQuote(params);
+      toast.success(
+        `${isTP ? "Take Profit" : "Stop Loss"} order submitted successfully`
+      );
+    } catch (error) {
+      console.error("Error submitting close quote:", error);
+      toast.error(
+        `Failed to submit ${isTP ? "Take Profit" : "Stop Loss"} order`
+      );
+    } finally {
+      setLoading(false);
+      onClose();
     }
   };
 
-  const onCloseButtonClick = async () => {
+  const handleBothCloseQuotes = async () => {
     setLoading(true);
     try {
-      if (!token) {
+      if (!token || !wallet || !walletClient) {
+        console.error("Missing required data");
         return;
       }
       const commonParams = {
@@ -219,24 +250,19 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         isLong,
       };
 
-      if (isReduceTP && isReduceSL) {
-        await handleBothCloseQuotes(
-          { ...commonParams, price: takeProfit, isTP: true },
-          { ...commonParams, price: stopLoss, isTP: false }
-        );
-      } else if (isReduceTP) {
-        await handleCloseQuote({
-          ...commonParams,
-          price: takeProfit,
-          isTP: true,
-        });
-      } else if (isReduceSL) {
-        await handleCloseQuote({
-          ...commonParams,
-          price: stopLoss,
-          isTP: false,
-        });
-      }
+      await handleCloseQuote({
+        ...commonParams,
+        price: takeProfit,
+        isTP: true,
+      });
+      await handleCloseQuote({ ...commonParams, price: stopLoss, isTP: false });
+
+      toast.success(
+        "Both Take Profit and Stop Loss orders submitted successfully"
+      );
+    } catch (error) {
+      console.error("Error submitting close quotes:", error);
+      toast.error("Failed to submit Take Profit and Stop Loss orders");
     } finally {
       setLoading(false);
       onClose();
@@ -393,40 +419,38 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
           </div>
         </div>
 
-        {canCloseQuote && (
-          <div className="flex space-x-3">
-            {isReduceTP && (
-              <Button
-                className="w-full"
-                onClick={() => handleCloseQuote(takeProfit, true)}
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Close TP"}
-              </Button>
-            )}
-            {isReduceSL && (
-              <Button
-                className="w-full"
-                onClick={() => handleCloseQuote(stopLoss, false)}
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Close SL"}
-              </Button>
-            )}
-          </div>
-        )}
-
-        <DrawerClose onClick={handleDrawerClose}>
+        <div className="flex flex-col space-y-3">
           <Button
             className="w-full"
-            disabled={!canCloseQuote || loading}
-            onClick={() => {
-              if (isReduceTP) handleCloseQuote(takeProfit, true);
-              else if (isReduceSL) handleCloseQuote(stopLoss, false);
-            }}
+            onClick={() => handleCloseQuote({ price: takeProfit, isTP: true })}
+            disabled={!isReduceTP || takeProfit === "" || loading}
           >
-            {loading ? "Loading..." : "Close Quote"}
+            {loading ? "Submitting..." : "Close TP Only"}
           </Button>
+          <Button
+            className="w-full"
+            onClick={() => handleCloseQuote({ price: stopLoss, isTP: false })}
+            disabled={!isReduceSL || stopLoss === "" || loading}
+          >
+            {loading ? "Submitting..." : "Close SL Only"}
+          </Button>
+          <Button
+            className="w-full"
+            onClick={handleBothCloseQuotes}
+            disabled={
+              !isReduceTP ||
+              takeProfit === "" ||
+              !isReduceSL ||
+              stopLoss === "" ||
+              loading
+            }
+          >
+            {loading ? "Submitting..." : "Close Both TP and SL"}
+          </Button>
+        </div>
+
+        <DrawerClose onClick={handleDrawerClose}>
+          <Button className="w-full">Cancel</Button>
         </DrawerClose>
       </div>
     </DrawerContent>

@@ -58,7 +58,7 @@ const useQuoteWss = (
         clearInterval(intervalId);
       }
     };
-  }, [token, addQuote]);
+  }, [token, addQuote, wallet]);
 };
 
 export default useQuoteWss;

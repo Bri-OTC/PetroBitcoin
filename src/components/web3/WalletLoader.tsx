@@ -21,7 +21,7 @@ export function WalletLoader() {
         const wallet = wallets[0];
         const provider = await wallet.getEthereumProvider();
         const client = createWalletClient({
-          chain: fantomSonicTestnet,
+          chain: config.viemChain,
           transport: custom(provider),
         });
         setWalletClient(client);

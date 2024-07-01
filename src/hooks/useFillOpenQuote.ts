@@ -46,7 +46,7 @@ const useFillOpenQuote = (token: string | null) => {
         quoteClientRef.current.closeWebSocket();
       }
     };
-  }, [token]);
+  }, [token, wallet]);
 };
 
 export default useFillOpenQuote;

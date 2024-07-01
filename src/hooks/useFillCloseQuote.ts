@@ -40,7 +40,7 @@ const useFillCloseQuote = (token: string | null) => {
         quoteClientRef.current.closeWebSocket();
       }
     };
-  }, [token]);
+  }, [token, wallet]);
 };
 
 export default useFillCloseQuote;

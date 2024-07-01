@@ -66,7 +66,7 @@ function SectionPositions({
   hideRow,
 }: SectionPositionsProps) {
   const setSelectedMarket = useTradeStore((state) => state.setSymbol);
-  const { token, walletClient, chainId } = useAuthStore();
+  const { token, walletClient } = useAuthStore();
   const { wallet, provider } = useWalletAndProvider();
   const {
     currentMethod,

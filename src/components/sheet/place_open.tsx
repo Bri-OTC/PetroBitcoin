@@ -220,7 +220,13 @@ const SheetPlace: React.FC = () => {
       emitTime: "0",
       messageState: 0,
     }),
-    [currentMethod, entryPrice, roundedAmount, selectedQuoteUserAddress]
+    [
+      currentMethod,
+      entryPrice,
+      roundedAmount,
+      selectedQuoteUserAddress,
+      currentTabIndex,
+    ]
   );
 
   const liquidationPrice = calculateLiquidationPrice(

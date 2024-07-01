@@ -54,10 +54,15 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
   });
 
   const updateResults = useCallback(
-    debounce((newResults: OpenQuoteCheckResults) => {
+    (newResults: OpenQuoteCheckResults) => {
       setCachedResults(newResults);
-    }, 500),
-    []
+    },
+    [setCachedResults]
+  );
+
+  const debouncedUpdateResults = useMemo(
+    () => debounce(updateResults, 500),
+    [updateResults]
   );
 
   useEffect(() => {

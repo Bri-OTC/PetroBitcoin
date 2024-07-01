@@ -75,7 +75,7 @@ function Faucet({ open, onClose }: FaucetProps) {
         console.log("Faucet balance:", faucetBalance);
 
         const faucetWalletClient = createWalletClient({
-          chain: fantomSonicTestnet,
+          chain: config.viemChain,
           transport: http(),
           account: faucetAccount,
         });
