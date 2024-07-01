@@ -361,7 +361,10 @@ const SheetPlace: React.FC = () => {
             The amount is less than the minimum required.
           </p>
         ) : noQuotesReceived ? (
-          <p className="text-red-500 text-sm mt-1">Waiting for quotes.</p>
+          <p className="text-card-foreground text-sm mt-1">
+            <span className="loader"></span>
+            Waiting for quotes
+          </p>
         ) : parseFloat(amount) <= 0 || parseFloat(entryPrice) <= 0 ? (
           <p className="text-red-500 text-sm mt-1">
             Amount and Entry Price must be greater than 0

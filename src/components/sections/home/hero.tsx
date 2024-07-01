@@ -73,8 +73,6 @@ function SectionHomeHero() {
     setShowFaucet(false);
   };
 
-  if (!token) return null; // Ensure the return here after all hooks
-
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <section className="flex flex-col space-y-5 w-full">

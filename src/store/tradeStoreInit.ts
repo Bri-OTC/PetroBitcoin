@@ -48,7 +48,6 @@ export interface StoreState {
   setLeverage: (leverage: number) => void;
   setCurrentTabIndex: (index: string) => void;
   setEstimatedLiquidationPrice: (price: number) => void;
-  setEntryPriceModified: (modified: boolean) => void;
 
   initializeLeverage: () => void; // Add this line
 }
@@ -103,7 +102,6 @@ export const initialState: StoreState = {
   setLeverage: () => {},
   setCurrentTabIndex: () => {},
   setEstimatedLiquidationPrice: () => {},
-  setEntryPriceModified: () => {},
 
   initializeLeverage: () => {},
 };

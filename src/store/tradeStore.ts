@@ -75,8 +75,8 @@ export const initialState: StoreState = {
   stopPnL: 0,
   riskRewardPnL: 0,
   accountLeverage: 500,
-  bidPrice: 1,
-  askPrice: 1,
+  bidPrice: 1.6737,
+  askPrice: 1.6737,
   symbol: "GBPUSD/EURUSD",
   leverage: 500,
   currentTabIndex: "Market",
@@ -150,15 +150,31 @@ export const useTradeStore = create<StoreState>((set) => ({
 
   setEntryPrice: (price) =>
     set((state) => {
-      useQuoteStore.getState().flushStore();
+      let newEntryPrice = price;
+
+      // Set entry price based on currentMethod without flushing the store
+      if (state.currentTabIndex === "Market") {
+        if (state.currentMethod === "Buy" || state.currentMethod === "Long") {
+          newEntryPrice = state.askPrice.toFixed(5);
+        } else if (
+          state.currentMethod === "Sell" ||
+          state.currentMethod === "Short"
+        ) {
+          newEntryPrice = state.bidPrice.toFixed(5);
+        }
+      }
 
       return {
-        entryPrice: price,
+        entryPrice: newEntryPrice,
         maxAmount: parseFloat(
-          ((state.balance * state.leverage) / parseFloat(price)).toFixed(2)
+          (
+            (state.balance * state.leverage) /
+            parseFloat(newEntryPrice)
+          ).toFixed(2)
         ),
         estimatedLiquidationPrice:
-          parseFloat(price) / (1 - parseFloat(state.amount) / state.balance),
+          parseFloat(newEntryPrice) /
+          (1 - parseFloat(state.amount) / state.balance),
       };
     }),
 

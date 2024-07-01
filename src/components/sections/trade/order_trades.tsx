@@ -227,7 +227,10 @@ function SectionTradeOrderTrades() {
                 </p>
               )}
               {noQuotesReceived && (
-                <p className="text-red-500 text-sm">Waiting for quotes.</p>
+                <p className="text-card-foreground text-sm">
+                  <span className="loader"></span>
+                  Waiting for quotes
+                </p>
               )}
               {isAmountMinAmount && canBuyMinAmount && (
                 <p className="text-yellow-500 text-sm">

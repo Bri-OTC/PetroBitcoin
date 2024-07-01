@@ -141,9 +141,13 @@ export const useRfqRequest = () => {
             rfqRequest.lPrice == "0" ? "1" : rfqRequest.lPrice;
           rfqRequest.sPrice =
             rfqRequest.sPrice == "0" ? "1" : rfqRequest.sPrice;
-
+          rfqRequest.lQuantity =
+            rfqRequest.lQuantity == "0" ? "1" : rfqRequest.lQuantity;
+          rfqRequest.sQuantity =
+            rfqRequest.sQuantity == "0" ? "1" : rfqRequest.sQuantity;
+          console.log("RFQ request updated successfully", rfqRequest);
           await sendRfq(rfqRequest, token);
-          //console.log("RFQ request sent successfully");
+          console.log("RFQ request sent successfully");
         } catch (error) {
           console.error("Error sending RFQ request:", error);
         }
