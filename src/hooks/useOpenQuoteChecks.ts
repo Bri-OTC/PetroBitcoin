@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTradeStore } from "@/store/tradeStore";
 import { useRfqRequestStore } from "@/store/rfqStore";
 import { useQuoteStore, QuoteResponse } from "@/store/quoteStore";
@@ -53,12 +53,24 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     maxAmount: 0,
   });
 
-  const updateResults = useCallback(
-    (newResults: OpenQuoteCheckResults) => {
-      setCachedResults(newResults);
-    },
-    [setCachedResults]
-  );
+  const previousInputsRef = useRef({
+    amount,
+    entryPrice,
+    currentMethod,
+    rfqRequest,
+    balanceToUse: depositedBalance,
+    quotes,
+    leverage,
+  });
+
+  const updateResults = useCallback((newResults: OpenQuoteCheckResults) => {
+    setCachedResults((prevResults) => {
+      if (JSON.stringify(prevResults) === JSON.stringify(newResults)) {
+        return prevResults;
+      }
+      return newResults;
+    });
+  }, []);
 
   const debouncedUpdateResults = useMemo(
     () => debounce(updateResults, 500),
@@ -119,6 +131,25 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
   }, [quotes, amount, currentMethod]);
 
   useEffect(() => {
+    const currentInputs = {
+      amount,
+      entryPrice,
+      currentMethod,
+      rfqRequest,
+      balanceToUse,
+      quotes,
+      leverage,
+    };
+
+    if (
+      JSON.stringify(currentInputs) ===
+      JSON.stringify(previousInputsRef.current)
+    ) {
+      return;
+    }
+
+    previousInputsRef.current = currentInputs;
+
     const safeParseFloat = (value: string | undefined): number => {
       if (value === undefined || value === null) return 0;
       const parsed = parseFloat(value);
@@ -217,10 +248,10 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         maxAmount,
       };
 
-      updateResults(newResults);
+      debouncedUpdateResults(newResults);
     } catch (error) {
       console.error("Error in useOpenQuoteChecks:", error);
-      updateResults({
+      debouncedUpdateResults({
         ...cachedResults,
         maxAmountOpenable: 0,
         recommendedAmount: 0,
@@ -236,10 +267,10 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     rfqRequest,
     balanceToUse,
     quotes,
-    updateResults,
     leverage,
     selectedQuote,
     lastValidBalance,
+    debouncedUpdateResults,
     cachedResults,
   ]);
 
