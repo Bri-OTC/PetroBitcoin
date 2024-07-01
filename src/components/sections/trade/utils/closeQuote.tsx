@@ -33,6 +33,20 @@ export const handleCloseQuote = async ({
   pB,
   isLong,
 }: CloseQuoteParams): Promise<boolean> => {
+  console.log("handleCloseQuote", {
+    price,
+    isTP,
+    wallet,
+    token,
+    walletClient,
+    activeChainId,
+    bContractId,
+    amountContract,
+    pA,
+    pB,
+    isLong,
+  });
+
   if (!wallet || !wallet.address || !token || !walletClient) {
     console.error("Wallet, wallet address, token, or walletClient is missing");
     return false;

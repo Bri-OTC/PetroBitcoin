@@ -18,6 +18,7 @@ import {
   handleCloseQuote,
   CloseQuoteParams,
 } from "@/components/sections/trade/utils/closeQuote";
+import debounce from "lodash/debounce";
 
 interface SheetPlaceOrderProps {
   position: {
@@ -107,53 +108,67 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
   const handleTakeProfitChange = useCallback(
     (value: string) => {
       setTakeProfit(value);
-      if (!isReduceTP) {
+      if (!isNaN(parseFloat(value))) {
         const percentage = isLong
           ? ((parseFloat(value) - entryPrice) / entryPrice) * 100
           : ((entryPrice - parseFloat(value)) / entryPrice) * 100;
         setTakeProfitPercentage(percentage.toFixed(2));
+      } else {
+        setTakeProfitPercentage("");
       }
       computePnL(value, stopLoss);
     },
-    [isReduceTP, stopLoss, entryPrice, isLong, computePnL]
+    [isLong, stopLoss, entryPrice, computePnL]
   );
 
   const handleStopLossChange = useCallback(
     (value: string) => {
       setStopLoss(value);
-      if (!isReduceSL) {
+      if (!isNaN(parseFloat(value))) {
         const percentage = isLong
           ? ((entryPrice - parseFloat(value)) / entryPrice) * 100
           : ((parseFloat(value) - entryPrice) / entryPrice) * 100;
         setStopLossPercentage(percentage.toFixed(2));
+      } else {
+        setStopLossPercentage("");
       }
       computePnL(takeProfit, value);
     },
-    [isReduceSL, takeProfit, entryPrice, isLong, computePnL]
+    [isLong, takeProfit, entryPrice, computePnL]
   );
 
   const handleTakeProfitPercentageChange = useCallback(
     (value: string) => {
       setTakeProfitPercentage(value);
-      const price = isLong
-        ? entryPrice * (1 + parseFloat(value) / 100)
-        : entryPrice * (1 - parseFloat(value) / 100);
-      setTakeProfit(price.toFixed(2));
-      computePnL(price.toString(), stopLoss);
+      if (!isNaN(parseFloat(value))) {
+        const price = isLong
+          ? entryPrice * (1 + parseFloat(value) / 100)
+          : entryPrice * (1 - parseFloat(value) / 100);
+        setTakeProfit(price.toFixed(2));
+        computePnL(price.toString(), stopLoss);
+      } else {
+        setTakeProfit("");
+        computePnL("", stopLoss);
+      }
     },
-    [stopLoss, entryPrice, isLong, computePnL]
+    [isLong, stopLoss, entryPrice, computePnL]
   );
 
   const handleStopLossPercentageChange = useCallback(
     (value: string) => {
       setStopLossPercentage(value);
-      const price = isLong
-        ? entryPrice * (1 - parseFloat(value) / 100)
-        : entryPrice * (1 + parseFloat(value) / 100);
-      setStopLoss(price.toFixed(2));
-      computePnL(takeProfit, price.toString());
+      if (!isNaN(parseFloat(value))) {
+        const price = isLong
+          ? entryPrice * (1 - parseFloat(value) / 100)
+          : entryPrice * (1 + parseFloat(value) / 100);
+        setStopLoss(price.toFixed(2));
+        computePnL(takeProfit, price.toString());
+      } else {
+        setStopLoss("");
+        computePnL(takeProfit, "");
+      }
     },
-    [takeProfit, entryPrice, isLong, computePnL]
+    [isLong, takeProfit, entryPrice, computePnL]
   );
 
   const handleTPCheckboxChange = useCallback(
@@ -190,84 +205,80 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
     computePnL(markPrice.toString(), markPrice.toString());
   }, [markPrice, computePnL]);
 
-  const handleCloseQuote = async ({
-    price,
-    isTP,
-  }: {
-    price: string;
-    isTP: boolean;
-  }) => {
-    setLoading(true);
-    try {
-      if (!token || !wallet || !walletClient) {
-        console.error("Missing required data");
-        return;
-      }
-      const params: CloseQuoteParams = {
-        wallet,
-        token,
-        walletClient,
-        activeChainId: config.activeChainId,
-        bContractId,
-        amountContract,
-        pA,
-        pB,
-        isLong,
-        price,
-        isTP,
-      };
-      await handleCloseQuote(params);
-      toast.success(
-        `${isTP ? "Take Profit" : "Stop Loss"} order submitted successfully`
-      );
-    } catch (error) {
-      console.error("Error submitting close quote:", error);
-      toast.error(
-        `Failed to submit ${isTP ? "Take Profit" : "Stop Loss"} order`
-      );
-    } finally {
-      setLoading(false);
-      onClose();
-    }
-  };
+  const submitCloseQuote = useCallback(
+    debounce(
+      async ({ price, isTP }: { price: string; isTP: boolean }) => {
+        if (loading) return;
+        setLoading(true);
+        try {
+          if (!token || !wallet || !walletClient) {
+            console.error("Missing required data");
+            return;
+          }
+          const params: CloseQuoteParams = {
+            wallet,
+            token,
+            walletClient,
+            activeChainId: config.activeChainId,
+            bContractId,
+            amountContract,
+            pA,
+            pB,
+            isLong,
+            price,
+            isTP,
+          };
+          console.log("Submitting close quote:", params);
+          const success = await handleCloseQuote(params);
+          if (success) {
+            onClose();
+          }
+        } catch (error) {
+          console.error("Error submitting close quote:", error);
+          toast.error(
+            `Failed to submit ${isTP ? "Take Profit" : "Stop Loss"} order`
+          );
+        } finally {
+          setLoading(false);
+        }
+      },
+      500,
+      { leading: true, trailing: false }
+    ),
+    [
+      token,
+      wallet,
+      walletClient,
+      bContractId,
+      amountContract,
+      pA,
+      pB,
+      isLong,
+      onClose,
+    ]
+  );
 
-  const handleBothCloseQuotes = async () => {
-    setLoading(true);
-    try {
-      if (!token || !wallet || !walletClient) {
-        console.error("Missing required data");
-        return;
-      }
-      const commonParams = {
-        wallet,
-        token,
-        walletClient,
-        activeChainId: config.activeChainId,
-        bContractId,
-        amountContract,
-        pA,
-        pB,
-        isLong,
-      };
-
-      await handleCloseQuote({
-        ...commonParams,
-        price: takeProfit,
-        isTP: true,
-      });
-      await handleCloseQuote({ ...commonParams, price: stopLoss, isTP: false });
-
-      toast.success(
-        "Both Take Profit and Stop Loss orders submitted successfully"
-      );
-    } catch (error) {
-      console.error("Error submitting close quotes:", error);
-      toast.error("Failed to submit Take Profit and Stop Loss orders");
-    } finally {
-      setLoading(false);
-      onClose();
-    }
-  };
+  const handleBothCloseQuotes = useCallback(
+    debounce(
+      async () => {
+        if (loading) return;
+        setLoading(true);
+        try {
+          await submitCloseQuote({ price: takeProfit, isTP: true });
+          await submitCloseQuote({ price: stopLoss, isTP: false });
+          onClose();
+        } catch (error) {
+          console.error("Error submitting close quotes:", error);
+          toast.error("Failed to submit Take Profit and Stop Loss orders");
+        } finally {
+          setLoading(false);
+        }
+      },
+      500,
+      { leading: true, trailing: false }
+    ),
+    [submitCloseQuote, takeProfit, stopLoss, onClose]
+  );
 
   const renderPriceInput = useCallback(
     (
@@ -420,28 +431,36 @@ const SheetPlaceClose: React.FC<SheetPlaceOrderProps> = ({
         </div>
 
         <div className="flex flex-col space-y-3">
+          <div className="flex space-x-3">
+            {isReduceTP && (
+              <Button
+                className="flex-1"
+                onClick={() =>
+                  submitCloseQuote({ price: takeProfit, isTP: true })
+                }
+                disabled={takeProfit === "" || loading}
+              >
+                {loading ? "Submitting..." : "TP"}
+              </Button>
+            )}
+            {isReduceSL && (
+              <Button
+                className="flex-1"
+                onClick={() =>
+                  submitCloseQuote({ price: stopLoss, isTP: false })
+                }
+                disabled={stopLoss === "" || loading}
+              >
+                {loading ? "Submitting..." : "SL"}
+              </Button>
+            )}
+          </div>
           <Button
-            className="w-full"
-            onClick={() => handleCloseQuote({ price: takeProfit, isTP: true })}
-            disabled={!isReduceTP || takeProfit === "" || loading}
-          >
-            {loading ? "Submitting..." : "TP"}
-          </Button>
-          <Button
-            className="w-full"
-            onClick={() => handleCloseQuote({ price: stopLoss, isTP: false })}
-            disabled={!isReduceSL || stopLoss === "" || loading}
-          >
-            {loading ? "Submitting..." : "SL"}
-          </Button>
-          <Button
-            className="w-full"
             onClick={handleBothCloseQuotes}
             disabled={
-              !isReduceTP ||
-              takeProfit === "" ||
-              !isReduceSL ||
-              stopLoss === "" ||
+              (!isReduceTP && !isReduceSL) ||
+              (isReduceTP && takeProfit === "") ||
+              (isReduceSL && stopLoss === "") ||
               loading
             }
           >
