@@ -100,11 +100,47 @@ function SectionTradeOrderTrades() {
 
   useEffect(() => {
     if (currentTabIndex === "Market") {
+      const { bidPrice: latestBidPrice, askPrice: latestAskPrice } =
+        useTradeStore.getState();
       setEntryPrice(
-        currentMethod === "Buy" ? askPrice.toString() : bidPrice.toString()
+        currentMethod === "Buy"
+          ? latestAskPrice.toString()
+          : latestBidPrice.toString()
       );
     }
-  }, [currentTabIndex, currentMethod, bidPrice, askPrice, setEntryPrice]);
+  }, [currentTabIndex, currentMethod, setEntryPrice, symbol]); // Add symbol to dependencies
+
+  useEffect(() => {
+    const checkPriceSpread = () => {
+      const state = useTradeStore.getState();
+      const { bidPrice, askPrice } = state;
+
+      // Calculate the percentage difference
+      const priceDifference = Math.abs(askPrice - bidPrice);
+      const averagePrice = (askPrice + bidPrice) / 2;
+      const percentageDifference = (priceDifference / averagePrice) * 100;
+
+      // If the difference is more than 0.5% and we're in Market tab
+      if (percentageDifference > 0.5 && currentTabIndex === "Market") {
+        // Switch to Limit
+        setCurrentTabIndex("Limit");
+
+        // Switch back to Market after a brief delay
+        setTimeout(() => {
+          setCurrentTabIndex("Market");
+        }, 50); // 50ms delay, adjust if needed
+      }
+    };
+
+    // Run the check immediately
+    checkPriceSpread();
+
+    // Set up an interval to run the check every second
+    const intervalId = setInterval(checkPriceSpread, 1000);
+
+    // Clean up the interval on unmount
+    return () => clearInterval(intervalId);
+  }, [currentTabIndex, setCurrentTabIndex]);
 
   const renderBalanceWarning = () => {
     if (isBalanceZero) {
