@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Drawer, DrawerTrigger } from "@/components/ui/drawer";
 import { FaEquals } from "react-icons/fa";
-import { ChangeEvent, useEffect, useCallback, useMemo } from "react";
+import { ChangeEvent, useEffect, useCallback, useMemo, useState } from "react";
 import SheetPlaceOrder from "@/components/sheet/place_open";
 import { useTradeStore } from "@/store/tradeStore";
 import { OrderBook } from "@/components/sections/trade/OrderBook";
@@ -42,10 +42,19 @@ function SectionTradeOrderTrades() {
   const isDevMode = config.devMode;
   const marketOpenState = useAuthStore((state) => state.isMarketOpen);
   const isMarketOpen = isDevMode ? true : marketOpenState;
+  const [showErrors, setShowErrors] = useState(false);
 
   const testBool = true;
   const color = useColorStore((state) => state.color) || "#E0AD0C";
   useMethodColor();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowErrors(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [amount, entryPrice]);
 
   const {
     quotes,
@@ -143,6 +152,8 @@ function SectionTradeOrderTrades() {
   }, [currentTabIndex, setCurrentTabIndex]);
 
   const renderBalanceWarning = () => {
+    if (!showErrors) return null;
+
     if (isBalanceZero) {
       return (
         <p className="text-red-500 text-sm">
@@ -154,7 +165,12 @@ function SectionTradeOrderTrades() {
         </p>
       );
     }
-    if (!sufficientBalance && !isBalanceZero && !noQuotesReceived) {
+    if (
+      !sufficientBalance &&
+      !isBalanceZero &&
+      !noQuotesReceived &&
+      !isAmountMinAmount
+    ) {
       return (
         <p className="text-red-500 text-sm">
           Max amount allowed at this price: {maxAmountOpenable.toFixed(8)}
@@ -163,7 +179,6 @@ function SectionTradeOrderTrades() {
     }
     return null;
   };
-
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
       <div className="mt-5">
@@ -257,18 +272,26 @@ function SectionTradeOrderTrades() {
                 ))}
               </div>
               {renderBalanceWarning()}
-              {isAmountMinAmount && (
+              {showErrors && isAmountMinAmount && (
                 <p className="text-red-500 text-sm">
-                  The amount is less than the minimum required.
+                  Min amount allowed at this price: {minAmount.toFixed(3)}
                 </p>
               )}
-              {noQuotesReceived && (
+              {showErrors && noQuotesReceived && (
                 <p className="text-card-foreground text-sm">
                   <span className="loader"></span>
-                  Waiting for quotes
+                  Waiting for quotes.{" "}
+                  <a
+                    href=" https://discord.gg/GJV2JdZTFc"
+                    className="text-blue-500 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Contact Us
+                  </a>
                 </p>
               )}
-              {isAmountMinAmount && canBuyMinAmount && (
+              {showErrors && isAmountMinAmount && canBuyMinAmount && (
                 <p className="text-yellow-500 text-sm">
                   The amount is less than the minimum required, but you have
                   sufficient balance to buy the minimum amount of {minAmount}{" "}

@@ -141,7 +141,6 @@ function SectionPositions({
       await handleCloseQuote(closeQuoteParams);
 
       hideRow(position.id);
-      toast.success("Position closed successfully");
     } catch (error) {
       console.error("Error closing position:", error);
       toast.error("Failed to close position");

@@ -128,10 +128,13 @@ export function Menu() {
   useEffect(() => {
     const tokenFromCookie = Cookies.get("token") ?? null;
     const authenticatedFromStorage = localStorage.getItem("authenticated");
+    const privyUser = localStorage.getItem("privy:user");
 
     if (
-      (tokenFromCookie && !token && ready && authenticated) ||
-      authenticatedFromStorage
+      ((tokenFromCookie && !token) || authenticatedFromStorage) &&
+      ready &&
+      authenticated &&
+      privyUser
     ) {
       setToken(tokenFromCookie);
     }
