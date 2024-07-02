@@ -32,7 +32,7 @@ function SectionHomeHero() {
   useEffect(() => {
     const fetchPrices = async () => {
       try {
-        const token = useAuthStore.getState().token; // Accessing the token directly from the store
+        const token = useAuthStore.getState().token;
         if (token) {
           const pricesData = await getPrices(
             [
@@ -88,7 +88,7 @@ function SectionHomeHero() {
         <Card>
           <div className="grid grid-cols-4 gap-5 md:gap-8">
             {navigations.map((x, index) => {
-              return (
+              const content = (
                 <div
                   key={x.name + index}
                   className="flex flex-col items-center space-y-2 text-center group cursor-pointer"
@@ -105,6 +105,18 @@ function SectionHomeHero() {
                     {x.name}
                   </p>
                 </div>
+              );
+
+              return x.link ? (
+                <Link
+                  key={x.name + index}
+                  href={x.link}
+                  target={x.link.startsWith("http") ? "_blank" : "_self"}
+                >
+                  {content}
+                </Link>
+              ) : (
+                content
               );
             })}
           </div>
@@ -160,7 +172,7 @@ const navigations = [
   },
   {
     name: "Presale",
-    link: "https://www.pio.finance/Presale",
+    link: "https://presale.pio.finance",
     icon: <AiOutlineLineChart />,
   },
   {
@@ -179,6 +191,7 @@ const navigations = [
     icon: <RiExchangeLine />,
   },
 ];
+
 const getHighlights = (prices: PricesResponse | null) => {
   if (!prices) return [];
 
