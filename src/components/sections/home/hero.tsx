@@ -83,7 +83,7 @@ function SectionHomeHero() {
           </div>
         </Link>
         <div style={{ zIndex: 1 }}>
-          <Carousel images={["/home/banner.jpeg", "/home/banner.jpeg"]} />
+          <Carousel images={["/banner.jpeg", "/banner.jpeg"]} />
         </div>
         <Card>
           <div className="grid grid-cols-4 gap-5 md:gap-8">

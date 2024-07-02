@@ -41,7 +41,7 @@ function SectionTradeOrderTrades() {
   const blur = useBlurEffect();
   const isDevMode = config.devMode;
   const marketOpenState = useAuthStore((state) => state.isMarketOpen);
-  const isMarketOpen = isDevMode ? true : marketOpenState;
+  const isMarketOpen = marketOpenState;
   const [showErrors, setShowErrors] = useState(false);
 
   const testBool = true;

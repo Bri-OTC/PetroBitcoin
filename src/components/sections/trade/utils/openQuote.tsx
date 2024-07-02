@@ -122,8 +122,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
             ? parseDecimalValue(rfqRequest.lInterestRate)
             : parseDecimalValue(rfqRequest.sInterestRate),
         isAPayingApr: true,
-        frontEnd: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
-        affiliate: "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
+        frontEnd: "config.frontendOwner",
+        affiliate: "config.frontendOwner",
         authorized: request.authorized,
         nonceOpenQuote: nonce,
         signatureOpenQuote: "",

@@ -60,15 +60,9 @@ export function Menu() {
           const currentChainId = await provider.request({
             method: "eth_chainId",
           });
-          //console.log("Current chain ID:", currentChainId);
-
           if (currentChainId === config.activeChainHex) {
-            //0xfaa5
-
-            //console.log("Fantom Sonic Testnet is already added to MetaMask");
             setIsFantomSonicTestnet(true);
           } else {
-            //console.log("Fantom Sonic Testnet is not added to MetaMask");
             setIsFantomSonicTestnet(false);
           }
         } catch (error) {
@@ -76,7 +70,6 @@ export function Menu() {
         }
       }
     };
-
     checkChain();
   }, [wallet, provider]);
 
