@@ -247,6 +247,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         bestAsk,
         maxAmount,
       };
+      console.log("userAddress", selectedQuote?.userAddress);
 
       debouncedUpdateResults(newResults);
     } catch (error) {
