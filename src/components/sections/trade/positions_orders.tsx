@@ -49,7 +49,7 @@ function SectionTradePositionsOrders() {
       }
 
       try {
-        console.log("fetching data");
+        //console.log("fetching data");
         const [openOrders, closeOrders, positionsData] = await Promise.all([
           getOrders(config.activeChainId, wallet.address, token),
           getCloseOrders(config.activeChainId, wallet.address, token),

@@ -84,9 +84,6 @@ export function Menu() {
               chainName: config.viemChain.name,
               nativeCurrency: config.viemChain.nativeCurrency,
               rpcUrls: config.viemChain.rpcUrls.default.http,
-              blockExplorerUrls: config.viemChain.blockExplorers?.default.url
-                ? [config.viemChain.blockExplorers.default.url]
-                : [],
             },
           ],
         });

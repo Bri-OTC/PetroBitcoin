@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { parseDecimalValue } from "@/components/web3/utils";
 import { useOpenQuoteChecks } from "@/hooks/useOpenQuoteChecks";
 import { config } from "@/config";
+import { useWallets } from "@privy-io/react-auth";
 
 interface OpenQuoteButtonProps {
   request: SignedWrappedOpenQuoteRequest;
@@ -30,7 +31,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
   const chainId = String(config.activeChainId);
   const [loading, setLoading] = useState(false);
   const walletClient = useAuthStore((state) => state.walletClient);
-  const { wallet } = useWalletAndProvider();
+  const { wallets } = useWallets();
+  const wallet = wallets[0];
+  //const { wallet } = useWalletAndProvider();
   const token = useAuthStore((state) => state.token);
   const symbol: string = useTradeStore((state) => state.symbol);
   const rfqRequest = useRfqRequestStore((state) => state.rfqRequest);
@@ -61,6 +64,7 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
     try {
       console.log("wallet:", wallet);
       const ethersProvider = await (wallet as any).getEthersProvider();
+
       console.log("ethersProvider", ethersProvider);
       const ethersSigner = await ethersProvider.getSigner();
       console.log("ethersSigner", ethersSigner);
@@ -126,8 +130,8 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
             ? parseDecimalValue(rfqRequest.lInterestRate)
             : parseDecimalValue(rfqRequest.sInterestRate),
         isAPayingApr: true,
-        frontEnd: "config.frontendOwner",
-        affiliate: "config.frontendOwner",
+        frontEnd: config.frontendOwner,
+        affiliate: config.frontendOwner,
         authorized: request.authorized,
         nonceOpenQuote: nonce,
         signatureOpenQuote: "",
