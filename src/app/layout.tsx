@@ -11,6 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import Menu from "@/components/layout/menu";
 import { ThemeProvider } from "next-themes";
 import PrivyProviderWrapper from "./privy-provider";
+import Information from "@/components/layout/information";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -34,6 +35,7 @@ export default function RootLayout({
           poppins.variable
         )}
       >
+        <Information />{" "}
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
