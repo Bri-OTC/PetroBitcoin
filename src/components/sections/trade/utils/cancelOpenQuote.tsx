@@ -103,7 +103,6 @@ export async function cancelOrder(
     }
 
     console.log("Order cancelled successfully");
-    toast.success("Order cancelled successfully");
     return true;
   } catch (error) {
     console.error("Error canceling order:", error);

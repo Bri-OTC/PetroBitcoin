@@ -47,7 +47,6 @@ export default function RootLayout({
               <div className="flex flex-col h-[100vh] bg-background">
                 <div className="h-full flex flex-col">
                   <div className="h-full max-h-[90vh] overflow-y-auto">
-                    {<Information />}
                     <div className="max-w-[1024px] mx-auto">{children}</div>
                   </div>
                   <Menu />
