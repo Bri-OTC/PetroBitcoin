@@ -59,8 +59,12 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
     toast.info("This action requires two signatures. Please approve both.");
 
     try {
+      console.log("wallet:", wallet);
       const ethersProvider = await (wallet as any).getEthersProvider();
+      console.log("ethersProvider", ethersProvider);
       const ethersSigner = await ethersProvider.getSigner();
+      console.log("ethersSigner", ethersSigner);
+
       const formatedSymbol = await formatPair(symbol);
 
       const nonce = String(Date.now());

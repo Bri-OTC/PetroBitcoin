@@ -8,7 +8,7 @@ export default function Information() {
   return (
     <>
       {openInfoMenu && (
-        <div className="bg-[#D7C04C] py-[8px] sticky inset-x-0 top-[45px] z-[49] w-full">
+        <div className="bg-[#D7C04C] py-[8px] fixed top-0 left-0 right-0 z-[50] w-full">
           <div className="lg:max-w-[1280px] mx-[auto] px-[15px]">
             <div className="relative">
               <div className="flex items-center justify-center">
