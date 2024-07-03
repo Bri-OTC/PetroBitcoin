@@ -40,8 +40,9 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
   const currentMethod: string = useTradeStore((state) => state.currentMethod);
   const entryPrice: string = request.price;
   const amount: string = request.amount;
+  const backupAmount = useTradeStore((state) => state.amount);
 
-  const {
+  let {
     sufficientBalance,
     isBalanceZero,
     isAmountMinAmount,
@@ -74,7 +75,11 @@ const OpenQuoteButton: React.FC<OpenQuoteButtonProps> = ({
       const nonce = String(Date.now());
       recommendedAmount;
       if (recommendedAmount === 0) {
-        toast.error("Amount must be greater than 0");
+        recommendedAmount = Number(backupAmount);
+        if (recommendedAmount === 0) {
+          toast.error("Amount must be greater than 0");
+        }
+
         return;
       }
 
