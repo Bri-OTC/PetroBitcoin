@@ -119,6 +119,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
           const sufficientQuote = sortedQuotes.find(
             (q) => (parseFloat(q.maxAmount) || 0) >= currentAmount
           );
+
           setSelectedQuote(sufficientQuote || bestPriceQuote);
         }
       } else {
@@ -238,16 +239,18 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         minAmount,
         recommendedStep,
         canBuyMinAmount,
-        selectedQuoteUserAddress:
-          selectedQuote?.userAddress ||
-          "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8",
+        selectedQuoteUserAddress: (() => {
+          return (
+            selectedQuote?.userAddress ||
+            "0xd0dDF915693f13Cf9B3b69dFF44eE77C901882f8"
+          );
+        })(),
         lastValidBalance,
         recommendedAmount,
         bestBid,
         bestAsk,
         maxAmount,
       };
-      console.log("userAddress", selectedQuote?.userAddress);
 
       debouncedUpdateResults(newResults);
     } catch (error) {

@@ -145,7 +145,7 @@ export const useRfqRequest = () => {
             rfqRequest.lQuantity == "0" ? "1" : rfqRequest.lQuantity;
           rfqRequest.sQuantity =
             rfqRequest.sQuantity == "0" ? "1" : rfqRequest.sQuantity;
-          console.log("RFQ request updated successfully", rfqRequest);
+          //console.log("RFQ request updated successfully", rfqRequest);
           await sendRfq(rfqRequest, token);
           //console.log("RFQ request sent successfully");
         } catch (error) {
