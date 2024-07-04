@@ -165,17 +165,36 @@ function SectionTradeOrderTrades() {
         </p>
       );
     }
+
     if (
       !sufficientBalance &&
       !isBalanceZero &&
       !noQuotesReceived &&
       !isAmountMinAmount
     ) {
-      return (
-        <p className="text-red-500 text-sm">
-          Max amount allowed at this price: {maxAmountOpenable.toFixed(8)}
-        </p>
-      );
+      if (Math.floor(maxAmountOpenable) === 0) {
+        if (!isMarketOpen) {
+          return (
+            <p className="text-red-500 text-sm">
+              The market is currently closed. Trading is not available at this
+              time.
+            </p>
+          );
+        } else {
+          return (
+            <p className="text-red-500 text-sm">
+              No hedger available for your trade. Please try again later or
+              contact support.
+            </p>
+          );
+        }
+      } else {
+        return (
+          <p className="text-red-500 text-sm">
+            Max amount allowed at this price: {maxAmountOpenable.toFixed(8)}
+          </p>
+        );
+      }
     }
     return null;
   };
