@@ -133,14 +133,11 @@ const generateAmount = (
 
   const minAmount = maxAmount * minPercentage;
 
-  // Generate a random deviation with high tails
   const deviation =
     Math.tan((Math.random() - 0.5) * Math.PI) * (maxAmount * 0.1);
 
-  // Apply the deviation to the previous amount
   let newAmount = previousAmount + deviation;
 
-  // Ensure the new amount is within bounds and not less than the minimum
   newAmount = Math.max(minAmount, Math.min(newAmount, maxAmount));
 
   return newAmount;
@@ -161,7 +158,6 @@ const distributeAmounts = (
     remainingAmount -= additionalAmount;
   }
 
-  // If there's still remaining amount, distribute it equally
   if (remainingAmount > 0) {
     const extraPerAmount = remainingAmount / count;
     amounts = amounts.map((amount) => amount + extraPerAmount);
@@ -204,6 +200,9 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
       effectiveBidPrice,
       effectiveAskPrice,
     } = useMemo(() => {
+      const isAmountValid =
+        amount && !isNaN(Number(amount)) && Number(amount) > 0;
+
       const effectiveBidPrice =
         bestBid && parseFloat(bestBid) !== 0 ? parseFloat(bestBid) : bidPrice;
       const effectiveAskPrice =
@@ -217,9 +216,6 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
           effectiveAskPrice,
         };
       }
-
-      const effectiveMaxAmount =
-        maxAmount && maxAmount > 0 ? maxAmount : Math.max(bidQty, askQty);
 
       let askPrices = [];
       let bidPrices = [];
@@ -262,29 +258,38 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
       const totalRows = maxRows * 2;
       const minPercentage = 0.01; // 1%
 
-      if (previousAmounts.current.length !== totalRows) {
-        previousAmounts.current = distributeAmounts(
-          effectiveMaxAmount,
-          totalRows,
-          minPercentage
-        );
+      let amounts: number[];
+      if (isAmountValid) {
+        const effectiveMaxAmount =
+          maxAmount && maxAmount > 0 ? maxAmount : Math.max(bidQty, askQty);
+
+        if (previousAmounts.current.length !== totalRows) {
+          amounts = distributeAmounts(
+            effectiveMaxAmount,
+            totalRows,
+            minPercentage
+          );
+        } else {
+          amounts = previousAmounts.current.map((prevAmount) =>
+            generateAmount(prevAmount, effectiveMaxAmount, minPercentage)
+          );
+        }
+        previousAmounts.current = amounts;
       } else {
-        previousAmounts.current = previousAmounts.current.map((prevAmount) =>
-          generateAmount(prevAmount, effectiveMaxAmount, minPercentage)
-        );
+        amounts = new Array(totalRows).fill(0);
       }
 
       const asksToDisplay = askPrices
         .slice(0, maxRows)
         .map((price, i) => ({
           price,
-          amount: -previousAmounts.current[i],
+          amount: isAmountValid ? -amounts[i] : 0,
         }))
         .reverse();
 
       const bidsToDisplay = bidPrices.slice(-maxRows).map((price, i) => ({
         price,
-        amount: previousAmounts.current[i + maxRows],
+        amount: isAmountValid ? amounts[i + maxRows] : 0,
       }));
 
       return {
@@ -303,6 +308,7 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
       bestBid,
       bestAsk,
       maxAmount,
+      amount,
     ]);
 
     return (

@@ -28,6 +28,7 @@ export function MarketDrawer({ children }: MarketDrawerProps) {
 
   const handleMarketClick = (market: Market) => {
     setSelectedMarket(market);
+    setIsOpen(false);
   };
 
   return (

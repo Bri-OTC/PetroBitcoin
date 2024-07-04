@@ -325,9 +325,7 @@ function SectionTradeOrderTrades() {
                     <p>{isMarketOpen ? currentMethod : "Market Closed"}</p>
                   </DrawerTrigger>
                   {!isMarketOpen && (
-                    <p className="text-red-500 text-sm mt-2">
-                      The market is currently closed.
-                    </p>
+                    <p className="text-red-500 text-sm mt-2">Market Closed</p>
                   )}
                   <SheetPlaceOrder />
                 </Drawer>

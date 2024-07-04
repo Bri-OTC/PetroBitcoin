@@ -256,6 +256,7 @@ function ResearchComponent({
 
   const handleMarketClick = (market: Market) => {
     setSelectedMarket(market.name);
+    onMarketClick(market); // Call the prop function
   };
 
   const toggleSortByPrice = () => {
