@@ -70,9 +70,9 @@ const SheetPlace: React.FC = () => {
     const updateEntryPrice = () => {
       if (currentTabIndex === "Market") {
         if (currentMethod === "Buy") {
-          setEntryPrice((askPrice * 1.01).toFixed(5));
+          setEntryPrice((askPrice * 1.02).toFixed(5));
         } else if (currentMethod === "Sell") {
-          setEntryPrice((bidPrice * 0.99).toFixed(5));
+          setEntryPrice((bidPrice * 0.98).toFixed(5));
         }
       }
     };

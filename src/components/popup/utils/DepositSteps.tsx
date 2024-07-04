@@ -46,14 +46,6 @@ function DepositSteps({
   function handleApproveSuccess(amount: number) {}
   function handleMintSuccess(amount: number) {}
 
-  useEffect(() => {
-    if (parseFloat(amount) > 100) {
-      setError("Deposit amount cannot exceed 100 USD");
-    } else {
-      setError(null);
-    }
-  }, [amount, setError]);
-
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">

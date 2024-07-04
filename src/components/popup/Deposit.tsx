@@ -12,7 +12,7 @@ interface DepositProps {
 }
 
 function Deposit({ open, onClose }: DepositProps) {
-  const [amount, setAmount] = useState("100");
+  const [amount, setAmount] = useState("200");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
