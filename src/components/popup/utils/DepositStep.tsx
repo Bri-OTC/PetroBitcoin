@@ -129,7 +129,7 @@ function DepositStep({
     <div className="flex justify-end space-x-3">
       <Button
         onClick={handleDeposit}
-        disabled={loading || !amount || parseFloat(amount) > 100}
+        disabled={loading || !amount}
         className="w-full"
       >
         {loading ? "Depositing..." : "3. Deposit"}
