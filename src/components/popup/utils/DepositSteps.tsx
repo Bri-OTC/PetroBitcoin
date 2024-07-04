@@ -18,6 +18,7 @@ import {
   USDCAllowance,
   DepositedBalance,
 } from "@/components/sections/wallet/table";
+import { toast } from "react-toastify";
 
 interface DepositStepsProps {
   amount: string;
@@ -45,6 +46,16 @@ function DepositSteps({
   function handleDepositSuccess(amount: number) {}
   function handleApproveSuccess(amount: number) {}
   function handleMintSuccess(amount: number) {}
+
+  useEffect(() => {
+    if (parseFloat(amount) > 200) {
+      toast.error("Deposit amount cannot exceed 200 USD");
+
+      setError("Deposit amount cannot exceed 100 USD");
+    } else {
+      setError(null);
+    }
+  }, [amount, setError]);
 
   return (
     <div className="space-y-3">
