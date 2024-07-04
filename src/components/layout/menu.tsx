@@ -27,6 +27,7 @@ import { useTradeStore } from "@/store/tradeStore";
 import { useColorStore } from "@/store/colorStore";
 import { useMethodColor } from "@/hooks/useMethodColor";
 import { config } from "@/config";
+import AnimatedShinyText from "@/components/magicui/animated-shiny-text";
 
 export function Menu() {
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
@@ -370,7 +371,9 @@ export function Menu() {
               }}
               className="text-center text-white p-3"
             >
-              Connect Wallet
+              <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-neutral-400 hover:duration-300 hover:dark:text-neutral-100">
+                Connect Wallet
+              </AnimatedShinyText>
             </button>
           )
         ) : (
