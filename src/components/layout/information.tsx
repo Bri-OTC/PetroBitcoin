@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { VelocityScroll } from "@/components/magicui/scroll-based-velocity";
 
 export default function Information() {
   const [openInfoMenu, setOpenInfoMenu] = useState(true);
@@ -12,9 +13,11 @@ export default function Information() {
           <div className="lg:max-w-[1280px] mx-[auto] px-[15px]">
             <div className="relative">
               <div className="flex items-center justify-center">
-                <p className="text-[#1a1a1a] md:text-[16px] text-[14px]">
-                  Testnet under maintenance. Resuming shortly.
-                </p>
+                <VelocityScroll
+                  text=" Upgrading Testnet Systems Resuming shortly | Collaterals are not Affected | Positions can be managed from explorer |            "
+                  default_velocity={5}
+                  className=" text-center text-2xl font-bold tracking-[-0.02em] text-black drop-shadow-sm dark:text-white "
+                />
               </div>
             </div>
           </div>

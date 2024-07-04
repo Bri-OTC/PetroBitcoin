@@ -11,6 +11,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@motionone/utils": "^10.18.0",
     "@pionerfriends/api-client": "^1.0.78",
     "@pionerfriends/blockchain-client": "^1.0.78",
     "@privy-io/react-auth": "^1.73.1",

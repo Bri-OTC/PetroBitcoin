@@ -1,62 +1,51 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import { toast } from "react-toastify";
 import {
   PionerWebsocketClient,
   QuoteResponse,
   WebSocketType,
 } from "@pionerfriends/api-client";
 import { useWalletAndProvider } from "@/components/layout/menu";
+import useBlurEffect from "@/hooks/blur";
 
 const useQuoteWss = (
   token: string | null,
   addQuote: (message: QuoteResponse) => void
 ) => {
-  const { wallet } = useWalletAndProvider();
+  const { wallet, provider } = useWalletAndProvider();
+
   const quoteClientRef =
     useRef<PionerWebsocketClient<WebSocketType.LiveQuotes> | null>(null);
-  const [lastMessageTime, setLastMessageTime] = useState<number>(Date.now());
-  const [isRestarting, setIsRestarting] = useState<boolean>(false);
 
-  const startWebSocket = () => {
-    if (token && token !== null && wallet && !isRestarting) {
-      setIsRestarting(true);
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    if (token && token !== null && wallet) {
       console.log("Setting up WebSocket connection...");
-      if (quoteClientRef.current) {
-        quoteClientRef.current.closeWebSocket();
-      }
       quoteClientRef.current = new PionerWebsocketClient(
         WebSocketType.LiveQuotes,
         (message: QuoteResponse) => {
           //console.log("Received Quote:", message);
           addQuote(message);
-          setLastMessageTime(Date.now());
         },
-        () => {
-          console.log("WebSocket Open");
-          setIsRestarting(false);
-        },
+        () => console.log("WebSocket Open"),
         () => console.log("WebSocket Closed"),
         () => console.log("WebSocket Reconnected"),
         (error: Error) => console.error("WebSocket Error:", error)
       );
       quoteClientRef.current.startWebSocket(token);
       console.log("WebSocket Started");
+
+      // Set up an interval to log the WebSocket status every 5 seconds
+      /*
+      intervalId = setInterval(() => {
+        if (quoteClientRef.current) {
+          console.log("WebSocket status:", quoteClientRef.current);
+        }
+      }, 5000);*/
     } else {
-      console.log(
-        "Token or wallet missing, or restart in progress. WebSocket not started."
-      );
+      console.log("Token or wallet missing. WebSocket not started.");
     }
-  };
-
-  useEffect(() => {
-    startWebSocket();
-
-    const checkAndRestartInterval = setInterval(() => {
-      const now = Date.now();
-      if (now - lastMessageTime > 10000 && !isRestarting) {
-        console.log("No messages for 10 seconds, restarting WebSocket...");
-        startWebSocket();
-      }
-    }, 10000); // Check every 10 seconds
 
     return () => {
       if (quoteClientRef.current) {
@@ -64,11 +53,12 @@ const useQuoteWss = (
         quoteClientRef.current.closeWebSocket();
         console.log("WebSocket Closed");
       }
-      clearInterval(checkAndRestartInterval);
+      // Clear the interval when the component unmounts
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
-  }, [token, addQuote, wallet]);
-
-  return null;
+  }, [token, addQuote]);
 };
 
 export default useQuoteWss;
