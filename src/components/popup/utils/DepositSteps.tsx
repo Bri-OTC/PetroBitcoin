@@ -18,7 +18,6 @@ import {
   USDCAllowance,
   DepositedBalance,
 } from "@/components/sections/wallet/table";
-import { toast } from "react-toastify";
 
 interface DepositStepsProps {
   amount: string;
