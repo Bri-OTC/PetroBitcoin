@@ -1,5 +1,5 @@
 // marketStatusUpdater.ts
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatSymbols } from "@/components/triparty/priceUpdater";
 
 interface MarketStatusResponse {
@@ -9,12 +9,9 @@ interface MarketStatusResponse {
   isTheCryptoMarketOpen: boolean;
 }
 
-const useUpdateMarketStatus = (
-  token: string | null,
-  symbol: string,
-  setIsMarketOpen: (isOpen: boolean) => void,
-  marketOpen: boolean
-) => {
+const useUpdateMarketStatus = (token: string | null, symbol: string) => {
+  const [isMarketOpen, setIsMarketOpen] = useState(true);
+
   useEffect(() => {
     if (!token) return;
 
@@ -39,16 +36,18 @@ const useUpdateMarketStatus = (
           resolvedSymbol1.startsWith("stock") ||
           resolvedSymbol2.startsWith("stock");
 
+        let newMarketStatus = false;
+
         if (isForexPair) {
-          setIsMarketOpen(data.isTheForexMarketOpen);
+          newMarketStatus = data.isTheForexMarketOpen;
         } else if (isStockPair) {
-          setIsMarketOpen(data.isTheStockMarketOpen);
+          newMarketStatus = data.isTheStockMarketOpen;
         } else if (isForexPair && isStockPair) {
-          setIsMarketOpen(
-            data.isTheForexMarketOpen == data.isTheStockMarketOpen &&
-              data.isTheForexMarketOpen
-          );
+          newMarketStatus =
+            data.isTheForexMarketOpen && data.isTheStockMarketOpen;
         }
+
+        setIsMarketOpen(newMarketStatus);
 
         console.log(
           "Market status updated:",
@@ -56,12 +55,7 @@ const useUpdateMarketStatus = (
           resolvedSymbol2,
           isForexPair,
           isStockPair,
-          data.isTheForexMarketOpen,
-          data.isTheStockMarketOpen,
-          data.isTheForexMarketOpen == data.isTheStockMarketOpen,
-          data.isTheForexMarketOpen == data.isTheStockMarketOpen &&
-            data.isTheForexMarketOpen,
-          marketOpen
+          newMarketStatus
         );
       } catch (error) {
         console.error("Error fetching market status:", error);
@@ -73,7 +67,9 @@ const useUpdateMarketStatus = (
     const interval = setInterval(updateMarketStatus, 60000);
 
     return () => clearInterval(interval);
-  }, [symbol, setIsMarketOpen, token]);
+  }, [symbol, token]);
+
+  return isMarketOpen;
 };
 
 export default useUpdateMarketStatus;

@@ -42,7 +42,10 @@ const useAuthStore = create<AuthState>((set) => ({
       Cookies.remove("token");
     }
   },
-  setIsMarketOpen: (isOpen) => set({ isMarketOpen: isOpen }),
+  setIsMarketOpen: (isOpen) => {
+    console.log(isOpen);
+    set({ isMarketOpen: isOpen });
+  },
   setProvider: (provider) => {
     if (provider !== useAuthStore.getState().provider) {
       set({ provider, token: null });

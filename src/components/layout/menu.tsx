@@ -49,7 +49,9 @@ export function Menu() {
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
-  const marketOpen = useAuthStore((state) => state.marketOpen);
+  const isMarketOpen = useUpdateMarketStatus(token, symbol);
+
+  const marketOpen = useAuthStore((state) => state.isMarketOpen);
   const { addQuote } = useQuoteStore();
 
   const disableLogin = !!(authenticated && token);
@@ -96,8 +98,11 @@ export function Menu() {
     }
   };
 
+  useEffect(() => {
+    setIsMarketOpen(isMarketOpen);
+  }, [isMarketOpen, setIsMarketOpen]);
+
   /** Global workers*/
-  useUpdateMarketStatus(token, symbol, setIsMarketOpen, marketOpen);
   useQuoteWss(token, addQuote);
   useFillOpenQuote(token);
   useFillCloseQuote(token);

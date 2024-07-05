@@ -184,8 +184,7 @@ function SectionTradeOrderTrades() {
         } else {
           return (
             <p className="text-red-500 text-sm">
-              No hedger available for your trade. Please try again later or
-              contact support.
+              The market is currently closed. RWAs are not 24/24h crypto.
             </p>
           );
         }
