@@ -36,7 +36,6 @@ function SectionTradeOrderTrades() {
     setSliderValue,
     accountLeverage,
     balance,
-    minCollateralForMinAmount,
   } = useTradeStore();
 
   const blur = useBlurEffect();
@@ -68,6 +67,7 @@ function SectionTradeOrderTrades() {
     recommendedStep,
     canBuyMinAmount,
     lastValidBalance,
+    minCollateralForMinAmount,
   } = useOpenQuoteChecks(amount, entryPrice);
 
   const handleAmountChange = useCallback(
