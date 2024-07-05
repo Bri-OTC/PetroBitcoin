@@ -36,6 +36,7 @@ function SectionTradeOrderTrades() {
     setSliderValue,
     accountLeverage,
     balance,
+    minCollateralForMinAmount,
   } = useTradeStore();
 
   const blur = useBlurEffect();
@@ -191,7 +192,8 @@ function SectionTradeOrderTrades() {
       } else {
         return (
           <p className="text-red-500 text-sm">
-            Max amount allowed at this price: {maxAmountOpenable.toFixed(8)}
+            Min contract required balance:{" "}
+            {minCollateralForMinAmount.toFixed(8)}
           </p>
         );
       }

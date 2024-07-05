@@ -21,6 +21,7 @@ interface OpenQuoteCheckResults {
   bestBid: string;
   bestAsk: string;
   maxAmount: number;
+  minCollateralForMinAmount: number;
 }
 
 export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
@@ -51,6 +52,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
     bestBid: "0",
     bestAsk: "0",
     maxAmount: 0,
+    minCollateralForMinAmount: 0,
   });
 
   const previousInputsRef = useRef({
@@ -112,7 +114,8 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
 
         const bestPriceQuote = sortedQuotes[0];
         const bestPriceMaxAmount = parseFloat(bestPriceQuote.maxAmount) || 0;
-
+        setSelectedQuote(bestPriceQuote);
+        /*
         if (currentAmount <= bestPriceMaxAmount) {
           setSelectedQuote(bestPriceQuote);
         } else {
@@ -120,7 +123,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
             (q) => (parseFloat(q.maxAmount) || 0) >= currentAmount
           );
           setSelectedQuote(sufficientQuote || bestPriceQuote);
-        }
+        }*/
       } else {
         setSelectedQuote(null);
       }
@@ -168,6 +171,14 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
           : 0;
 
       const recommendedStep = minAmount > 0 ? minAmount : 0;
+
+      console.log(
+        "calculateMaxAmountOpenable",
+        safeParseFloat(balanceToUse),
+        safeParseFloat(entryPrice),
+        collateralRequirement,
+        recommendedStep
+      );
 
       const calculateMaxAmountOpenable = (
         balance: number,
@@ -227,6 +238,8 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         quotes.length > 0
           ? Math.max(...quotes.map((q) => safeParseFloat(q.maxAmount)))
           : 0;
+      const minCollateralForMinAmount =
+        minAmount * safeParseFloat(entryPrice) * collateralRequirement;
 
       const newResults: OpenQuoteCheckResults = {
         quotes,
@@ -246,6 +259,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         bestBid,
         bestAsk,
         maxAmount,
+        minCollateralForMinAmount,
       };
 
       debouncedUpdateResults(newResults);
@@ -258,6 +272,7 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
         bestBid: "0",
         bestAsk: "0",
         maxAmount: 0,
+        minCollateralForMinAmount: 0,
       });
     }
   }, [

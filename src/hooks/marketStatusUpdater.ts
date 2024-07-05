@@ -12,7 +12,8 @@ interface MarketStatusResponse {
 const useUpdateMarketStatus = (
   token: string | null,
   symbol: string,
-  setIsMarketOpen: (isOpen: boolean) => void
+  setIsMarketOpen: (isOpen: boolean) => void,
+  marketOpen: boolean
 ) => {
   useEffect(() => {
     if (!token) return;
@@ -42,9 +43,26 @@ const useUpdateMarketStatus = (
           setIsMarketOpen(data.isTheForexMarketOpen);
         } else if (isStockPair) {
           setIsMarketOpen(data.isTheStockMarketOpen);
-        } else {
-          setIsMarketOpen(data.isTheCryptoMarketOpen);
+        } else if (isForexPair && isStockPair) {
+          setIsMarketOpen(
+            data.isTheForexMarketOpen == data.isTheStockMarketOpen &&
+              data.isTheForexMarketOpen
+          );
         }
+
+        console.log(
+          "Market status updated:",
+          resolvedSymbol1,
+          resolvedSymbol2,
+          isForexPair,
+          isStockPair,
+          data.isTheForexMarketOpen,
+          data.isTheStockMarketOpen,
+          data.isTheForexMarketOpen == data.isTheStockMarketOpen,
+          data.isTheForexMarketOpen == data.isTheStockMarketOpen &&
+            data.isTheForexMarketOpen,
+          marketOpen
+        );
       } catch (error) {
         console.error("Error fetching market status:", error);
         setIsMarketOpen(false);

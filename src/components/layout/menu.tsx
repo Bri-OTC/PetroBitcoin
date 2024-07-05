@@ -12,7 +12,6 @@ import { IoPersonSharp } from "react-icons/io5";
 import { BiSolidWallet } from "react-icons/bi";
 import { useWallets } from "@privy-io/react-auth";
 import { usePrivy, useLogin } from "@privy-io/react-auth";
-import { FaTimes } from "react-icons/fa";
 import { getPayload, login as apiLogin } from "@pionerfriends/api-client";
 import { useAuthStore } from "@/store/authStore";
 import { useEffect, useState, useCallback } from "react";
@@ -28,6 +27,7 @@ import { useColorStore } from "@/store/colorStore";
 import { useMethodColor } from "@/hooks/useMethodColor";
 import { config } from "@/config";
 import AnimatedShinyText from "@/components/magicui/animated-shiny-text";
+import ShinyButton from "@/components/magicui/shiny-button";
 
 export function Menu() {
   const setWalletClient = useAuthStore((state) => state.setWalletClient);
@@ -49,6 +49,7 @@ export function Menu() {
   const [payloadError, setPayloadError] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const setIsMarketOpen = useAuthStore((state) => state.setIsMarketOpen);
+  const marketOpen = useAuthStore((state) => state.marketOpen);
   const { addQuote } = useQuoteStore();
 
   const disableLogin = !!(authenticated && token);
@@ -81,7 +82,7 @@ export function Menu() {
           method: "wallet_addEthereumChain",
           params: [
             {
-              chainId: config.activeChainHex, ////0xfaa5
+              chainId: config.activeChainHex,
               chainName: config.viemChain.name,
               nativeCurrency: config.viemChain.nativeCurrency,
               rpcUrls: config.viemChain.rpcUrls.default.http,
@@ -94,8 +95,9 @@ export function Menu() {
       }
     }
   };
+
   /** Global workers*/
-  useUpdateMarketStatus(token, symbol, setIsMarketOpen);
+  useUpdateMarketStatus(token, symbol, setIsMarketOpen, marketOpen);
   useQuoteWss(token, addQuote);
   useFillOpenQuote(token);
   useFillCloseQuote(token);
@@ -183,8 +185,6 @@ export function Menu() {
           account: wallet.address as `0x${string}`,
         });
 
-        //console.log("menu walletClient", walletClient);
-
         const signature = await walletClient.signMessage({
           account: wallet.address as `0x${string}`,
           message: message,
@@ -195,8 +195,6 @@ export function Menu() {
           message: message,
           signature: signature,
         });
-
-        //console.log("signature", signature, message, valid);
 
         return { uuid, signature };
       } catch (error) {
@@ -217,7 +215,6 @@ export function Menu() {
           loginResponse.data.token
         ) {
           const token = loginResponse.data.token;
-          //console.log(`Token: ${token} `);
           const isValidAddress = /^0x[a-fA-F0-9]{40}$/.test(wallet.address);
           if (isValidAddress) {
             setToken(token);
@@ -251,22 +248,17 @@ export function Menu() {
   }, [payload, signMessage, attemptLogin]);
 
   const clearPrivyData = () => {
-    // Clear Privy data from localStorage
     localStorage.removeItem("privy:authenticated");
     localStorage.removeItem("privy:user");
-
-    // Clear Privy data from cookies
     Cookies.remove("privy:authenticated");
     Cookies.remove("privy:user");
-
     localStorage.removeItem("authenticated");
-
-    // Clear token and other relevant data
     setToken(null);
     setPayload(null);
     setPayloadError(false);
     setLoginError(false);
   };
+
   useEffect(() => {
     if (loginError) {
       logout();
@@ -296,20 +288,8 @@ export function Menu() {
       checkWalletAddress();
     }, 5000);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [wallet, token, checkWalletAddress]);
-
-  useEffect(() => {
-    if (authenticated && token && (!wallet || !wallet.address)) {
-      logout();
-      setPayload(null);
-      setToken(null);
-      setPayloadError(false);
-      setLoginError(false);
-    }
-  }, [authenticated, token, wallet, logout, setToken]);
+    return () => clearInterval(interval);
+  }, [checkWalletAddress]);
 
   return (
     <div className="w-full sticky bottom-0 h-[110px] md:h-[130px]">
@@ -320,16 +300,13 @@ export function Menu() {
             <div className="text-center text-white p-3 flex items-center">
               <div className="mr-2">
                 {!isFantomSonicTestnet && (
-                  <button
-                    onClick={addChain}
-                    className="text-white hover:text-gray-200 mr-2"
-                  >
-                    Click to add Testnet to your wallet
-                  </button>
+                  <div onClick={addChain}>
+                    <ShinyButton text="Add Testnet to Wallet" />
+                  </div>
                 )}
               </div>
               <h3 className="mr-2">Account: {wallet?.address}</h3>
-              <button
+              <div
                 onClick={() => {
                   logout();
                   setPayload(null);
@@ -337,15 +314,14 @@ export function Menu() {
                   setPayloadError(false);
                   setLoginError(false);
                 }}
-                className="text-white hover:text-gray-200"
               >
-                <FaTimes size={10} />
-              </button>
+                <ShinyButton text="X" />
+              </div>
             </div>
           ) : payload ? (
             <div className="text-center text-white p-3 flex items-center">
               <span className="mr-2">Sign Message...</span>
-              <button
+              <div
                 onClick={() => {
                   logout();
                   setPayload(null);
@@ -353,14 +329,12 @@ export function Menu() {
                   setPayloadError(false);
                   setLoginError(false);
                 }}
-                className="text-white hover:text-gray-200"
               >
-                <FaTimes size={10} />
-              </button>
+                <ShinyButton text="Cancel" />
+              </div>
             </div>
           ) : (
-            <button
-              disabled={disableLogin}
+            <div
               onClick={() => {
                 clearPrivyData();
                 if (ready && !authenticated) {
@@ -369,12 +343,10 @@ export function Menu() {
                   logout();
                 }
               }}
-              className="text-center text-white p-3"
+              className="cursor-pointer"
             >
-              <AnimatedShinyText className="inline-flex items-center justify-center px-4 py-1 transition ease-out hover:text-neutral-400 hover:duration-300 hover:dark:text-neutral-100">
-                Connect Wallet
-              </AnimatedShinyText>
-            </button>
+              <ShinyButton text="Connect Wallet" />
+            </div>
           )
         ) : (
           <div className="text-center text-white p-3">Loading...</div>
@@ -383,32 +355,25 @@ export function Menu() {
       <div className="bg-accent text-card-foreground">
         <div className="grid grid-cols-5 w-full container py-3">
           {menus.map((x) => {
+            const isSelected = pathname === x.link;
             if (x.name === "Markets") {
               return (
                 <MarketDrawer key={x.name}>
-                  <div
-                    className={`group flex flex-col items-center text-center space-y-1 hover:text-primary cursor-pointer transition-all ${
-                      pathname === x.link
-                        ? "text-primary"
-                        : "text-card-foreground"
-                    }`}
-                  >
-                    <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
-                    <p>{x.name}</p>
-                  </div>
+                  <MenuButton
+                    name={x.name}
+                    icon={x.icon}
+                    isSelected={isSelected}
+                  />
                 </MarketDrawer>
               );
             }
             return (
-              <Link
-                href={x.link}
-                key={x.name}
-                className={`${
-                  pathname === x.link ? "text-primary" : "text-card-foreground"
-                } group flex flex-col items-center text-center space-y-1 hover:text-primary cursor-pointer transition-all`}
-              >
-                <div className="text-[1.5rem] md:text-[2rem]">{x.icon}</div>
-                <p>{x.name}</p>
+              <Link href={x.link} key={x.name}>
+                <MenuButton
+                  name={x.name}
+                  icon={x.icon}
+                  isSelected={isSelected}
+                />
               </Link>
             );
           })}
@@ -417,6 +382,25 @@ export function Menu() {
     </div>
   );
 }
+
+interface MenuButtonProps {
+  name: string;
+  icon: React.ReactNode;
+  isSelected: boolean;
+}
+
+const MenuButton: React.FC<MenuButtonProps> = ({ name, icon, isSelected }) => {
+  return (
+    <div
+      className={`group flex flex-col items-center text-center space-y-1 hover:text-primary cursor-pointer transition-all ${
+        isSelected ? "text-primary" : "text-card-foreground"
+      }`}
+    >
+      <div className="text-[1.5rem] md:text-[2rem]">{icon}</div>
+      <p>{name}</p>
+    </div>
+  );
+};
 
 export const useWalletAndProvider = () => {
   const { wallets } = useWallets();
