@@ -167,7 +167,7 @@ function SectionPositions({
           </TableHead>
           <TableHead className="text-right">
             <p className="text-card-foreground text-xs sm:text-sm">
-              Pnl. Amount
+              Pnl / Amount
             </p>
             <p className="text-xs sm:text-sm">(USD)</p>
           </TableHead>

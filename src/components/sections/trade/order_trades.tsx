@@ -305,7 +305,7 @@ function SectionTradeOrderTrades() {
               {showErrors && noQuotesReceived && (
                 <p className="text-card-foreground text-sm">
                   <span className="loader"></span>
-                  Waiting for solvers answer.
+                  Waiting for solvers quote.
                 </p>
               )}
               {showErrors && isAmountMinAmount && canBuyMinAmount && (

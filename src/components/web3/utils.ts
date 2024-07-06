@@ -42,8 +42,6 @@ export const parseDecimalValue = (value: string): string => {
   }
 };
 
-const prefixList = ["forex", "crypto", "nasdaq"];
-
 export function removePrefix(market: string): string {
   if (!market || typeof market !== "string") {
     return "";
@@ -51,21 +49,14 @@ export function removePrefix(market: string): string {
 
   const parts = market.split("/");
   if (parts.length !== 2) {
-    return market; // Return original if it doesn't contain exactly one '/'
+    return market;
   }
 
-  const [base, quote] = parts;
-
-  const removePrefixtFromPart = (part: string) => {
-    if (!part) return "";
-    return prefixList.reduce(
-      (acc, prefix) => acc.replace(new RegExp(`^${prefix}\\.`, "i"), ""),
-      part
-    );
+  const removePrefixes = (part: string) => {
+    return part.replace(/^(stock\.|forex\.)/i, "");
   };
 
-  const baseWithoutPrefix = removePrefixtFromPart(base);
-  const quoteWithoutPrefix = removePrefixtFromPart(quote);
+  const [base, quote] = parts.map(removePrefixes);
 
-  return `${baseWithoutPrefix}/${quoteWithoutPrefix}`;
+  return `${base}/${quote}`;
 }
