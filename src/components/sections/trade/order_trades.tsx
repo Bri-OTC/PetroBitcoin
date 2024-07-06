@@ -302,7 +302,7 @@ function SectionTradeOrderTrades() {
                   Min amount allowed at this price: {minAmount.toFixed(3)}
                 </p>
               )}
-              {showErrors && noQuotesReceived && (
+              {showErrors && noQuotesReceived && !isMarketOpen && (
                 <p className="text-card-foreground text-sm">
                   <span className="loader"></span>
                   Waiting for solvers quote.

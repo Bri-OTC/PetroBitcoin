@@ -1,12 +1,7 @@
-// SectionTradeChart.tsx
 "use client";
-import { useEffect, useState } from "react";
+
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
-import { CgMaximizeAlt } from "react-icons/cg";
-import { FaRegClock, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
-import { HiOutlineCog6Tooth } from "react-icons/hi2";
-import TradingViewPopup from "@/components/popup/chart";
 import {
   Select,
   SelectContent,
@@ -14,19 +9,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FaRegClock, FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 import TradingViewAdvancedChart from "../../tradingview/TradingViewAdvancedChart";
 import { useTradeStore } from "@/store/tradeStore";
 import { useActivePrice } from "@/components/triparty/priceUpdater";
 import { RfqRequestUpdater } from "@/components/triparty/rfq";
-import { useAuthStore } from "@/store/authStore";
 import useBlurEffect from "@/hooks/blur";
 
 function SectionTradeChart() {
   const [showChart, setShowChart] = useState(true);
   const [interval, setInterval] = useState("60");
+  const [chartHeight, setChartHeight] = useState(200);
+  const [isResizing, setIsResizing] = useState(false);
   const activePrice = useActivePrice();
   const blur = useBlurEffect();
   const symbol = useTradeStore((state) => state.symbol);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     activePrice();
@@ -35,6 +33,40 @@ function SectionTradeChart() {
   const handleIntervalChange = (value: string) => {
     setInterval(value);
   };
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !chartRef.current) return;
+      const chartRect = chartRef.current.getBoundingClientRect();
+      const newHeight = e.clientY - chartRect.top;
+      requestAnimationFrame(() => {
+        setChartHeight(
+          Math.max(100, Math.min(newHeight, window.innerHeight - 100))
+        );
+      });
+    },
+    [isResizing]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsResizing(false);
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+  }, [handleMouseMove]);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  useEffect(() => {
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
 
   return (
     <div className={`container ${blur ? "blur" : ""}`}>
@@ -64,13 +96,23 @@ function SectionTradeChart() {
           </div>
         </div>
         <div
+          ref={chartRef}
           className={`${
-            showChart ? "h-50" : "max-h-0"
-          } overflow-hidden transition-all bg-card text-white`}
+            showChart ? "" : "max-h-0"
+          } overflow-hidden transition-all bg-card text-white relative`}
+          style={{ height: showChart ? `${chartHeight}px` : "0px" }}
         >
-          <div className="w-full h-50 flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center">
             <TradingViewAdvancedChart symbol={symbol} interval={interval} />
           </div>
+          <div
+            className={`absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize transition-opacity duration-200 ${
+              isResizing
+                ? "bg-blue-500 opacity-50"
+                : "opacity-0 hover:opacity-30"
+            }`}
+            onMouseDown={handleMouseDown}
+          />
         </div>
       </div>
     </div>
