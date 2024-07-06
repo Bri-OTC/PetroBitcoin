@@ -171,14 +171,14 @@ export const useOpenQuoteChecks = (amount: string, entryPrice: string) => {
           : 0;
 
       const recommendedStep = minAmount > 0 ? minAmount : 0;
-
+      /*
       console.log(
         "calculateMaxAmountOpenable",
         safeParseFloat(balanceToUse),
         safeParseFloat(entryPrice),
         collateralRequirement,
         recommendedStep
-      );
+      );*/
 
       const calculateMaxAmountOpenable = (
         balance: number,

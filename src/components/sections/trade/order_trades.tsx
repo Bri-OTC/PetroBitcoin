@@ -16,6 +16,7 @@ import Link from "next/link";
 import { config } from "@/config";
 
 function SectionTradeOrderTrades() {
+  const [isOrderBookCollapsed, setIsOrderBookCollapsed] = useState(true);
   const {
     leverage,
     bidPrice,
@@ -226,8 +227,8 @@ function SectionTradeOrderTrades() {
             </div>
           ))}
         </div>
-        <div className="flex items-stretch space-x-5 pt-5 px-5">
-          <div className="w-full flex flex-col space-y-5">
+        <div className="flex flex-col sm:flex-row items-stretch space-y-5 sm:space-y-0 sm:space-x-5 pt-5 px-5">
+          <div className="w-full sm:w-2/3 flex flex-col space-y-5">
             <div className="flex border-b">
               {["Buy", "Sell"].map((x) => (
                 <h3
@@ -245,7 +246,7 @@ function SectionTradeOrderTrades() {
             </div>
 
             <div className="flex flex-col space-y-5">
-              <p className="text-card-foreground">Price</p>
+              <p className="text-card-foreground text-xs sm:text-sm">Price</p>
               <div className="flex pb-3 items-center space-x-2">
                 <input
                   type="number"
@@ -255,11 +256,13 @@ function SectionTradeOrderTrades() {
                   onChange={(e) => setEntryPrice(e.target.value)}
                   disabled={currentTabIndex === "Market"}
                 />
-                <p>USD</p>
+                <p>USDP</p>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="flex flex-col space-y-2 w-full">
-                  <p className="text-card-foreground">Amount (Contracts)</p>
+                  <p className="text-card-foreground text-xs sm:text-sm">
+                    Amount (Contracts)
+                  </p>
                   <input
                     type="number"
                     className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
@@ -271,7 +274,9 @@ function SectionTradeOrderTrades() {
                   <FaEquals className="text-[0.8rem]" />
                 </div>
                 <div className="flex flex-col space-y-2 w-full">
-                  <p className="text-card-foreground">Amount (USD)</p>
+                  <p className="text-card-foreground text-xs sm:text-sm">
+                    Amount (USDP)
+                  </p>
                   <input
                     type="number"
                     className={`pb-3 outline-none w-full border-b-[1px] bg-transparent hover:shadow-[0_0_0_2px] hover:shadow-[${color}]`}
@@ -300,15 +305,7 @@ function SectionTradeOrderTrades() {
               {showErrors && noQuotesReceived && (
                 <p className="text-card-foreground text-sm">
                   <span className="loader"></span>
-                  Waiting for quotes.{" "}
-                  <a
-                    href=" https://discord.gg/GJV2JdZTFc"
-                    className="text-blue-500 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Contact Us
-                  </a>
+                  Waiting for solvers answer.
                 </p>
               )}
               {showErrors && isAmountMinAmount && canBuyMinAmount && (
@@ -318,24 +315,24 @@ function SectionTradeOrderTrades() {
                   contracts.
                 </p>
               )}
-              <div className="flex items-center justify-between">
+              <div className="flex  sm:flex-row items-start sm:items-center justify-between text-xs sm:text-sm">
                 <Link
                   href="/user"
-                  className="text-card-foreground hover:underline"
+                  className="text-card-foreground hover:underline mb-1 sm:mb-0"
                 >
                   {leverage}x Account Leverage
                 </Link>
-                <p className="text-card-foreground">
+                <p className="text-card-foreground mb-1 text-xs sm:text-sm">
                   <span className="text-red-500">12.25%</span> APR
                 </p>
-                <p className="text-card-foreground">
+                <p className="text-card-foreground text-xs sm:text-sm">
                   Balance: {Number(lastValidBalance).toFixed(2)} USDP
                 </p>
               </div>
               <div>
                 <Drawer>
                   <DrawerTrigger
-                    className={`w-full py-2 rounded-lg text-black ${
+                    className={`w-full py-2 rounded-lg text-black text-xs sm:text-sm ${
                       isMarketOpen
                         ? `bg-[#666EFF] hover:bg-[#e0ae0cea]`
                         : "bg-gray-400 cursor-not-allowed"
@@ -345,15 +342,33 @@ function SectionTradeOrderTrades() {
                     <p>{isMarketOpen ? currentMethod : "Market Closed"}</p>
                   </DrawerTrigger>
                   {!isMarketOpen && (
-                    <p className="text-red-500 text-sm mt-2">Market Closed</p>
+                    <p className="text-red-500 text-sm mt-2"></p>
                   )}
                   <SheetPlaceOrder />
                 </Drawer>
               </div>
             </div>
           </div>
-          <div className="w-full max-w-[135px] md:max-w-[250px] flex items-center justify-center text-center bg-card">
-            <OrderBook maxRows={5} isOrderBookOn={isMarketOpen} />
+          <div className="relative w-full sm:w-1/3 bg-card mt-5 sm:mt-0">
+            <button
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full transform sm:hidden bg-black text-white py-2 px-1 rounded-l-lg writing-mode-vertical"
+              onClick={() => setIsOrderBookCollapsed(!isOrderBookCollapsed)}
+            >
+              <span className="transform rotate-180">
+                {isOrderBookCollapsed ? "Show OrderBook" : "Hide OrderBook"}
+              </span>
+            </button>
+            <div
+              className={`${
+                isOrderBookCollapsed ? "hidden" : "block"
+              } sm:block w-full`}
+            >
+              <OrderBook
+                maxRows={5}
+                isOrderBookOn={isMarketOpen}
+                className="text-xs sm:text-sm"
+              />
+            </div>
           </div>
         </div>
       </div>

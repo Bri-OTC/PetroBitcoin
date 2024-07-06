@@ -258,3 +258,8 @@
     transform: rotate(360deg);
   }
 }
+
+.writing-mode-vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}

@@ -17,6 +17,7 @@ interface Order {
 interface OrderBookProps {
   maxRows?: number;
   isOrderBookOn: boolean;
+  className?: string;
 }
 
 const OrderRow: React.FC<Order & { type: "ask" | "bid"; index: number }> =
@@ -180,7 +181,7 @@ const scalePrice = (
 };
 
 export const OrderBook: React.FC<OrderBookProps> = React.memo(
-  ({ maxRows = 5, isOrderBookOn }) => {
+  ({ maxRows = 7, isOrderBookOn, className = "" }) => {
     const amount = useTradeStore((state) => state.amount);
     const entryPrice = useTradeStore((state) => state.entryPrice);
     const bidPrice = useTradeStore((state) => state.bidPrice);
@@ -313,7 +314,7 @@ export const OrderBook: React.FC<OrderBookProps> = React.memo(
 
     return (
       <div className="order-container">
-        <table className="order-book">
+        <table className={`order-book ${className}`}>
           <thead>
             <tr>
               <th className="amount">Amount</th>

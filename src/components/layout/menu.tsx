@@ -310,7 +310,7 @@ export function Menu() {
                   </div>
                 )}
               </div>
-              <h3 className="mr-2">Account: {wallet?.address}</h3>
+              <h3 className="mr-2">{wallet?.address}</h3>
               <div
                 onClick={() => {
                   logout();

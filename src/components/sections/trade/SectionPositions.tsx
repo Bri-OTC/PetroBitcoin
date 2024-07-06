@@ -156,14 +156,20 @@ function SectionPositions({
         <TableRow className="hover:bg-background border-none">
           <TableHead className="pr-0"></TableHead>
           <TableHead>
-            <p className="text-card-foreground">Size / Market</p>
+            <p className="text-card-foreground text-xs sm:text-sm">
+              Size / Market
+            </p>
           </TableHead>
           <TableHead>
-            <p className="text-card-foreground">Mark / Entry Price</p>
+            <p className="text-card-foreground text-xs sm:text-sm">
+              Mark / Entry Price
+            </p>
           </TableHead>
           <TableHead className="text-right">
-            <p className="text-card-foreground">Pnl. Amount</p>
-            <p>(USD)</p>
+            <p className="text-card-foreground text-xs sm:text-sm">
+              Pnl. Amount
+            </p>
+            <p className="text-xs sm:text-sm">(USD)</p>
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -203,17 +209,19 @@ function SectionPositions({
                         position.type.toLowerCase() === "long"
                           ? "text-green-400"
                           : "text-red-400"
-                      }`}
+                      } text-xs sm:text-sm`}
                     >
                       {position.size}
                     </p>
-                    <p className="text-card-foreground">{formattedMarket}</p>
+                    <p className="text-card-foreground text-xs sm:text-sm">
+                      {formattedMarket}
+                    </p>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div>
-                    <p>{position.mark}</p>
-                    <p className="text-card-foreground">
+                    <p className="text-xs sm:text-sm">{position.mark}</p>
+                    <p className="text-card-foreground text-xs sm:text-sm">
                       {position.entryPrice} USD
                     </p>
                   </div>
@@ -225,11 +233,13 @@ function SectionPositions({
                         Number(position.pnl) >= 0
                           ? "text-green-400"
                           : "text-red-400"
-                      }`}
+                      } text-xs sm:text-sm`}
                     >
                       {position.pnl}
                     </p>
-                    <p className="text-card-foreground">{position.amount}</p>
+                    <p className="text-card-foreground text-xs sm:text-sm">
+                      {position.amount}
+                    </p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -242,12 +252,20 @@ function SectionPositions({
                     <TableCell colSpan={4} className="py-1">
                       <div className="w-full flex justify-between">
                         <div className="w-full">
-                          <p className="text-card-foreground">Type</p>
-                          <p className="font-medium">{position.type}</p>
+                          <p className="text-card-foreground text-xs sm:text-sm">
+                            Type
+                          </p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {position.type}
+                          </p>
                         </div>
                         <div className="text-right w-full">
-                          <p className="text-card-foreground">Est. Liq</p>
-                          <p className="font-medium">{position.estLiq}</p>
+                          <p className="text-card-foreground text-xs sm:text-sm">
+                            Est. Liq
+                          </p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {position.estLiq}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -265,7 +283,7 @@ function SectionPositions({
                               className="flex space-x-2"
                             >
                               <FaEdit />
-                              <span>TP/SL</span>
+                              <span className="text-xs sm:text-sm">TP/SL</span>
                             </Button>
                           </DrawerTrigger>
                           <SheetPlaceClose
@@ -277,7 +295,7 @@ function SectionPositions({
                           onClick={() => handleMarketClose(position)}
                           variant="destructive"
                         >
-                          <span>Market</span>
+                          <span className="text-xs sm:text-sm">Market</span>
                         </Button>
                         <Link
                           href="/trade"
@@ -286,7 +304,7 @@ function SectionPositions({
                           <Button variant="outline">
                             <div className="flex items-center space-x-2">
                               <FaChartLine />
-                              <p>Chart</p>
+                              <p className="text-xs sm:text-sm">Chart</p>
                             </div>
                           </Button>
                         </Link>

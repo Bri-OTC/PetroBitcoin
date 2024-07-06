@@ -1,4 +1,3 @@
-//SectionOrders.tsx
 import {
   Table,
   TableBody,
@@ -145,13 +144,19 @@ function SectionOrders({
         <TableRow className="hover:bg-background border-none">
           <TableHead className="pr-0"></TableHead>
           <TableHead>
-            <p className="text-card-foreground">Size / Market</p>
+            <p className="text-card-foreground text-xs sm:text-sm">
+              Size / Market
+            </p>
           </TableHead>
           <TableHead>
-            <p className="text-card-foreground">Trigger / Amount</p>
+            <p className="text-card-foreground text-xs sm:text-sm">
+              Trigger / Amount
+            </p>
           </TableHead>
           <TableHead className="text-right">
-            <p className="text-card-foreground">Filled / Remaining Size</p>
+            <p className="text-card-foreground text-xs sm:text-sm">
+              Filled / Remaining Size
+            </p>
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -184,23 +189,29 @@ function SectionOrders({
                     <h3
                       className={`${
                         Number(x.size) > 0 ? "text-green-400" : "text-red-400"
-                      }`}
+                      } text-xs sm:text-sm`}
                     >
                       {x.size}
                     </h3>
-                    <h3 className="text-card-foreground">{formattedMarket}</h3>
+                    <h3 className="text-card-foreground text-xs sm:text-sm">
+                      {formattedMarket}
+                    </h3>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div>
-                    <h3>{x.trigger}</h3>
-                    <h3 className="text-card-foreground">{x.amount}</h3>
+                    <h3 className="text-xs sm:text-sm">{x.trigger}</h3>
+                    <h3 className="text-card-foreground text-xs sm:text-sm">
+                      {x.amount}
+                    </h3>
                   </div>
                 </TableCell>
                 <TableCell className="text-right">
                   <div>
-                    <h3>{x.filled}</h3>
-                    <h3 className="text-card-foreground">{x.remainingSize}</h3>
+                    <h3 className="text-xs sm:text-sm">{x.filled}</h3>
+                    <h3 className="text-card-foreground text-xs sm:text-sm">
+                      {x.remainingSize}
+                    </h3>
                   </div>
                 </TableCell>
               </TableRow>
@@ -213,18 +224,28 @@ function SectionOrders({
                     <TableCell colSpan={4} className="py-1">
                       <div className="w-full flex justify-between">
                         <div className="w-full text-center">
-                          <p className="text-card-foreground">
+                          <p className="text-card-foreground text-xs sm:text-sm">
                             Break Even Price
                           </p>
-                          <p className="font-medium">{x.breakEvenPrice}</p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {x.breakEvenPrice}
+                          </p>
                         </div>
                         <div className="text-center w-full">
-                          <p className="text-card-foreground">Limit Price</p>
-                          <p className="font-medium">{x.limitPrice}</p>
+                          <p className="text-card-foreground text-xs sm:text-sm">
+                            Limit Price
+                          </p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {x.limitPrice}
+                          </p>
                         </div>
                         <div className="text-right w-full">
-                          <p className="text-card-foreground">Status</p>
-                          <p className="font-medium">{x.status}</p>
+                          <p className="text-card-foreground text-xs sm:text-sm">
+                            Status
+                          </p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {x.status}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -236,12 +257,20 @@ function SectionOrders({
                     <TableCell colSpan={4} className="py-1">
                       <div className="w-full flex justify-around">
                         <div className="text-center">
-                          <p className="text-card-foreground">Reduce Only</p>
-                          <p className="font-medium">{x.reduceOnly}</p>
+                          <p className="text-card-foreground text-xs sm:text-sm">
+                            Reduce Only
+                          </p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {x.reduceOnly}
+                          </p>
                         </div>
                         <div className="text-center">
-                          <p className="text-card-foreground">Fill Amount</p>
-                          <p className="font-medium">{x.fillAmount}</p>
+                          <p className="text-card-foreground text-xs sm:text-sm">
+                            Fill Amount
+                          </p>
+                          <p className="font-medium text-xs sm:text-sm">
+                            {x.fillAmount}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
@@ -256,7 +285,7 @@ function SectionOrders({
                           onClick={() => handleCancelOrder(x)}
                           variant="destructive"
                         >
-                          <p>Cancel</p>
+                          <p className="text-xs sm:text-sm">Cancel</p>
                         </Button>
                         <Link
                           href="/trade"
@@ -265,7 +294,7 @@ function SectionOrders({
                           <Button variant="outline">
                             <div className="flex items-center space-x-2">
                               <FaChartLine />
-                              <p>Chart</p>
+                              <p className="text-xs sm:text-sm">Chart</p>
                             </div>
                           </Button>
                         </Link>
@@ -281,7 +310,7 @@ function SectionOrders({
           <TableCell colSpan={4} className="p-0">
             <Button
               variant="ghost"
-              className="text-primary w-full mt-5 text-lg hover:bg-muted"
+              className="text-primary w-full mt-5 text-xs sm:text-sm hover:bg-muted"
               onClick={handleCancelAllOrders}
             >
               <p>Cancel All</p>
